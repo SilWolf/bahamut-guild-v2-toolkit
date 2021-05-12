@@ -72,11 +72,13 @@
 		// 	editor.appendChild(newButton);
 		// }
 
+		let hasTakenOver = false;
+
 		const gsn = guild.gsn;
 		const sn = parseInt($('.inboxfeed').first().data('post-sn'));
 
 		let comments = [];
-		const apiUrl = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}&all`;
+		const apiUrl = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`;
 
 		const appendNewComments = (newComments) => {
 			let commentListHtml = '';
@@ -111,12 +113,51 @@
 			}
 		};
 
-		fetch(apiUrl, {
+		fetch(`${apiUrl}&all`, {
 			credentials: 'include',
 		})
 			.then((res) => res.json())
 			.then((response) => {
 				comments = response.data.comments;
+
+				if (!hasTakenOver) {
+					const oldGuildCommentReplyEnterKey = GuildComment.replyEnterKey;
+					// GuildComment.replyEnterKey = (event, element) => {
+					// 	let $element = $(element);
+					// 	let gsn = parseInt($element.data('gsn'), 10);
+					// 	let postSn = parseInt($element.data('post-sn'), 10);
+					// 	event = window.event || event;
+					// 	let code = event.which;
+					// 	if (code == 13 && GuildTagUser.tagListTippyShown) {
+					// 		return;
+					// 	}
+					// 	if (code == 13 && !event.shiftKey) {
+					// 		commentNew(gsn, postSn);
+					// 		if (event.preventDefault) {
+					// 			event.preventDefault();
+					// 		} else {
+					// 			event.returnValue = false;
+					// 		}
+					// 		return;
+					// 	}
+					// };
+
+					const editor = document.getElementsByClassName('reply-input')[0];
+					console.log(editor);
+
+					const textarea = editor.getElementsByTagName('textarea')[0];
+
+					console.log(textarea);
+
+					const onKeyDownFn = () => {
+						console.log('123');
+					};
+					textarea.addEventListener('keydown', onKeyDownFn);
+
+					// editor.innerHTML = '';
+
+					hasTakenOver = true;
+				}
 
 				setInterval(() => {
 					fetch(apiUrl, {
@@ -131,27 +172,7 @@
 								)
 							);
 						});
-				}, 5000);
+				}, 5000000);
 			});
-
-		setInterval(() => {
-			// const manageData = {
-			// 	admin: false,
-			// 	pinPost: [],
-			// 	deletePost: { 3014: true },
-			// };
-			// const guildPost = new GuildPost('.inboxfeed', manageData);
-			// guildPost.fetchPostDetail(4158, 15080367);
-			// GuildComment.fetchCommentList(15080367, '', false);
-			// fetch(
-			// 	`https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=4158&messageId=15080367`,
-			// 	{
-			// 		credentials: 'include',
-			// 	}
-			// );
-			// 1. 將已有comments變成一個array
-			// 2. 在新的fetch response中找到新的message, 然後append到comments中
-			// 3. 對每個新的comment, append HTML
-		}, 5000);
 	});
 })();
