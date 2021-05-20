@@ -225,7 +225,7 @@
 			const $commentContainer = $post.find(
 				'.webview_commendlist > div:first-child'
 			)
-			$commentContainer.innerHTML = ''
+			$commentContainer[0].innerHTML = ''
 			comments = []
 		}
 
