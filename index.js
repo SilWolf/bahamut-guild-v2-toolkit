@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Bahamut Guild V2 Toolkits
 // @namespace    https://silwolf.io/
-// @version      0.1
+// @version      0.1.0
 // @description  巴哈公會2.0的插件
 // @author       銀狼(silwolf167)
 // @include      /guild.gamer.com.tw/guild.php
 // @include      /guild.gamer.com.tw/post_detail.php
 // @grant        none
+// @updateUrl    https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/index.js
 // ==/UserScript==
 
 ;(function () {
@@ -156,8 +157,12 @@
 					background-color: #eee;
 					padding: 3px;
 					border: 1px solid #333;
-					color: black;
+					color: #000;
 					text-decoration: none;
+				}
+
+				.plugin-config-form.plugin-config-form.plugin-config-form button:disabled {
+					color: #ccc;
 				}
 
 				.plugin-config-form .form-message {
