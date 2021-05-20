@@ -12,6 +12,26 @@
 ;(function () {
 	'use strict'
 
+	function waitForElm(selector) {
+		return new Promise((resolve) => {
+			if (document.querySelector(selector)) {
+				return resolve(document.querySelector(selector))
+			}
+
+			const observer = new MutationObserver((mutations) => {
+				if (document.querySelector(selector)) {
+					resolve(document.querySelector(selector))
+					observer.disconnect()
+				}
+			})
+
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true,
+			})
+		})
+	}
+
 	// Your code here...
 	jQuery(document).ready(() => {
 		const head = document.getElementsByTagName('head')[0]
@@ -103,9 +123,14 @@
         }
 
 				.webview_commendlist > div.c-reply__editor .plugin-config-wrapper {
-					text-align: right;
+					display: flex;
+					flex-direction: row;
 					padding: 13px 0 5px;
 					font-size: 12px;
+				}
+
+				.plugin-config-wrapper .plugin-config-status {
+					flex: 1;
 				}
 
 				.plugin-config-form {
@@ -158,8 +183,8 @@
             margin-right: -20px;
             padding-left: 20px;
             padding-right: 20px;
-            background-color: #cfcfcf;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            background-color: rgba(180, 180, 180, 0.9);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
           }
 
           .reply-input textarea {
@@ -190,6 +215,15 @@
 		let comments = []
 		const apiUrl = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`
 
+		const clearComments = () => {
+			const $post = Guild.getPost(sn, false, '')
+			const $commentContainer = $post.find(
+				'.webview_commendlist > div:first-child'
+			)
+			$commentContainer.innerHTML = ''
+			comments = []
+		}
+
 		const appendNewComments = (newComments) => {
 			let commentListHtml = ''
 			for (const nC of newComments) {
@@ -199,6 +233,7 @@
 					nC.tags,
 					nC.mentions
 				)
+				nC.time = nC.ctime
 				commentListHtml += nunjucks.render('comment.njk.html', {
 					post: {
 						id: sn,
@@ -213,8 +248,8 @@
 			}
 
 			if (commentListHtml) {
-				let $post = Guild.getPost(sn, false, '')
-				let $commentContainer = $post.find(
+				const $post = Guild.getPost(sn, false, '')
+				const $commentContainer = $post.find(
 					'.webview_commendlist > div:first-child'
 				)
 				$commentContainer.append(commentListHtml)
@@ -223,13 +258,23 @@
 			}
 		}
 
-		fetch(`${apiUrl}&all`, {
-			credentials: 'include',
-		})
-			.then((res) => res.json())
-			.then((response) => {
-				comments = response.data.comments
+		const fetchLatestComments = () =>
+			fetch(`${apiUrl}`, {
+				credentials: 'include',
+			}).then((res) => res.json())
 
+		const fetchAllComments = () =>
+			fetch(`${apiUrl}&all`, {
+				credentials: 'include',
+			}).then((res) => res.json())
+
+		const fetchCommentsByPage = (page) =>
+			fetch(`${apiUrl}&page=${page}`, {
+				credentials: 'include',
+			}).then((res) => res.json())
+
+		if (location && location.href.includes('post_detail.php')) {
+			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 				if (!hasTakenOver) {
 					const oldGuildCommentReplyEnterKey = GuildComment.replyEnterKey
 					// GuildComment.replyEnterKey = (event, element) => {
@@ -260,14 +305,18 @@
 					const editorTextarea = editor.getElementsByTagName('textarea')[0]
 
 					// pluginConfigA - 建立可開關插件設定板面的連結
-					const pluginConfigAWrapper = document.createElement('div')
-					pluginConfigAWrapper.classList.add('plugin-config-wrapper')
-					editorContainer.appendChild(pluginConfigAWrapper)
+					const pluginConfigWrapper = document.createElement('div')
+					pluginConfigWrapper.classList.add('plugin-config-wrapper')
+					editorContainer.appendChild(pluginConfigWrapper)
+
+					const pluginConfigStatus = document.createElement('div')
+					pluginConfigStatus.classList.add('plugin-config-status')
+					pluginConfigWrapper.appendChild(pluginConfigStatus)
 
 					const pluginConfigA = document.createElement('a')
 					pluginConfigA.innerHTML = '插件設定'
 					pluginConfigA.setAttribute('href', '#')
-					pluginConfigAWrapper.appendChild(pluginConfigA)
+					pluginConfigWrapper.appendChild(pluginConfigA)
 
 					// pluginConfigForm - 插件設定板面
 					const pluginConfigForm = document.createElement('form')
@@ -279,14 +328,14 @@
 								<span class="slider"></span>
 							</label>
 							<span>自動更新</span>
-							<input type="number" min="1" data-field="autoRefreshInterval" data-type="number" style="width: 40px;" />
+							<input type="number" min="1" max="9999" data-field="autoRefreshInterval" data-type="number" style="width: 40px;" />
 							<span>秒</span>
 						</div>
-
+		
 						<div class="form-message"></div>
-
+		
 						<div class="form-footer">
-							<button type="button" class="plugin-config-button-set-as-default">設為預設值</button>
+							<button type="button" class="plugin-config-button-set-as-default" disabled>設為預設值</button>
 							<button type="button" class="plugin-config-button-apply">套用</button>
 						</div>
 					`
@@ -308,8 +357,8 @@
 						}, duration)
 					}
 
-					// getConfig - 從插件設定板面中讀取設定
-					const getConfig = () => {
+					// getFormConfig - 從插件設定板面中讀取設定
+					const getFormConfig = () => {
 						const els = pluginConfigForm.querySelectorAll('[data-field]')
 						const result = {}
 
@@ -339,7 +388,7 @@
 							'plugin-config-button-apply'
 						)[0]
 					const handleClickPluginConfigApply = () => {
-						getConfig()
+						setConfig(getFormConfig())
 						showPluginConfigMessage('已套用設定')
 					}
 					pluginConfigApplyButton.addEventListener(
@@ -363,25 +412,117 @@
 					}
 					editorTextarea.addEventListener('keydown', onKeyDownFn)
 
-					// editor.innerHTML = '';
+					let pluginConfig = {}
+					let autoRefreshTimeoutObj
+					const setConfig = (config) => {
+						/**
+						 * {
+						 * 	isEnabledAutoRefresh: false,
+						 * 	autoRefreshInterval: 0
+						 * }
+						 */
+						const { isEnabledAutoRefresh, autoRefreshInterval } = config
+
+						if (isEnabledAutoRefresh !== undefined) {
+							if (isEnabledAutoRefresh === false) {
+								if (autoRefreshTimeoutObj) {
+									clearTimeout(autoRefreshTimeoutObj)
+									autoRefreshTimeoutObj = undefined
+								}
+							} else if (isEnabledAutoRefresh === true && autoRefreshInterval) {
+								if (autoRefreshTimeoutObj) {
+									clearTimeout(autoRefreshTimeoutObj)
+									autoRefreshTimeoutObj = undefined
+								}
+
+								const autoRefreshTimeoutFn = () => {
+									fetchLatestComments()
+										.then(async (response) => {
+											const expectedNewCommentsCount =
+												response.data.commentCount - comments.length
+
+											comments
+											if (expectedNewCommentsCount < 0) {
+												const newComments = await fetchAllComments().then(
+													(response) => response.data.comments
+												)
+												clearComments()
+												appendNewComments(newComments)
+												return
+											}
+
+											const lastIdInt =
+												parseInt(comments[comments.length - 1]?.id) || 0
+											let newComments = response.data.comments.filter(
+												(nC) => parseInt(nC.id) > lastIdInt
+											)
+
+											let lastResponse = response
+											while (
+												newComments.length < expectedNewCommentsCount &&
+												lastResponse.data.nextPage !== 0
+											) {
+												const page = lastResponse.data.nextPage
+												lastResponse = await fetchCommentsByPage(page)
+												newComments = [
+													...lastResponse.data.comments.filter(
+														(nC) => parseInt(nC.id) > lastIdInt
+													),
+													...newComments,
+												]
+											}
+
+											if (newComments.length !== expectedNewCommentsCount) {
+												const newComments = await fetchAllComments().then(
+													(response) => response.data.comments
+												)
+												clearComments()
+												appendNewComments(newComments)
+												return
+											}
+
+											appendNewComments(newComments)
+										})
+										.finally(() => {
+											autoRefreshTimeoutObj = setTimeout(
+												autoRefreshTimeoutFn,
+												autoRefreshInterval * 1000
+											)
+										})
+								}
+
+								// 重讀一次整個comments列表
+								fetchAllComments().then((response) => {
+									comments = response.data.comments
+									autoRefreshTimeoutObj = setTimeout(
+										autoRefreshTimeoutFn,
+										autoRefreshInterval * 1000
+									)
+								})
+							}
+						}
+
+						pluginConfig = {
+							...pluginConfig,
+							...config,
+						}
+						const newStatusArr = []
+
+						if (
+							pluginConfig.isEnabledAutoRefresh &&
+							pluginConfig.autoRefreshInterval
+						) {
+							newStatusArr.push(
+								`自動更新: ${pluginConfig.autoRefreshInterval}秒`
+							)
+						}
+
+						pluginConfigStatus.innerHTML = newStatusArr.join('　')
+					}
 
 					hasTakenOver = true
 				}
-
-				setInterval(() => {
-					fetch(apiUrl, {
-						credentials: 'include',
-					})
-						.then((res) => res.json())
-						.then((newResponse) => {
-							const newComments = newResponse.data.comments
-							appendNewComments(
-								newComments.filter(
-									(nC) => comments.findIndex((c) => c.id === nC.id) === -1
-								)
-							)
-						})
-				}, 5000000)
 			})
+		}
 	})
 })()
