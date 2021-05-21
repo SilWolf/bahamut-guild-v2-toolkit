@@ -114,10 +114,19 @@
         }
 
         .webview_commendlist {
-          display: flex; flex-direction: column-reverse;
+          display: flex;
+					flex-direction: column;
         }
         .webview_commendlist > div {
-          display: flex; flex-direction: column-reverse;
+          display: flex;
+					flex-direction: column;
+        }
+
+        .webview_commendlist.inverted {
+          flex-direction: column-reverse;
+        }
+        .webview_commendlist.inverted > div {
+          flex-direction: column-reverse;
         }
         .webview_commendlist > div.c-reply__editor {
           flex-direction: column;
@@ -303,8 +312,11 @@
 					// };
 
 					// 將各個關鍵元件放進變量中
+					const commendList = document.getElementsByClassName(
+						'webview_commendlist'
+					)[0]
 					const editorContainer =
-						document.getElementsByClassName('c-reply__editor')[0]
+						commendList.getElementsByClassName('c-reply__editor')[0]
 					const editor =
 						editorContainer.getElementsByClassName('reply-input')[0]
 					const editorTextarea = editor.getElementsByTagName('textarea')[0]
@@ -335,6 +347,14 @@
 							<span>自動更新</span>
 							<input type="number" min="1" max="9999" data-field="autoRefreshInterval" data-type="number" style="width: 40px;" />
 							<span>秒</span>
+						</div>
+
+						<div class="form-group">
+							<label class="switch">
+								<input type="checkbox" data-field="isInvertedComments" data-type="boolean">
+								<span class="slider"></span>
+							</label>
+							<span>顛倒哈拉串</span>
 						</div>
 		
 						<div class="form-message"></div>
@@ -424,6 +444,7 @@
 						 * {
 						 * 	isEnabledAutoRefresh: false,
 						 * 	autoRefreshInterval: 0
+						 * 	isInvertedComments: 0
 						 * }
 						 */
 						const { isEnabledAutoRefresh, autoRefreshInterval } = config
@@ -505,6 +526,15 @@
 									)
 								})
 							}
+						}
+
+						const { isInvertedComments } = config
+
+						if (isInvertedComments !== undefined) {
+							commendList.classList.toggle(
+								'inverted',
+								isInvertedComments === true
+							)
 						}
 
 						pluginConfig = {
