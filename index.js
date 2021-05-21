@@ -6,12 +6,30 @@
 // @author       銀狼(silwolf167)
 // @include      /guild.gamer.com.tw/guild.php
 // @include      /guild.gamer.com.tw/post_detail.php
-// @grant        none
+// @grant        GM_notification
 // @updateUrl    https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/index.js
 // ==/UserScript==
 
 ;(function () {
 	'use strict'
+
+	const notificationAudio = new Audio(
+		'https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/notification.mp3'
+	)
+	addEventListener('load', function () {
+		notificationAudio.autoplay = true
+		notificationAudio.muted = true
+		notificationAudio.style.display = 'none!important'
+		document.body.appendChild(notificationAudio)
+	})
+
+	const notify = (detail) => {
+		GM_notification(detail)
+		if (detail && detail.slient !== true) {
+			notificationAudio.muted = false
+			notificationAudio.play()
+		}
+	}
 
 	const LS_KEY_CONFIG = 'bhgv2_toolkits_config'
 
@@ -298,6 +316,20 @@
 		if (location && location.href.includes('post_detail.php')) {
 			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 				if (!hasTakenOver) {
+					let postTitle = ''
+					fetch(
+						`https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`,
+						{ credentials: 'include' }
+					)
+						.then((resp) => {
+							return resp.json()
+						})
+						.then((response) => {
+							const post = response.data
+							console.log(post)
+							postTitle = post.content.split('\n')[0].substr(0, 20)
+						})
+
 					const oldGuildCommentReplyEnterKey = GuildComment.replyEnterKey
 					// GuildComment.replyEnterKey = (event, element) => {
 					// 	let $element = $(element);
@@ -471,7 +503,12 @@
 						 * 	isInvertedComments: 0
 						 * }
 						 */
-						const { isEnabledAutoRefresh, autoRefreshInterval } = config
+						const {
+							isEnabledAutoRefresh,
+							autoRefreshInterval,
+							isEnabledNotification,
+							isEnabledNotificationSound,
+						} = config
 
 						if (isEnabledAutoRefresh !== undefined) {
 							if (isEnabledAutoRefresh === false) {
@@ -531,7 +568,20 @@
 												return
 											}
 
-											appendNewComments(newComments)
+											if (newComments.length > 0) {
+												appendNewComments(newComments)
+												if (isEnabledNotification === true) {
+													const lastComment =
+														newComments[newComments.length - 1]
+													notify({
+														title: postTitle,
+														text: `(#${lastComment.position}) ${lastComment.name}： ${lastComment.text}`,
+														highlight: true,
+														slient: isEnabledNotificationSound,
+														timeout: 5000,
+													})
+												}
+											}
 										})
 										.finally(() => {
 											autoRefreshTimeoutObj = setTimeout(

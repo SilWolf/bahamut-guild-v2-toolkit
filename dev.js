@@ -7,7 +7,7 @@
 // @include      /guild.gamer.com.tw/guild.php
 // @include      /guild.gamer.com.tw/post_detail.php
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
-// @grant        none
+// @grant        GM_notification
 // @require      file:///Users/user/Desktop/bahamut-guild-v2-toolkit/index.js
 // ==/UserScript==
 
