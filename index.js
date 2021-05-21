@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bahamut Guild V2 Toolkits
 // @namespace    https://silwolf.io/
-// @version      0.1.0
+// @version      0.2.0
 // @description  巴哈公會2.0的插件
 // @author       銀狼(silwolf167)
 // @include      /guild.gamer.com.tw/guild.php
@@ -326,7 +326,6 @@
 						})
 						.then((response) => {
 							const post = response.data
-							console.log(post)
 							postTitle = post.content.split('\n')[0].substr(0, 20)
 						})
 
@@ -395,6 +394,22 @@
 								<span class="slider"></span>
 							</label>
 							<span>顛倒哈拉串</span>
+						</div>
+
+						<div class="form-group">
+							<label class="switch">
+								<input type="checkbox" data-field="isEnabledNotification" data-type="boolean">
+								<span class="slider"></span>
+							</label>
+							<span>桌面通知</span>
+						</div>
+
+						<div class="form-group">
+							<label class="switch">
+								<input type="checkbox" data-field="isEnabledNotificationSound" data-type="boolean">
+								<span class="slider"></span>
+							</label>
+							<span>桌面通知的聲音</span>
 						</div>
 		
 						<div class="form-message"></div>
@@ -500,7 +515,9 @@
 						 * {
 						 * 	isEnabledAutoRefresh: false,
 						 * 	autoRefreshInterval: 0
-						 * 	isInvertedComments: 0
+						 * 	isInvertedComments: false
+						 * 	isEnabledNotification: false,
+						 * 	isEnabledNotificationSound: false,
 						 * }
 						 */
 						const {
@@ -626,6 +643,14 @@
 							)
 						}
 
+						if (pluginConfig.isEnabledNotification) {
+							if (pluginConfig.isEnabledNotificationSound) {
+								newStatusArr.push(`桌面通知+聲音`)
+							} else {
+								newStatusArr.push(`桌面通知`)
+							}
+						}
+
 						pluginConfigStatus.innerHTML = newStatusArr.join('　')
 
 						return pluginConfig
@@ -644,11 +669,11 @@
 
 							switch (type) {
 								case 'boolean':
-									els.checked = config[field] === true
+									el.checked = config[field] === true
 									break
 								case 'number':
 								default:
-									els.value = config[field]
+									el.value = config[field]
 							}
 						}
 
