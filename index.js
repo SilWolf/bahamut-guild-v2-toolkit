@@ -13,7 +13,9 @@
 ;(function () {
 	'use strict'
 
-	function waitForElm(selector) {
+	const LS_KEY_CONFIG = 'bhgv2_toolkits_config'
+
+	const waitForElm = (selector) => {
 		return new Promise((resolve) => {
 			if (document.querySelector(selector)) {
 				return resolve(document.querySelector(selector))
@@ -32,6 +34,12 @@
 			})
 		})
 	}
+
+	const storeConfigToLocalStorage = (config) => {
+		localStorage.setItem(LS_KEY_CONFIG, JSON.stringify(config))
+	}
+	const loadConfigFromLocalStorage = () =>
+		JSON.parse(localStorage.getItem(LS_KEY_CONFIG) || '{}')
 
 	// Your code here...
 	jQuery(document).ready(() => {
@@ -360,7 +368,7 @@
 						<div class="form-message"></div>
 		
 						<div class="form-footer">
-							<button type="button" class="plugin-config-button-set-as-default" disabled>設為預設值</button>
+							<button type="button" class="plugin-config-button-set-as-default">設為預設值</button>
 							<button type="button" class="plugin-config-button-apply">套用</button>
 						</div>
 					`
@@ -421,6 +429,22 @@
 						handleClickPluginConfigApply
 					)
 
+					// pluginConfigSetAsDefaultButton - 插件設定板面的「設為預設值」按鈕
+					const pluginConfigSetAsDefaultButton =
+						pluginConfigForm.getElementsByClassName(
+							'plugin-config-button-set-as-default'
+						)[0]
+					const handleClickPluginConfigSetAsDefault = () => {
+						const newConfig = getFormConfig()
+						const finalConfig = setConfig(newConfig)
+						storeConfigToLocalStorage(finalConfig)
+						showPluginConfigMessage('已套用設定及設為預設值')
+					}
+					pluginConfigSetAsDefaultButton.addEventListener(
+						'click',
+						handleClickPluginConfigSetAsDefault
+					)
+
 					// togglePluginConfigForm - 開關插件設定板面
 					const togglePluginConfigForm = (newState) => {
 						pluginConfigForm.classList.toggle('active', newState)
@@ -433,7 +457,7 @@
 					pluginConfigA.addEventListener('click', handleClickPluginConfigA)
 
 					const onKeyDownFn = () => {
-						console.log('123')
+						// console.log('123')
 					}
 					editorTextarea.addEventListener('keydown', onKeyDownFn)
 
@@ -553,7 +577,45 @@
 						}
 
 						pluginConfigStatus.innerHTML = newStatusArr.join('　')
+
+						return pluginConfig
 					}
+
+					const fillFormConfig = (config) => {
+						const els = pluginConfigForm.querySelectorAll('[data-field]')
+
+						for (const el of els) {
+							const field = el.getAttribute('data-field')
+							const type = el.getAttribute('data-type')
+
+							if (config[field] === undefined) {
+								continue
+							}
+
+							switch (type) {
+								case 'boolean':
+									els.checked = config[field] === true
+									break
+								case 'number':
+								default:
+									els.value = config[field]
+							}
+						}
+
+						pluginConfigForm.querySelector(
+							'[data-field="isEnabledAutoRefresh"]'
+						).checked = config.isEnabledAutoRefresh === true
+						pluginConfigForm.querySelector(
+							'[data-field="isInvertedComments"]'
+						).checked = config.isInvertedComments === true
+						pluginConfigForm.querySelector(
+							'[data-field="autoRefreshInterval"]'
+						).value = config.autoRefreshInterval
+					}
+
+					const storedConfig = loadConfigFromLocalStorage()
+					setConfig(storedConfig)
+					fillFormConfig(storedConfig)
 
 					hasTakenOver = true
 				}
