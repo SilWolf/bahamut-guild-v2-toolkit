@@ -59,8 +59,55 @@
 	const loadConfigFromLocalStorage = () =>
 		JSON.parse(localStorage.getItem(LS_KEY_CONFIG) || '{}')
 
+	/** 網頁載入時原有的title */
+	const orginal_title = document.title
+
+	/** 修改網頁的標題，增加通知數目 */	
+	const changeTitleNofityCount = () => {
+		var titleConfig = loadConfigFromLocalStorage()
+		var boolEnable = ("isEnabledTitleNotification" in titleConfig) ? titleConfig['isEnabledTitleNotification'] : false
+		var boolNotice = ("isTitleNotificationCountNotify" in titleConfig) ? titleConfig['isTitleNotificationCountNotify'] : false
+		var boolSubscript = ("isTitleNotificationCountSubscribe" in titleConfig) ? titleConfig['isTitleNotificationCountSubscribe'] : false
+		var boolRecommend = ("isTitleNotificationCountRecommand" in titleConfig) ? titleConfig['isTitleNotificationCountRecommand'] : false
+		var title = orginal_title
+
+		if (!boolEnable){
+			document.title = title;
+			return
+		}
+
+		var msg_alert = new Array('topBar_light_0', 'topBar_light_1', 'topBar_light_2');
+
+		var total_msg = 0;
+		var msg_sep = new Array();
+		msg_alert.forEach(function(entry) {
+			if (document.getElementById(entry).firstChild != null) {
+				var spanText = document.getElementById(entry).children[0].innerHTML;
+				var temp_int = parseInt(spanText, 10);
+				msg_sep.push(temp_int);
+			} else {
+				msg_sep.push(0);
+			}
+		});
+		if (boolNotice) total_msg += msg_sep[0];
+		if (boolSubscript) total_msg += msg_sep[1];
+		if (boolRecommend) total_msg += msg_sep[2];
+
+		if (total_msg > 0) {
+			document.title = "(" + total_msg + ") " + title;
+		} else {
+			document.title = title;
+		}
+	}
+
 	// Your code here...
 	jQuery(document).ready(() => {
+		//訂閱通知區塊#BH-top-data的DOM修改事件並且修改title
+		const titleObserver = new MutationObserver(changeTitleNofityCount);
+		const titleObserverTargetNode = document.getElementById('BH-top-data');
+		const titleObserverConfig = { attributes: true, childList: true, subtree: true };
+		titleObserver.observe(titleObserverTargetNode, titleObserverConfig);
+		
 		const head = document.getElementsByTagName('head')[0]
 		if (head) {
 			const style = document.createElement('style')
@@ -410,6 +457,21 @@
 								<span class="slider"></span>
 							</label>
 							<span>桌面通知的聲音</span>
+						</div>
+
+						<div class="form-group" id="pluginConfigFormTitleSetting">
+							<label class="switch">
+								<input type="checkbox" data-field="isEnabledTitleNotification" data-type="boolean">
+								<span class="slider"></span>
+							</label>
+							<span>是否啟用標題顯示通知數目</span>
+							<span>計算項目：</span>
+							<input type="checkbox" data-field="isTitleNotificationCountNotify" data-type="boolean">
+							<span>通知</span>
+							<input type="checkbox" data-field="isTitleNotificationCountSubscribe" data-type="boolean">
+							<span>訂閱</span>
+							<input type="checkbox" data-field="isTitleNotificationCountRecommand" data-type="boolean">
+							<span>推薦</span>
 						</div>
 		
 						<div class="form-message"></div>
