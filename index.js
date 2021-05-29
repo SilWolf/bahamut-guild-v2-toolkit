@@ -19,6 +19,60 @@
 	/** Global config*/
 	let GLOBLE_CONFIG = {}
 
+	//-------------------------------Highlight when tag me-------------------------------//
+	/** apply highlight css for tag me comment*/
+	const applyHighLightWhenTagMe = () => {
+		var config = GLOBLE_CONFIG['user_config']
+		var user = GLOBLE_CONFIG['user_info'] 
+		const { isEnabledCommentHigtLightTagMe } = config
+		
+		const commendHightlightList = document.querySelectorAll(`.reply-content__cont p a[href*=${user.id}]`)
+
+		if (isEnabledCommentHigtLightTagMe !== undefined) {
+			commendHightlightList.forEach(element => {
+				var targetNode = element.parentNode.parentNode.parentNode
+				console.log("FLAG")
+				targetNode.classList.toggle(
+					'tag_me_highlight',
+					isEnabledCommentHigtLightTagMe === true
+				)
+				targetNode.addEventListener("click", (e)=>{
+					targetNode.classList.toggle(
+						'tag_me_highlight',
+						false
+					)
+				},{once: true});
+			});
+		}
+		
+	}
+	
+	/** register css for highlight when tag me */
+	const registerHighlightWhenTagMe = () => {
+		const styleHightLight = document.createElement('style')
+		styleHightLight.innerHTML = `
+			.tag_me_highlight{
+				animation-name: highlight;
+    			animation-duration: 4.0s;
+				animation-iteration-count: infinite;
+			}
+
+			@keyframes highlight{
+				0% {
+					background-color: #ffffff00;
+				}
+				75% {
+					background-color: #ff000020;
+				}
+				100% {
+					background-color: #ffffff00;
+				}
+			}
+		`
+		const head = document.getElementsByTagName('head')[0]
+		head.appendChild(styleHightLight)
+	}
+
 	//-------------------------------Notification Sound-------------------------------//
 	/** 初始化通知提示音DOM */
 	const initNotificationAudio = () => {
@@ -315,6 +369,7 @@
 		applyAutoRefreshInterval()
 		enableCommentReverse()
 		changeTitleNofityCount()
+		applyHighLightWhenTagMe()
 	})
 
 	/** 註冊設定變更追蹤者 */
@@ -475,7 +530,15 @@
 				<span>桌面通知的聲音</span>
 			</div>
 
-			<div class="form-group" id="pluginConfigFormTitleSetting">
+			<div class="form-group">
+				<label class="switch">
+					<input type="checkbox" data-field="isEnabledCommentHigtLightTagMe" data-type="boolean">
+					<span class="slider"></span>
+				</label>
+				<span>高亮提及我的訊息</span>
+			</div>
+
+			<div class="form-group">
 				<label class="switch">
 					<input type="checkbox" data-field="isEnabledTitleNotification" data-type="boolean">
 					<span class="slider"></span>
@@ -802,6 +865,8 @@
 
 		//註冊提示音DOM
 		registerNotificationAudio()
+		//註冊提及我高亮CSS
+		registerHighlightWhenTagMe()
 		
 		//套用CSS
 		const head = document.getElementsByTagName('head')[0]
@@ -822,6 +887,7 @@
 		GLOBLE_CONFIG['comments'] = []
 		GLOBLE_CONFIG['user_config'] = loadConfigFromLocalStorage()
 		GLOBLE_CONFIG['postTitle'] = loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn'])
+		GLOBLE_CONFIG['user_info'] = guildPost.loginUser
 		
 		if (location && location.href.includes('post_detail.php')) {
 			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
