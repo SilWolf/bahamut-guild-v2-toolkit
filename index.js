@@ -10,12 +10,13 @@
 // @updateUrl    https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/index.js
 // ==/UserScript==
 
-;(function () {
+; (function () {
 	'use strict'
 
 	//-------------------------------全域設定-------------------------------//
 	/** key for local storage usage */
 	const LS_KEY_CONFIG = 'bhgv2_toolkits_config'
+	const DEBUG_MODE = true
 	/** Global config*/
 	let GLOBLE_CONFIG = {}
 
@@ -23,9 +24,9 @@
 	/** apply highlight css for tag me comment*/
 	const applyHighLightWhenTagMe = () => {
 		var config = GLOBLE_CONFIG['user_config']
-		var user = GLOBLE_CONFIG['user_info'] 
+		var user = GLOBLE_CONFIG['user_info']
 		const { isEnabledCommentHigtLightTagMe } = config
-		
+
 		const commendHightlightList = document.querySelectorAll(`.reply-content__cont p a[href*=${user.id}]`)
 
 		if (isEnabledCommentHigtLightTagMe !== undefined) {
@@ -36,17 +37,17 @@
 					'tag_me_highlight',
 					isEnabledCommentHigtLightTagMe === true
 				)
-				targetNode.addEventListener("click", (e)=>{
+				targetNode.addEventListener("click", (e) => {
 					targetNode.classList.toggle(
 						'tag_me_highlight',
 						false
 					)
-				},{once: true});
+				}, { once: true });
 			});
 		}
-		
+
 	}
-	
+
 	/** register css for highlight when tag me */
 	const registerHighlightWhenTagMe = () => {
 		const styleHightLight = document.createElement('style')
@@ -83,7 +84,7 @@
 		dom.muted = true
 		dom.style.display = 'none!important'
 		return dom
-	}	
+	}
 
 	/** 註冊提示音物件 */
 	const registerNotificationAudio = () => {
@@ -260,7 +261,7 @@
 			autoRefreshInterval,
 		} = config
 
-		
+
 
 		if (isEnabledAutoRefresh !== undefined) {
 			const autoRefreshTimeoutObj = GLOBLE_CONFIG['autoRefreshTimeoutObj']
@@ -273,7 +274,7 @@
 				if (autoRefreshTimeoutObj) {
 					clearTimeout(autoRefreshTimeoutObj)
 					GLOBLE_CONFIG['autoRefreshTimeoutObj'] = undefined
-				}				
+				}
 
 				// 重讀一次整個comments列表
 				fetchAllComments().then((response) => {
@@ -306,7 +307,7 @@
 	/** 網頁載入時原有的title */
 	GLOBLE_CONFIG['pageOrginalTitle'] = document.title
 
-	/** 修改網頁的標題，增加通知數目 */	
+	/** 修改網頁的標題，增加通知數目 */
 	const changeTitleNofityCount = () => {
 		var config = GLOBLE_CONFIG['user_config']
 		var boolEnable = ("isEnabledTitleNotification" in config) ? config['isEnabledTitleNotification'] : false
@@ -315,7 +316,7 @@
 		var boolRecommend = ("isTitleNotificationCountRecommand" in config) ? config['isTitleNotificationCountRecommand'] : false
 		var title = GLOBLE_CONFIG['pageOrginalTitle']
 
-		if (!boolEnable){
+		if (!boolEnable) {
 			document.title = title;
 			return
 		}
@@ -324,7 +325,7 @@
 
 		var total_msg = 0;
 		var msg_sep = new Array();
-		msg_alert.forEach(function(entry) {
+		msg_alert.forEach(function (entry) {
 			if (document.getElementById(entry).firstChild != null) {
 				var spanText = document.getElementById(entry).children[0].innerHTML;
 				var temp_int = parseInt(spanText, 10);
@@ -365,7 +366,7 @@
 	}
 
 	/** 設定變更時觸發的主函式 */
-	const applyChangeObserver = new MutationObserver(() =>{
+	const applyChangeObserver = new MutationObserver(() => {
 		applyAutoRefreshInterval()
 		enableCommentReverse()
 		changeTitleNofityCount()
@@ -379,8 +380,8 @@
 		document.body.appendChild(hiddenConfigChangeIndicator)
 		// 設定追蹤對象與追蹤項目
 		applyChangeObserver.observe(
-			hiddenConfigChangeIndicator, 
-			{attributes: true, childList: true, subtree: true}
+			hiddenConfigChangeIndicator,
+			{ attributes: true, childList: true, subtree: true }
 		);
 	}
 
@@ -687,9 +688,87 @@
 			return post.content.split('\n')[0].substr(0, 20)
 		})
 	}
+
+	//-------------------------------Debug Function-----------------------------//
+	const debug = () => {
+		console.log(GLOBLE_CONFIG)
+	}
+
+
+	/** 產生 Debug 按鈕 DOM */
+	const initDebugGlobalConfigBtn = () => {
+		var aDom = document.createElement("a");
+		aDom.id = 'baha_toolkit_debug'
+		aDom.innerHTML = '<img src="https://i2.bahamut.com.tw/guild/guildnav-icon_setting.png"><span class="text-tooltip">插件用DEBUG按鈕</span>'
+		aDom.style = 'background-color: rgba(193, 17, 131, 0.1);'
+		aDom.addEventListener('click', debug)
+
+		return aDom
+	}
+
+	/** 註冊Debug按鈕*/
+	const registerDebugBtn = () => {
+		const btnDom = initDebugGlobalConfigBtn()
+		const nav_feature_dom = document.getElementsByClassName('main-nav_m-features')
+
+		nav_feature_dom[0].appendChild(btnDom)
+		nav_feature_dom[1].appendChild(btnDom)
+	}
+
+	//-------------------------------Dark Mode----------------------------------//
+	/** 設定闇黑模式變更時觸發的主函式 */
+	const darkModeObserver = new MutationObserver(function (mutations) {
+		mutations.forEach(function (mutationRecord) {
+			//檢查c-reply__editor是否存在，避免不必要的error觸發
+			var target_dom = document.getElementsByClassName("c-reply__editor")
+			if (target_dom.length == 0) {
+				return
+			}
+
+			if (Cookies.get("ckForumDarkTheme") == "yes") {
+				document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", true);
+				document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", true);
+			} else {
+				document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", false);
+				document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", false);
+			}
+		});
+	});
+
+	/** 註冊闇黑模式變更者，變更條件為偵測head變化 */
+	const registerDarkMode = () => {
+		var target = document.getElementsByTagName('head')[0];
+		darkModeObserver.observe(target, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	}
+
+	/** 
+			if (Cookies.get("ckForumDarkTheme") == "yes") {
+				$('link[href*="guild.all_dark.css"]').remove();
+				Cookies.remove("ckForumDarkTheme", {
+					domain: "gamer.com.tw"
+				})
+			} else {
+				$("<link>").attr({
+					rel: "stylesheet",
+					type: "text/css",
+					href: "https://i2.bahamut.com.tw/css/guild.all_dark.css?_=10"
+				}).insertAfter("link:last");
+				Cookies.set("ckForumDarkTheme", "yes", {
+					expires: 365,
+					domain: "gamer.com.tw"
+				})
+			}
+
+
+
+	*/
 	//-------------------------------Main Section-------------------------------//
 
-	const pageStyleString =  `
+	const pageStyleString = `
 		/* The switch - the box around the slider */
 		.switch {
 			position: relative;
@@ -797,7 +876,6 @@
 			background: #ffffff;
 			padding: 8px;
 			border-radius: 4px;
-
 			display: none;
 		}
 
@@ -805,8 +883,16 @@
 			display: block;
 		}
 
+		.plugin-config-form.dark {
+			background: #222222;
+		}
+
 		.plugin-config-form.plugin-config-form.plugin-config-form input {
 			border: 1px solid #999;
+		}
+
+		.plugin-config-form.plugin-config-form.plugin-config-form.dark input {
+			color: #C7C6CB
 		}
 
 		.plugin-config-form.plugin-config-form.plugin-config-form button {
@@ -837,8 +923,8 @@
 			text-align: center;
 		}
 	`
-	
-	const postStyle_post_detail =`
+
+	const postStyle_post_detail = `
 		.webview_commendlist .c-reply__editor {
 			position: sticky;
 			top: 80px;
@@ -850,14 +936,24 @@
 			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 		}
 
+		.webview_commendlist .c-reply__editor.dark {
+			background-color: rgba(0, 0, 0, 0.9) !important;
+			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+		}
+
 		.reply-input textarea {
 			min-height: 66px;
 		}
 	`
-			
+
 
 
 	jQuery(document).ready(() => {
+		//註冊DebugDOM
+		if (DEBUG_MODE) {
+			registerDebugBtn()
+		}
+
 		//註冊標題通知器
 		registerNotificationDomChangeEvent()
 		//註冊設定變更者
@@ -867,7 +963,10 @@
 		registerNotificationAudio()
 		//註冊提及我高亮CSS
 		registerHighlightWhenTagMe()
-		
+
+		//註冊暗黑模式變更者
+		registerDarkMode()
+
 		//套用CSS
 		const head = document.getElementsByTagName('head')[0]
 		if (head) {
@@ -882,17 +981,23 @@
 		let hasTakenOver = false
 
 		GLOBLE_CONFIG['gsn'] = guild.gsn
-		GLOBLE_CONFIG['sn'] = parseInt($('.inboxfeed').first().data('post-sn'))
-		GLOBLE_CONFIG['apiUrl'] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${GLOBLE_CONFIG['gsn']}&messageId=${GLOBLE_CONFIG['sn']}`
 		GLOBLE_CONFIG['comments'] = []
 		GLOBLE_CONFIG['user_config'] = loadConfigFromLocalStorage()
-		GLOBLE_CONFIG['postTitle'] = loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn'])
 		GLOBLE_CONFIG['user_info'] = guildPost.loginUser
-		
+
 		if (location && location.href.includes('post_detail.php')) {
+			//根據網址資料獲得sn id
+			const re = /https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm;
+			var url = document.URL
+			var url_match = re.exec(url)
+
+			GLOBLE_CONFIG['sn'] = url_match[2]
+			GLOBLE_CONFIG['postTitle'] = loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn'])
+			GLOBLE_CONFIG['apiUrl'] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${GLOBLE_CONFIG['gsn']}&messageId=${GLOBLE_CONFIG['sn']}`
+
 			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 				if (!hasTakenOver) {
-					
+
 					//初始化設定面板
 					initSettingPane()
 
