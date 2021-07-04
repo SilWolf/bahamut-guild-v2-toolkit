@@ -20,6 +20,140 @@
 	/** Global config*/
 	let GLOBLE_CONFIG = {}
 
+	//-------------------------------Flash Title when New Message-------------------------//
+	/** 新訊息標題閃爍事件 */
+	GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
+	/** 新訊息時標題閃爍 */
+	const newMessageTitleFlash = () => {
+		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] !== undefined) {
+			return
+		}
+
+		var Message = "有新訊息！"
+		GLOBLE_CONFIG['titleFlashTimeoutObj'] = window.setInterval(function () {
+			if (document.title == Message) {
+				changeTitleWithNotification()
+			} else {
+				document.title = Message
+			}
+		}, 1000);
+	}
+
+	//-------------------------------Highlight when New Message--------------------------//
+	/** 註冊新回應高亮相關變數 */
+	const registerHighLightWhenNewMessage = () => {
+		GLOBLE_CONFIG['NewMessageUnread'] = {
+			last_read_csn: undefined,
+			abortController: undefined,
+			acknoledgeEventListener: false
+		}
+
+		const styleHightLight = document.createElement('style')
+		styleHightLight.innerHTML = `
+			.new_message_highlight{
+				animation-name: highlight_ns;
+    			animation-duration: 4.0s;
+				animation-iteration-count: infinite;
+			}
+
+			@keyframes highlight_ns{
+				0% {
+					background-color: #ffffff00;
+				}
+				75% {
+					background-color: #00ff0020;
+				}
+				100% {
+					background-color: #ffffff00;
+				}
+			}
+		`
+		const head = document.getElementsByTagName('head')[0]
+		head.appendChild(styleHightLight)
+	}
+
+	/** 新回應高亮主事件 */
+	const listenNewMessage = () => {
+		const panel_config = GLOBLE_CONFIG['user_config']
+		const module_config = GLOBLE_CONFIG['NewMessageUnread']
+
+		const {
+			isEnabledCommentHigtLightNewMessage,
+			isEnabledTitleFlashNewMessage
+		} = panel_config
+
+		if (!isEnabledCommentHigtLightNewMessage && !isEnabledTitleFlashNewMessage) {
+			module_config.last_read_csn = undefined
+			module_config.abortController = undefined
+			return
+		}
+
+		if (module_config.last_read_csn == undefined) {
+			var lastCommentCsn = document.querySelector(`.c-reply__item:last-child`).getAttribute("data-csn")
+			GLOBLE_CONFIG['NewMessageUnread'].last_read_csn = lastCommentCsn
+		}
+
+		if (module_config.abortController == undefined) {
+			GLOBLE_CONFIG['NewMessageUnread'].abortController = new AbortController()
+		}
+
+		var unread_list = []
+		const last_read_csn = GLOBLE_CONFIG['NewMessageUnread'].last_read_csn
+		const commendHightlightList = document.querySelectorAll(".c-reply__item")
+		commendHightlightList.forEach(element => {
+			var element_csn = element.getAttribute("data-csn")
+			if (element_csn <= last_read_csn) {
+				return
+			}
+
+			unread_list.push(element)
+		});
+
+		if (unread_list.length > 0) {
+			if (isEnabledCommentHigtLightNewMessage) {
+				applyHighLightWhenNewMessage(unread_list)
+			}
+
+			if (isEnabledTitleFlashNewMessage) {
+				newMessageTitleFlash()
+			}
+
+
+			if (!module_config.acknoledgeEventListener) {
+				document.getElementsByTagName("body")[0].addEventListener('click', () => {
+					acknolegeNewMessage()
+				}, { once: true })
+			}
+		}
+
+	}
+
+	/** 高亮新的回應 */
+	const applyHighLightWhenNewMessage = (element_list) => {
+		const module_config = GLOBLE_CONFIG['NewMessageUnread']
+
+		element_list.forEach(element => {
+			element.classList.toggle('new_message_highlight', true)
+		});
+
+	}
+
+	/** 重置新回應事件 */
+	const acknolegeNewMessage = () => {
+		var lastCommentCsn = document.querySelector(`.c-reply__item:last-child`).getAttribute("data-csn")
+		GLOBLE_CONFIG['NewMessageUnread'].last_read_csn = lastCommentCsn
+
+		document.querySelectorAll(`.new_message_highlight`).forEach(ele => ele.classList.toggle('new_message_highlight', false))
+		GLOBLE_CONFIG['NewMessageUnread'].abortController.abort()
+		GLOBLE_CONFIG['NewMessageUnread'].abortController = new AbortController()
+
+		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] !== undefined) {
+			clearInterval(GLOBLE_CONFIG['titleFlashTimeoutObj']);
+			GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
+		}
+		changeTitleWithNotification()
+	}
+
 	//-------------------------------Highlight when tag me-------------------------------//
 	/** apply highlight css for tag me comment*/
 	const applyHighLightWhenTagMe = () => {
@@ -27,25 +161,26 @@
 		var user = GLOBLE_CONFIG['user_info']
 		const { isEnabledCommentHigtLightTagMe } = config
 
-		const commendHightlightList = document.querySelectorAll(`.reply-content__cont p a[href*=${user.id}]`)
+		if (isEnabledCommentHigtLightTagMe == undefined) {
+			return
+		}
 
-		if (isEnabledCommentHigtLightTagMe !== undefined) {
-			commendHightlightList.forEach(element => {
-				var targetNode = element.parentNode.parentNode.parentNode
-				console.log("FLAG")
-				targetNode.classList.toggle(
-					'tag_me_highlight',
-					isEnabledCommentHigtLightTagMe === true
-				)
+		const commendHightlightList = document.querySelectorAll(`.reply-content__cont p a[href*=${user.id}]`)
+		commendHightlightList.forEach(element => {
+			var targetNode = element.parentNode.parentNode.parentNode
+			targetNode.classList.toggle(
+				'tag_me_highlight',
+				isEnabledCommentHigtLightTagMe === true
+			)
+			if (isEnabledCommentHigtLightTagMe) {
 				targetNode.addEventListener("click", (e) => {
 					targetNode.classList.toggle(
 						'tag_me_highlight',
 						false
 					)
 				}, { once: true });
-			});
-		}
-
+			}
+		});
 	}
 
 	/** register css for highlight when tag me */
@@ -53,12 +188,12 @@
 		const styleHightLight = document.createElement('style')
 		styleHightLight.innerHTML = `
 			.tag_me_highlight{
-				animation-name: highlight;
+				animation-name: highlight_tm;
     			animation-duration: 4.0s;
 				animation-iteration-count: infinite;
 			}
 
-			@keyframes highlight{
+			@keyframes highlight_tm{
 				0% {
 					background-color: #ffffff00;
 				}
@@ -246,6 +381,8 @@
 				}
 			})
 			.finally(() => {
+				applyHighLightWhenTagMe()
+				listenNewMessage()
 				GLOBLE_CONFIG['autoRefreshTimeoutObj'] = setTimeout(
 					autoRefreshTimeoutFn,
 					autoRefreshInterval * 1000
@@ -306,20 +443,36 @@
 	//-------------------------------Title Notification-------------------------------//
 	/** 網頁載入時原有的title */
 	GLOBLE_CONFIG['pageOrginalTitle'] = document.title
+	/** 存放通知數量 */
+	GLOBLE_CONFIG['pageNotificationCount'] = 0
 
-	/** 修改網頁的標題，增加通知數目 */
-	const changeTitleNofityCount = () => {
+	/** 修改網頁標題成帶有通知數量 */
+	const changeTitleWithNotification = () => {
 		var config = GLOBLE_CONFIG['user_config']
-		var boolEnable = ("isEnabledTitleNotification" in config) ? config['isEnabledTitleNotification'] : false
-		var boolNotice = ("isTitleNotificationCountNotify" in config) ? config['isTitleNotificationCountNotify'] : false
-		var boolSubscript = ("isTitleNotificationCountSubscribe" in config) ? config['isTitleNotificationCountSubscribe'] : false
-		var boolRecommend = ("isTitleNotificationCountRecommand" in config) ? config['isTitleNotificationCountRecommand'] : false
 		var title = GLOBLE_CONFIG['pageOrginalTitle']
+		var boolEnable = ("isEnabledTitleNotification" in config) ? config['isEnabledTitleNotification'] : false
 
 		if (!boolEnable) {
 			document.title = title;
 			return
 		}
+
+		var notifiCount = GLOBLE_CONFIG['pageNotificationCount']
+
+		if (notifiCount > 0) {
+			document.title = "(" + notifiCount + ") " + title;
+		} else {
+			document.title = title;
+		}
+	}
+
+	/** 修改通知數目 */
+	const changeTitleNofityCount = () => {
+		var config = GLOBLE_CONFIG['user_config']
+		var boolNotice = ("isTitleNotificationCountNotify" in config) ? config['isTitleNotificationCountNotify'] : false
+		var boolSubscript = ("isTitleNotificationCountSubscribe" in config) ? config['isTitleNotificationCountSubscribe'] : false
+		var boolRecommend = ("isTitleNotificationCountRecommand" in config) ? config['isTitleNotificationCountRecommand'] : false
+		var title = GLOBLE_CONFIG['pageOrginalTitle']
 
 		var msg_alert = new Array('topBar_light_0', 'topBar_light_1', 'topBar_light_2');
 
@@ -338,11 +491,9 @@
 		if (boolSubscript) total_msg += msg_sep[1];
 		if (boolRecommend) total_msg += msg_sep[2];
 
-		if (total_msg > 0) {
-			document.title = "(" + total_msg + ") " + title;
-		} else {
-			document.title = title;
-		}
+		GLOBLE_CONFIG['pageNotificationCount'] = total_msg
+
+		changeTitleWithNotification()
 	}
 
 	/** 訂閱通知區塊#BH-top-data的DOM修改事件並且修改title */
@@ -371,6 +522,7 @@
 		enableCommentReverse()
 		changeTitleNofityCount()
 		applyHighLightWhenTagMe()
+		listenNewMessage()
 	})
 
 	/** 註冊設定變更追蹤者 */
@@ -520,7 +672,7 @@
 					<input type="checkbox" data-field="isEnabledNotification" data-type="boolean">
 					<span class="slider"></span>
 				</label>
-				<span>桌面通知</span>
+				<span>自動更新時發送桌面通知</span>
 			</div>
 
 			<div class="form-group">
@@ -537,6 +689,22 @@
 					<span class="slider"></span>
 				</label>
 				<span>高亮提及我的訊息</span>
+			</div>
+
+			<div class="form-group">
+				<label class="switch">
+					<input type="checkbox" data-field="isEnabledCommentHigtLightNewMessage" data-type="boolean">
+					<span class="slider"></span>
+				</label>
+				<span>自動更新時高亮新的訊息</span>
+			</div>
+
+			<div class="form-group">
+				<label class="switch">
+					<input type="checkbox" data-field="isEnabledTitleFlashNewMessage" data-type="boolean">
+					<span class="slider"></span>
+				</label>
+				<span>新的訊息到時標題閃爍 (作用於自動更新與每2分鐘背景檢查)</span>
 			</div>
 
 			<div class="form-group">
@@ -677,17 +845,12 @@
 	}
 
 	/** 讀取哈拉本文 */
-	const loadMessageContent = (gsn, sn) => {
+	const loadMessageContent = (gsn, sn) =>
 		fetch(
 			`https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`,
 			{ credentials: 'include' }
-		).then((resp) => {
-			return resp.json()
-		}).then((response) => {
-			const post = response.data
-			return post.content.split('\n')[0].substr(0, 20)
-		})
-	}
+		).then((resp) => resp.json()
+		).then((resp) => resp.data.content.split('\n')[0].substr(0, 30))
 
 	//-------------------------------Debug Function-----------------------------//
 	const debug = () => {
@@ -724,13 +887,14 @@
 			if (target_dom.length == 0) {
 				return
 			}
-
-			if (Cookies.get("ckForumDarkTheme") == "yes") {
-				document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", true);
-				document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", true);
-			} else {
-				document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", false);
-				document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", false);
+			if (location && location.href.includes('post_detail.php')) {
+				if (Cookies.get("ckForumDarkTheme") == "yes") {
+					document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", true);
+					document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", true);
+				} else {
+					document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", false);
+					document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", false);
+				}
 			}
 		});
 	});
@@ -745,27 +909,6 @@
 		});
 	}
 
-	/** 
-			if (Cookies.get("ckForumDarkTheme") == "yes") {
-				$('link[href*="guild.all_dark.css"]').remove();
-				Cookies.remove("ckForumDarkTheme", {
-					domain: "gamer.com.tw"
-				})
-			} else {
-				$("<link>").attr({
-					rel: "stylesheet",
-					type: "text/css",
-					href: "https://i2.bahamut.com.tw/css/guild.all_dark.css?_=10"
-				}).insertAfter("link:last");
-				Cookies.set("ckForumDarkTheme", "yes", {
-					expires: 365,
-					domain: "gamer.com.tw"
-				})
-			}
-
-
-
-	*/
 	//-------------------------------Main Section-------------------------------//
 
 	const pageStyleString = `
@@ -963,6 +1106,9 @@
 		registerNotificationAudio()
 		//註冊提及我高亮CSS
 		registerHighlightWhenTagMe()
+		//註冊新訊息高亮CSS與設定
+		registerHighLightWhenNewMessage()
+
 
 		//註冊暗黑模式變更者
 		registerDarkMode()
@@ -992,7 +1138,9 @@
 			var url_match = re.exec(url)
 
 			GLOBLE_CONFIG['sn'] = url_match[2]
-			GLOBLE_CONFIG['postTitle'] = loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn'])
+			loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn']).then((resp) => {
+				GLOBLE_CONFIG['postTitle'] = resp
+			})
 			GLOBLE_CONFIG['apiUrl'] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${GLOBLE_CONFIG['gsn']}&messageId=${GLOBLE_CONFIG['sn']}`
 
 			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
