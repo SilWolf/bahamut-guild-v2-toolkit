@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bahamut Guild V2 Toolkits
 // @namespace    https://silwolf.io/
-// @version      0.2.0
+// @version      0.3.0
 // @description  巴哈公會2.0的插件
 // @author       銀狼(silwolf167)
 // @include      /guild.gamer.com.tw/guild.php
@@ -23,6 +23,10 @@
 	//-------------------------------Flash Title when New Message-------------------------//
 	/** 新訊息標題閃爍事件 */
 	GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
+
+	/** 新訊息標題閃爍事件 */
+	GLOBLE_CONFIG['backgroundUpdateObj'] = undefined
+
 	/** 新訊息時標題閃爍 */
 	const newMessageTitleFlash = () => {
 		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] !== undefined) {
@@ -37,6 +41,39 @@
 				document.title = Message
 			}
 		}, 1000);
+	}
+
+	/** 背景自動檢查功能 */
+	const backgroundUpdate = () => {
+		const panel_config = GLOBLE_CONFIG['user_config']
+
+		const {
+			isEnabledTitleFlashNewMessage
+		} = panel_config
+
+		if (!isEnabledTitleFlashNewMessage) {
+			if (GLOBLE_CONFIG['backgroundUpdateObj'] != undefined) {
+				clearInterval(GLOBLE_CONFIG['backgroundUpdateObj'])
+				GLOBLE_CONFIG['backgroundUpdateObj'] = undefined
+			}
+			return
+		}
+
+
+		if (GLOBLE_CONFIG['backgroundUpdateObj'] == undefined) {
+			GLOBLE_CONFIG['backgroundUpdateObj'] = window.setInterval(function () {
+				fetchLatestComments().then((resp) => {
+					var comment_list = resp.data.comments
+					var response_last_csn = comment_list[comment_list.length - 1].id
+					const last_read_csn = GLOBLE_CONFIG['NewMessageUnread'].last_read_csn
+					if (response_last_csn > last_read_csn) {
+						newMessageTitleFlash()
+					}
+				})
+			}, 1000 * 10);
+		} else {
+			return
+		}
 	}
 
 	//-------------------------------Highlight when New Message--------------------------//
@@ -523,6 +560,7 @@
 		changeTitleNofityCount()
 		applyHighLightWhenTagMe()
 		listenNewMessage()
+		backgroundUpdate()
 	})
 
 	/** 註冊設定變更追蹤者 */
