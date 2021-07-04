@@ -2,7 +2,7 @@
 
 ### 版本號
 
-0.2.0 (2021-05-21)
+0.3.0 (發行日期未定)
 
 ### 安裝說明 (適用於 Chrome/Firefox)
 
@@ -11,13 +11,19 @@
 - Chrome 版本下載連結: [https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=zh-TW](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=zh-TW)
 - Firebox 版本下載連結: [https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
 
+#### 自動安裝
+2. 點擊以下連結，Tampermonkey將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js)
+3. 點擊安裝即可安裝完畢，進入Tampermonkey的控制台，如果見到了 Bahamut Guild V2 Toolkits 就代表安裝成功。
+
+#### 手動安裝
+
 2. 打開 Tampermonkey 的控制台
-3. 點擊上方的分頁「匯入匯出工具」，在「自 URL 安裝」的文字框中，填入 `https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/index.js` ，然後點擊「安裝」。
+3. 點擊上方的分頁「匯入匯出工具」，在「自 URL 安裝」的文字框中，填入 `https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js` ，然後點擊「安裝」。
    ![](https://i.imgur.com/GXLzzkp.png)
 4. 完成安裝步驟後，點擊上方的分頁「已安裝的使用者腳本」，如果見到了 `Bahamut Guild V2 Toolkits` 就代表安裝成功。沒有見到的話，重新載入一下此頁面。
    ![](https://i.imgur.com/LP5dQid.png)
 
-### 功能 (目前版本 v0.2.0)
+### 功能 (目前版本 v0.3.0)
 
 絕大部分可開關的功能和設置，均在輸入框下的「插件設定」中。
 
@@ -40,6 +46,30 @@
 #### 哈拉串顛倒 (v0.2.0+)
 
 倒轉哈拉串，使最新訊息和輸入框在最上方。
+
+#### 標題顯示通知數目 (v0.2.0+)
+
+將通知的數量顯示於標題上。
+
+#### 提及我高亮 (v0.3.0+)
+
+將提及我的訊息以紅色閃爍表示，點一下訊息即可消除。
+
+#### 標題閃爍串有新訊息 (v0.3.0+)
+
+在新訊息出現時閃爍標題，點擊頁面即可解除，此功能適用於自動更新與隨附的兩分鐘背景更新。
+
+#### 新訊息高亮 (v0.3.0+)
+
+在自動更新中有新訊息出現時以綠色閃爍表示，點擊頁面即可解除。
+
+#### 一般介面/黑暗介面模式 (v0.3.0+)
+
+修改頁面配色，使其能配合黑暗介面模式。
+
+#### Debug Mode (v0.3.0+)
+
+於公會導覽列新增一個Debug按鈕，目前功能為顯示全域變數(GLOBLE_CONFIG)狀態
 
 ### 待辦
 
