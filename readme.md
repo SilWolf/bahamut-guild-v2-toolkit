@@ -12,8 +12,9 @@
 - Firebox 版本下載連結: [https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
 
 #### 自動安裝
-2. 點擊以下連結，Tampermonkey將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js)
-3. 點擊安裝即可安裝完畢，進入Tampermonkey的控制台，如果見到了 Bahamut Guild V2 Toolkits 就代表安裝成功。
+
+2. 點擊以下連結，Tampermonkey 將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js)
+3. 點擊安裝即可安裝完畢，進入 Tampermonkey 的控制台，如果見到了 Bahamut Guild V2 Toolkits 就代表安裝成功。
 
 #### 手動安裝
 
@@ -69,7 +70,15 @@
 
 #### Debug Mode (v0.3.0+)
 
-於公會導覽列新增一個Debug按鈕，目前功能為顯示全域變數(GLOBLE_CONFIG)狀態
+於公會導覽列新增一個 Debug 按鈕，目前功能為顯示全域變數(GLOBLE_CONFIG)狀態
+
+### 開發用指令
+
+```
+yarn
+yarn dev
+yarn build
+```
 
 ### 待辦
 
