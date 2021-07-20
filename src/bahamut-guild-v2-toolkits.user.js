@@ -10,7 +10,7 @@
 // @updateUrl    https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js
 // ==/UserScript==
 
-; (function () {
+;(function () {
 	'use strict'
 
 	//-------------------------------全域設定-------------------------------//
@@ -23,33 +23,61 @@
 	//-------------------------------Flash Title when New Message-------------------------//
 	/** 新訊息標題閃爍事件 */
 	GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
+	GLOBLE_CONFIG['titleFlashWindowFocusCallbackObj'] = undefined
 
 	/** 新訊息標題閃爍事件 */
 	GLOBLE_CONFIG['backgroundUpdateObj'] = undefined
 
 	/** 新訊息時標題閃爍 */
-	const newMessageTitleFlash = () => {
+	const startNewMessageTitleFlash = () => {
 		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] !== undefined) {
 			return
 		}
 
-		var Message = "有新訊息！"
+		if (document.hasFocus()) {
+			return
+		}
+
+		var Message = '有新訊息！'
 		GLOBLE_CONFIG['titleFlashTimeoutObj'] = window.setInterval(function () {
 			if (document.title == Message) {
 				changeTitleWithNotification()
 			} else {
 				document.title = Message
 			}
-		}, 1000);
+		}, 1000)
+
+		GLOBLE_CONFIG['titleFlashWindowFocusCallbackObj'] = () => {
+			stopNewMessageTitleFlash()
+		}
+		window.addEventListener(
+			'focus',
+			GLOBLE_CONFIG['titleFlashWindowFocusCallbackObj']
+		)
+	}
+
+	const stopNewMessageTitleFlash = () => {
+		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] === undefined) {
+			return
+		}
+
+		changeTitleWithNotification()
+
+		window.clearInterval(GLOBLE_CONFIG['titleFlashTimeoutObj'])
+		GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
+
+		window.removeEventListener(
+			'focus',
+			GLOBLE_CONFIG['titleFlashWindowFocusCallbackObj']
+		)
+		GLOBLE_CONFIG['titleFlashWindowFocusCallbackObj'] = undefined
 	}
 
 	/** 背景自動檢查功能 */
 	const backgroundUpdate = () => {
 		const panel_config = GLOBLE_CONFIG['user_config']
 
-		const {
-			isEnabledTitleFlashNewMessage
-		} = panel_config
+		const { isEnabledTitleFlashNewMessage } = panel_config
 
 		if (!isEnabledTitleFlashNewMessage) {
 			if (GLOBLE_CONFIG['backgroundUpdateObj'] != undefined) {
@@ -59,7 +87,6 @@
 			return
 		}
 
-
 		if (GLOBLE_CONFIG['backgroundUpdateObj'] == undefined) {
 			GLOBLE_CONFIG['backgroundUpdateObj'] = window.setInterval(function () {
 				fetchLatestComments().then((resp) => {
@@ -67,10 +94,10 @@
 					var response_last_csn = comment_list[comment_list.length - 1].id
 					const last_read_csn = GLOBLE_CONFIG['NewMessageUnread'].last_read_csn
 					if (response_last_csn > last_read_csn) {
-						newMessageTitleFlash()
+						startNewMessageTitleFlash()
 					}
 				})
-			}, 1000 * 10);
+			}, 1000 * 10)
 		} else {
 			return
 		}
@@ -82,7 +109,7 @@
 		GLOBLE_CONFIG['NewMessageUnread'] = {
 			last_read_csn: undefined,
 			abortController: undefined,
-			acknoledgeEventListener: false
+			acknoledgeEventListener: false,
 		}
 
 		const styleHightLight = document.createElement('style')
@@ -116,17 +143,22 @@
 
 		const {
 			isEnabledCommentHigtLightNewMessage,
-			isEnabledTitleFlashNewMessage
+			isEnabledTitleFlashNewMessage,
 		} = panel_config
 
-		if (!isEnabledCommentHigtLightNewMessage && !isEnabledTitleFlashNewMessage) {
+		if (
+			!isEnabledCommentHigtLightNewMessage &&
+			!isEnabledTitleFlashNewMessage
+		) {
 			module_config.last_read_csn = undefined
 			module_config.abortController = undefined
 			return
 		}
 
 		if (module_config.last_read_csn == undefined) {
-			var lastCommentCsn = document.querySelector(`.c-reply__item:last-child`).getAttribute("data-csn")
+			var lastCommentCsn = document
+				.querySelector(`.c-reply__item:last-child`)
+				.getAttribute('data-csn')
 			GLOBLE_CONFIG['NewMessageUnread'].last_read_csn = lastCommentCsn
 		}
 
@@ -136,15 +168,15 @@
 
 		var unread_list = []
 		const last_read_csn = GLOBLE_CONFIG['NewMessageUnread'].last_read_csn
-		const commendHightlightList = document.querySelectorAll(".c-reply__item")
-		commendHightlightList.forEach(element => {
-			var element_csn = element.getAttribute("data-csn")
+		const commendHightlightList = document.querySelectorAll('.c-reply__item')
+		commendHightlightList.forEach((element) => {
+			var element_csn = element.getAttribute('data-csn')
 			if (element_csn <= last_read_csn) {
 				return
 			}
 
 			unread_list.push(element)
-		});
+		})
 
 		if (unread_list.length > 0) {
 			if (isEnabledCommentHigtLightNewMessage) {
@@ -152,40 +184,45 @@
 			}
 
 			if (isEnabledTitleFlashNewMessage) {
-				newMessageTitleFlash()
+				startNewMessageTitleFlash()
 			}
-
 
 			if (!module_config.acknoledgeEventListener) {
-				document.getElementsByTagName("body")[0].addEventListener('click', () => {
-					acknolegeNewMessage()
-				}, { once: true })
+				document.getElementsByTagName('body')[0].addEventListener(
+					'click',
+					() => {
+						acknolegeNewMessage()
+					},
+					{ once: true }
+				)
 			}
 		}
-
 	}
 
 	/** 高亮新的回應 */
 	const applyHighLightWhenNewMessage = (element_list) => {
 		const module_config = GLOBLE_CONFIG['NewMessageUnread']
 
-		element_list.forEach(element => {
+		element_list.forEach((element) => {
 			element.classList.toggle('new_message_highlight', true)
-		});
-
+		})
 	}
 
 	/** 重置新回應事件 */
 	const acknolegeNewMessage = () => {
-		var lastCommentCsn = document.querySelector(`.c-reply__item:last-child`).getAttribute("data-csn")
+		var lastCommentCsn = document
+			.querySelector(`.c-reply__item:last-child`)
+			.getAttribute('data-csn')
 		GLOBLE_CONFIG['NewMessageUnread'].last_read_csn = lastCommentCsn
 
-		document.querySelectorAll(`.new_message_highlight`).forEach(ele => ele.classList.toggle('new_message_highlight', false))
+		document
+			.querySelectorAll(`.new_message_highlight`)
+			.forEach((ele) => ele.classList.toggle('new_message_highlight', false))
 		GLOBLE_CONFIG['NewMessageUnread'].abortController.abort()
 		GLOBLE_CONFIG['NewMessageUnread'].abortController = new AbortController()
 
 		if (GLOBLE_CONFIG['titleFlashTimeoutObj'] !== undefined) {
-			clearInterval(GLOBLE_CONFIG['titleFlashTimeoutObj']);
+			clearInterval(GLOBLE_CONFIG['titleFlashTimeoutObj'])
 			GLOBLE_CONFIG['titleFlashTimeoutObj'] = undefined
 		}
 		changeTitleWithNotification()
@@ -202,22 +239,25 @@
 			return
 		}
 
-		const commendHightlightList = document.querySelectorAll(`.reply-content__cont p a[href*=${user.id}]`)
-		commendHightlightList.forEach(element => {
+		const commendHightlightList = document.querySelectorAll(
+			`.reply-content__cont p a[href*=${user.id}]`
+		)
+		commendHightlightList.forEach((element) => {
 			var targetNode = element.parentNode.parentNode.parentNode
 			targetNode.classList.toggle(
 				'tag_me_highlight',
 				isEnabledCommentHigtLightTagMe === true
 			)
 			if (isEnabledCommentHigtLightTagMe) {
-				targetNode.addEventListener("click", (e) => {
-					targetNode.classList.toggle(
-						'tag_me_highlight',
-						false
-					)
-				}, { once: true });
+				targetNode.addEventListener(
+					'click',
+					(e) => {
+						targetNode.classList.toggle('tag_me_highlight', false)
+					},
+					{ once: true }
+				)
 			}
-		});
+		})
 	}
 
 	/** register css for highlight when tag me */
@@ -251,7 +291,7 @@
 	const initNotificationAudio = () => {
 		var dom = new Audio(
 			'https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/notification.mp3'
-		);
+		)
 		dom.autoplay = true
 		dom.muted = true
 		dom.style.display = 'none!important'
@@ -372,8 +412,7 @@
 					return
 				}
 
-				const lastIdInt =
-					parseInt(comments[comments.length - 1]?.id) || 0
+				const lastIdInt = parseInt(comments[comments.length - 1]?.id) || 0
 				let newComments = response.data.comments.filter(
 					(nC) => parseInt(nC.id) > lastIdInt
 				)
@@ -405,8 +444,7 @@
 				if (newComments.length > 0) {
 					appendNewComments(newComments)
 					if (isEnabledNotification === true) {
-						const lastComment =
-							newComments[newComments.length - 1]
+						const lastComment = newComments[newComments.length - 1]
 						notify({
 							title: GLOBLE_CONFIG['postTitle'],
 							text: `(#${lastComment.position}) ${lastComment.name}： ${lastComment.text}`,
@@ -430,12 +468,7 @@
 	const applyAutoRefreshInterval = () => {
 		var config = GLOBLE_CONFIG['user_config']
 
-		const {
-			isEnabledAutoRefresh,
-			autoRefreshInterval,
-		} = config
-
-
+		const { isEnabledAutoRefresh, autoRefreshInterval } = config
 
 		if (isEnabledAutoRefresh !== undefined) {
 			const autoRefreshTimeoutObj = GLOBLE_CONFIG['autoRefreshTimeoutObj']
@@ -465,15 +498,14 @@
 	//-------------------------------留言反轉-------------------------------//
 	/** 留言反轉 */
 	const enableCommentReverse = () => {
-		const commendList = document.getElementsByClassName('webview_commendlist')[0]
+		const commendList = document.getElementsByClassName(
+			'webview_commendlist'
+		)[0]
 		const config = GLOBLE_CONFIG['user_config']
 		const { isInvertedComments } = config
 
 		if (isInvertedComments !== undefined) {
-			commendList.classList.toggle(
-				'inverted',
-				isInvertedComments === true
-			)
+			commendList.classList.toggle('inverted', isInvertedComments === true)
 		}
 	}
 
@@ -487,46 +519,62 @@
 	const changeTitleWithNotification = () => {
 		var config = GLOBLE_CONFIG['user_config']
 		var title = GLOBLE_CONFIG['pageOrginalTitle']
-		var boolEnable = ("isEnabledTitleNotification" in config) ? config['isEnabledTitleNotification'] : false
+		var boolEnable =
+			'isEnabledTitleNotification' in config
+				? config['isEnabledTitleNotification']
+				: false
 
 		if (!boolEnable) {
-			document.title = title;
+			document.title = title
 			return
 		}
 
 		var notifiCount = GLOBLE_CONFIG['pageNotificationCount']
 
 		if (notifiCount > 0) {
-			document.title = "(" + notifiCount + ") " + title;
+			document.title = '(' + notifiCount + ') ' + title
 		} else {
-			document.title = title;
+			document.title = title
 		}
 	}
 
 	/** 修改通知數目 */
 	const changeTitleNofityCount = () => {
 		var config = GLOBLE_CONFIG['user_config']
-		var boolNotice = ("isTitleNotificationCountNotify" in config) ? config['isTitleNotificationCountNotify'] : false
-		var boolSubscript = ("isTitleNotificationCountSubscribe" in config) ? config['isTitleNotificationCountSubscribe'] : false
-		var boolRecommend = ("isTitleNotificationCountRecommand" in config) ? config['isTitleNotificationCountRecommand'] : false
+		var boolNotice =
+			'isTitleNotificationCountNotify' in config
+				? config['isTitleNotificationCountNotify']
+				: false
+		var boolSubscript =
+			'isTitleNotificationCountSubscribe' in config
+				? config['isTitleNotificationCountSubscribe']
+				: false
+		var boolRecommend =
+			'isTitleNotificationCountRecommand' in config
+				? config['isTitleNotificationCountRecommand']
+				: false
 		var title = GLOBLE_CONFIG['pageOrginalTitle']
 
-		var msg_alert = new Array('topBar_light_0', 'topBar_light_1', 'topBar_light_2');
+		var msg_alert = new Array(
+			'topBar_light_0',
+			'topBar_light_1',
+			'topBar_light_2'
+		)
 
-		var total_msg = 0;
-		var msg_sep = new Array();
+		var total_msg = 0
+		var msg_sep = new Array()
 		msg_alert.forEach(function (entry) {
 			if (document.getElementById(entry).firstChild != null) {
-				var spanText = document.getElementById(entry).children[0].innerHTML;
-				var temp_int = parseInt(spanText, 10);
-				msg_sep.push(temp_int);
+				var spanText = document.getElementById(entry).children[0].innerHTML
+				var temp_int = parseInt(spanText, 10)
+				msg_sep.push(temp_int)
 			} else {
-				msg_sep.push(0);
+				msg_sep.push(0)
 			}
-		});
-		if (boolNotice) total_msg += msg_sep[0];
-		if (boolSubscript) total_msg += msg_sep[1];
-		if (boolRecommend) total_msg += msg_sep[2];
+		})
+		if (boolNotice) total_msg += msg_sep[0]
+		if (boolSubscript) total_msg += msg_sep[1]
+		if (boolRecommend) total_msg += msg_sep[2]
 
 		GLOBLE_CONFIG['pageNotificationCount'] = total_msg
 
@@ -535,10 +583,14 @@
 
 	/** 訂閱通知區塊#BH-top-data的DOM修改事件並且修改title */
 	const registerNotificationDomChangeEvent = () => {
-		const titleObserver = new MutationObserver(changeTitleNofityCount);
-		const titleObserverTargetNode = document.getElementById('BH-top-data');
-		const titleObserverConfig = { attributes: true, childList: true, subtree: true };
-		titleObserver.observe(titleObserverTargetNode, titleObserverConfig);
+		const titleObserver = new MutationObserver(changeTitleNofityCount)
+		const titleObserverTargetNode = document.getElementById('BH-top-data')
+		const titleObserverConfig = {
+			attributes: true,
+			childList: true,
+			subtree: true,
+		}
+		titleObserver.observe(titleObserverTargetNode, titleObserverConfig)
 	}
 
 	//-------------------------------Config Change-------------------------------//
@@ -546,10 +598,10 @@
 	// 增加Config變更指示DOM
 	/** 初始化設定變更追蹤DOM */
 	const initHiddenConfigChangeIndicator = () => {
-		var dom = document.createElement("input");
-		dom.type = "hidden"
+		var dom = document.createElement('input')
+		dom.type = 'hidden'
 		dom.value = Date.now()
-		dom.id = "configChangeIndicator"
+		dom.id = 'configChangeIndicator'
 		return dom
 	}
 
@@ -569,10 +621,11 @@
 		const hiddenConfigChangeIndicator = initHiddenConfigChangeIndicator()
 		document.body.appendChild(hiddenConfigChangeIndicator)
 		// 設定追蹤對象與追蹤項目
-		applyChangeObserver.observe(
-			hiddenConfigChangeIndicator,
-			{ attributes: true, childList: true, subtree: true }
-		);
+		applyChangeObserver.observe(hiddenConfigChangeIndicator, {
+			attributes: true,
+			childList: true,
+			subtree: true,
+		})
 	}
 
 	//-------------------------------Local Storage-------------------------------//
@@ -597,13 +650,8 @@
 
 		const newStatusArr = []
 
-		if (
-			pluginConfig.isEnabledAutoRefresh &&
-			pluginConfig.autoRefreshInterval
-		) {
-			newStatusArr.push(
-				`自動更新: ${pluginConfig.autoRefreshInterval}秒`
-			)
+		if (pluginConfig.isEnabledAutoRefresh && pluginConfig.autoRefreshInterval) {
+			newStatusArr.push(`自動更新: ${pluginConfig.autoRefreshInterval}秒`)
 		}
 
 		if (pluginConfig.isEnabledNotification) {
@@ -614,7 +662,9 @@
 			}
 		}
 
-		var pluginConfigStatus = document.getElementsByClassName('plugin-config-status')[0]
+		var pluginConfigStatus = document.getElementsByClassName(
+			'plugin-config-status'
+		)[0]
 		pluginConfigStatus.innerHTML = newStatusArr.join('　')
 
 		return pluginConfig
@@ -622,7 +672,8 @@
 
 	/** 將設定套用至面板 */
 	const fillFormConfig = (config) => {
-		var pluginConfigForm = document.getElementsByClassName('plugin-config-form')[0]
+		var pluginConfigForm =
+			document.getElementsByClassName('plugin-config-form')[0]
 		const els = pluginConfigForm.querySelectorAll('[data-field]')
 
 		for (const el of els) {
@@ -649,9 +700,8 @@
 		pluginConfigForm.querySelector(
 			'[data-field="isInvertedComments"]'
 		).checked = config.isInvertedComments === true
-		pluginConfigForm.querySelector(
-			'[data-field="autoRefreshInterval"]'
-		).value = config.autoRefreshInterval
+		pluginConfigForm.querySelector('[data-field="autoRefreshInterval"]').value =
+			config.autoRefreshInterval
 	}
 
 	/** 觸發設定變更 */
@@ -662,11 +712,12 @@
 	/** 初始化設定面板 */
 	const initSettingPane = () => {
 		// 將各個關鍵元件放進變量中
-		const commendList = document.getElementsByClassName('webview_commendlist')[0]
+		const commendList = document.getElementsByClassName(
+			'webview_commendlist'
+		)[0]
 		const editorContainer =
 			commendList.getElementsByClassName('c-reply__editor')[0]
-		const editor =
-			editorContainer.getElementsByClassName('reply-input')[0]
+		const editor = editorContainer.getElementsByClassName('reply-input')[0]
 		const editorTextarea = editor.getElementsByTagName('textarea')[0]
 
 		// pluginConfigA - 建立可開關插件設定板面的連結
@@ -811,10 +862,9 @@
 		}
 
 		// pluginConfigApplyButton - 插件設定板面的「套用」按鈕
-		const pluginConfigApplyButton =
-			pluginConfigForm.getElementsByClassName(
-				'plugin-config-button-apply'
-			)[0]
+		const pluginConfigApplyButton = pluginConfigForm.getElementsByClassName(
+			'plugin-config-button-apply'
+		)[0]
 		const handleClickPluginConfigApply = () => {
 			setConfig(getFormConfig())
 			runConfigApply()
@@ -887,20 +937,21 @@
 		fetch(
 			`https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`,
 			{ credentials: 'include' }
-		).then((resp) => resp.json()
-		).then((resp) => resp.data.content.split('\n')[0].substr(0, 30))
+		)
+			.then((resp) => resp.json())
+			.then((resp) => resp.data.content.split('\n')[0].substr(0, 30))
 
 	//-------------------------------Debug Function-----------------------------//
 	const debug = () => {
 		console.log(GLOBLE_CONFIG)
 	}
 
-
 	/** 產生 Debug 按鈕 DOM */
 	const initDebugGlobalConfigBtn = () => {
-		var aDom = document.createElement("a");
+		var aDom = document.createElement('a')
 		aDom.id = 'baha_toolkit_debug'
-		aDom.innerHTML = '<img src="https://i2.bahamut.com.tw/guild/guildnav-icon_setting.png"><span class="text-tooltip">插件用DEBUG按鈕</span>'
+		aDom.innerHTML =
+			'<img src="https://i2.bahamut.com.tw/guild/guildnav-icon_setting.png"><span class="text-tooltip">插件用DEBUG按鈕</span>'
 		aDom.style = 'background-color: rgba(193, 17, 131, 0.1);'
 		aDom.addEventListener('click', debug)
 
@@ -910,7 +961,9 @@
 	/** 註冊Debug按鈕*/
 	const registerDebugBtn = () => {
 		const btnDom = initDebugGlobalConfigBtn()
-		const nav_feature_dom = document.getElementsByClassName('main-nav_m-features')
+		const nav_feature_dom = document.getElementsByClassName(
+			'main-nav_m-features'
+		)
 
 		nav_feature_dom[0].appendChild(btnDom)
 		nav_feature_dom[1].appendChild(btnDom)
@@ -921,30 +974,38 @@
 	const darkModeObserver = new MutationObserver(function (mutations) {
 		mutations.forEach(function (mutationRecord) {
 			//檢查c-reply__editor是否存在，避免不必要的error觸發
-			var target_dom = document.getElementsByClassName("c-reply__editor")
+			var target_dom = document.getElementsByClassName('c-reply__editor')
 			if (target_dom.length == 0) {
 				return
 			}
 			if (location && location.href.includes('post_detail.php')) {
-				if (Cookies.get("ckForumDarkTheme") == "yes") {
-					document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", true);
-					document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", true);
+				if (Cookies.get('ckForumDarkTheme') == 'yes') {
+					document
+						.getElementsByClassName('c-reply__editor')[0]
+						.classList.toggle('dark', true)
+					document
+						.getElementsByClassName('plugin-config-form')[0]
+						.classList.toggle('dark', true)
 				} else {
-					document.getElementsByClassName("c-reply__editor")[0].classList.toggle("dark", false);
-					document.getElementsByClassName("plugin-config-form")[0].classList.toggle("dark", false);
+					document
+						.getElementsByClassName('c-reply__editor')[0]
+						.classList.toggle('dark', false)
+					document
+						.getElementsByClassName('plugin-config-form')[0]
+						.classList.toggle('dark', false)
 				}
 			}
-		});
-	});
+		})
+	})
 
 	/** 註冊闇黑模式變更者，變更條件為偵測head變化 */
 	const registerDarkMode = () => {
-		var target = document.getElementsByTagName('head')[0];
+		var target = document.getElementsByTagName('head')[0]
 		darkModeObserver.observe(target, {
 			attributes: true,
 			childList: true,
-			subtree: true
-		});
+			subtree: true,
+		})
 	}
 
 	//-------------------------------Main Section-------------------------------//
@@ -1127,8 +1188,6 @@
 		}
 	`
 
-
-
 	jQuery(document).ready(() => {
 		//註冊DebugDOM
 		if (DEBUG_MODE) {
@@ -1146,7 +1205,6 @@
 		registerHighlightWhenTagMe()
 		//註冊新訊息高亮CSS與設定
 		registerHighLightWhenNewMessage()
-
 
 		//註冊暗黑模式變更者
 		registerDarkMode()
@@ -1171,19 +1229,23 @@
 
 		if (location && location.href.includes('post_detail.php')) {
 			//根據網址資料獲得sn id
-			const re = /https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm;
+			const re =
+				/https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm
 			var url = document.URL
 			var url_match = re.exec(url)
 
 			GLOBLE_CONFIG['sn'] = url_match[2]
-			loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn']).then((resp) => {
-				GLOBLE_CONFIG['postTitle'] = resp
-			})
-			GLOBLE_CONFIG['apiUrl'] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${GLOBLE_CONFIG['gsn']}&messageId=${GLOBLE_CONFIG['sn']}`
+			loadMessageContent(GLOBLE_CONFIG['gsn'], GLOBLE_CONFIG['sn']).then(
+				(resp) => {
+					GLOBLE_CONFIG['postTitle'] = resp
+				}
+			)
+			GLOBLE_CONFIG[
+				'apiUrl'
+			] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${GLOBLE_CONFIG['gsn']}&messageId=${GLOBLE_CONFIG['sn']}`
 
 			waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 				if (!hasTakenOver) {
-
 					//初始化設定面板
 					initSettingPane()
 

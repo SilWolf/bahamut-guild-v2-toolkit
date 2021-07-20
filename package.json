@@ -1,0 +1,27 @@
+{
+	"name": "bahamut-guild-v2-toolkit",
+	"displayName": "巴哈姆特公會2.0插件",
+	"version": "0.3.0",
+	"description": "巴哈姆特公會2.0插件",
+	"main": "index.js",
+	"repository": "https://github.com/SilWolf/bahamut-guild-v2-toolkit.git",
+	"author": "銀狼(silwolf167)",
+	"contributors": [
+		"海角－沙鷗(jason21716)"
+	],
+	"license": "MIT",
+	"homepage": "https://silwolf.io",
+	"scripts": {
+		"build": "yarn gulp concat"
+	},
+	"devDependencies": {
+		"gulp": "^4.0.2",
+		"gulp-clean": "^0.4.0",
+		"gulp-concat": "^2.6.1",
+		"gulp-header": "^2.0.9",
+		"gulp-typescript": "^6.0.0-alpha.1",
+		"merge2": "^1.4.1",
+		"typescript": "^4.3.5"
+	},
+	"dependencies": {}
+}

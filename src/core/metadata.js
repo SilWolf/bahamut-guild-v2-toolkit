@@ -1,18 +1,15 @@
 // ==UserScript==
 // @name         Bahamut Guild V2 Toolkits
 // @namespace    https://silwolf.io/
-// @version      0.1
+// @version      0.3.0
 // @description  巴哈公會2.0的插件
 // @author       銀狼(silwolf167)
 // @include      /guild.gamer.com.tw/guild.php
 // @include      /guild.gamer.com.tw/post_detail.php
-// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM_notification
-// @require      file:///Users/silwolf/Desktop/bahamut-guild-v2-toolkit/bahamut-guild-v2-toolkits.user.js
+// @updateUrl    https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js
 // ==/UserScript==
 
 ;(function () {
 	'use strict'
-
-	// Your code here...
 })()
