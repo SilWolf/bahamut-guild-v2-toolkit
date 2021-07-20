@@ -5,21 +5,14 @@
  *
  *******************************************************************************************/
 
-import type { TCore, TPlugin } from '../../types'
-
-const PLUGIN_PREFIX = 'auto-refresh'
-const CONFIG_KEY_AUTO_REFRESH = `${PLUGIN_PREFIX}-auto-refresh`
-
-const BHGV2_AutoRefresh: TPlugin = () => ({
-	prefix: PLUGIN_PREFIX,
+const BHGV2_AutoRefresh = (core) => ({
+	prefix: 'auto-refresh',
 	configurations: [
 		{
 			label: '自動更新',
-			key: CONFIG_KEY_AUTO_REFRESH,
+			key: 'auto-refresh:auto-refresh',
 			type: 'boolean',
 			defaultValue: false,
 		},
 	],
 })
-
-export default BHGV2_AutoRefresh

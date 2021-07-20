@@ -2,10 +2,8 @@ const gulp = require('gulp')
 
 // Gulp 插件
 const concat = require('gulp-concat')
-const ts = require('gulp-typescript')
 const clean = require('gulp-clean')
 const header = require('gulp-header')
-const merge = require('merge2')
 
 const usHeader = require('./userscriptHeader.js')
 
@@ -22,20 +20,11 @@ gulp.task('clean', () => {
 
 gulp.task(
 	'build',
-	gulp.series('clean', () => {
-		var tsResult = gulp.src('src/**/*.ts').pipe(
-			ts({
-				declaration: true,
-			})
-		)
-
-		return merge([
-			tsResult.dts.pipe(gulp.dest('dist/definitions')),
-			tsResult.js
-				.pipe(gulp.dest('dist/js'))
-				.pipe(concat('index.js'))
-				.pipe(header(usHeader))
-				.pipe(gulp.dest('dist')),
-		])
-	})
+	gulp.series('clean', () =>
+		gulp
+			.src(['src/plugins/**/index.js', 'src/core.js'])
+			.pipe(concat('index.js'))
+			.pipe(header(usHeader))
+			.pipe(gulp.dest('dist'))
+	)
 )

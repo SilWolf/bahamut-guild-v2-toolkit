@@ -1,31 +1,22 @@
-import { TCore, TPlugin, TPluginConfiguration } from './types'
-import { TPluginContent } from './types/plugin.type'
-
-declare var jQuery
-declare var $
-
 /**
  * Plugins - 選擇要啟動插件
  */
 
-const DEFAULT_PLUGINS: TPlugin[] = []
+const DEFAULT_PLUGINS = [BHGV2_AutoRefresh]
 const DEFAULT_LIBRARY = {
-	jQuery: jQuery,
-	$: $,
+	jQuery,
+	$,
 }
 
-const LOG_WARN = (message: string) => console.warn(`[巴哈插件2.0] ${message}`)
+const LOG_WARN = (message) => console.warn(`[巴哈插件2.0] ${message}`)
 
-const _plugins: TPluginContent[] = []
+const _plugins = []
 const _library = {
 	...DEFAULT_LIBRARY,
 }
-const _configuration: Record<
-	string,
-	TPluginConfiguration & { value: boolean | number }
-> = {}
+const _configuration = {}
 
-const CORE: TCore = {
+const CORE = {
 	useLibrary: (name, defaultLibraryIfNotFound) => {
 		if (_library[name]) return _library[name]
 
@@ -66,4 +57,6 @@ const Core = () => {
 	})
 }
 
-export default Core
+;(function () {
+	Core()
+})()
