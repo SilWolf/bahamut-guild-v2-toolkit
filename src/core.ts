@@ -1,5 +1,22 @@
+import {
+	TCore,
+	TCoreConfig,
+	TCoreConstructor,
+	TCoreState,
+	TLibrary,
+	TPlugin,
+	TPluginConfig,
+	TPluginConstructor,
+} from './types'
+
+import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh'
+
+declare var guild: { gsn: number }
+declare var jQuery: any
+declare var $: any
+
 /** 等待DOM準備完成 */
-const _waitForElm = (selector) => {
+const _waitForElm = (selector: string) => {
 	return new Promise((resolve) => {
 		if (document.querySelector(selector)) {
 			return resolve(document.querySelector(selector))
@@ -19,31 +36,31 @@ const _waitForElm = (selector) => {
 	})
 }
 
-const BHGV2Core = ({ plugins, library }) => {
-	const LOG = (message, type = 'log') => {
+const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
+	const LOG = (message: string, type: 'log' | 'warn' | 'error' = 'log') => {
 		;(console[type] || console.log)(`[巴哈插件2.0] ${message}`)
-	},
+	}
 
-	const _plugins = []
-	const _library = {
+	const _plugins: TPlugin[] = []
+	const _library: Record<string, TLibrary> = {
 		...library,
 	}
-	const _config = {}
-	const _state = {}
-	const _configPanelElements = []
+	const _config: TCoreConfig = {}
+	const _state: TCoreState = {}
+	const _configPanelElements: TPluginConfig[] = []
 
 	const CORE_STATE_KEY = {
 		COMMENTS: 'comments',
 		GSN: 'gsn',
 		SN: 'sn',
 		POST_API_URL: 'postApiUrl',
-		COMMENTS_API_URL: 'commentsApiUrl'
+		COMMENTS_API_URL: 'commentsApiUrl',
 	}
 
-	const CORE = {
+	const CORE: TCore = {
 		getConfig: () => _config,
 		getConfigByNames: (...names) => {
-			names.reduces((prev, key) => {
+			return names.reduce<TCoreConfig>((prev, key) => {
 				if (_config[key] !== undefined) {
 					prev[key] = _config[key]
 				}
@@ -52,15 +69,14 @@ const BHGV2Core = ({ plugins, library }) => {
 		},
 		mutateConfig: (newValue) => {
 			_plugins.forEach((plugin) => plugin.onMutateConfig?.(newValue))
-			_config = {
-				..._config,
-				...newValue
-			}
+			Object.entries(newValue).forEach(([key, value]) => {
+				_config[key] = value
+			})
 		},
 
 		getState: () => _state,
 		getStateByNames: (...names) => {
-			names.reduces((prev, key) => {
+			return names.reduce<TCoreState>((prev, key) => {
 				if (_state[key] !== undefined) {
 					prev[key] = _state[key]
 				}
@@ -69,10 +85,9 @@ const BHGV2Core = ({ plugins, library }) => {
 		},
 		mutateState: (newValue) => {
 			_plugins.forEach((plugin) => plugin.onMutateState?.(newValue))
-			_state = {
-				..._state,
-				...newValue
-			}
+			Object.entries(newValue).forEach(([key, value]) => {
+				_state[key] = value
+			})
 		},
 
 		useLibrary: (name, defaultLibraryIfNotFound) => {
@@ -82,67 +97,80 @@ const BHGV2Core = ({ plugins, library }) => {
 			return _library[name]
 		},
 		emit: (eventName, payload) => {
-			_plugins.forEach((plugin) => plugin.on?.(eventName, payload))
+			_plugins.forEach((plugin) => plugin.onEvent?.(eventName, payload))
 		},
 		log: LOG,
-		STATE_KEY: CORE_STATE_KEY
+		STATE_KEY: CORE_STATE_KEY,
 	}
 
-	const _CorePlugin = (core) => {
-		const _plugin = {
-			pluginName = 'BHGV2Core',
-			prefix: 'BHGV2Core'
+	const _CorePlugin: TPluginConstructor = (core) => {
+		const _plugin: TPlugin = {
+			pluginName: 'BHGV2Core',
+			prefix: 'BHGV2Core',
 		}
 
 		_plugin.onMutateState = (newValue) => {
-			if (newValue[core.STATE_KEY.GSN] !== undefined || newValue[core.STATE_KEY.SN] !== undefined) {
-				const gsn = newValue[core.STATE_KEY.GSN] || core.getState[core.STATE_KEY.GSN]
-				const sn = newValue[core.STATE_KEY.SN] || core.getState[core.STATE_KEY.SN]
+			if (
+				newValue[core.STATE_KEY.GSN] !== undefined ||
+				newValue[core.STATE_KEY.SN] !== undefined
+			) {
+				const oldValue = core.getStateByNames(
+					core.STATE_KEY.GSN,
+					core.STATE_KEY.SN
+				)
+				const gsn = newValue[core.STATE_KEY.GSN] || oldValue[core.STATE_KEY.GSN]
+				const sn = newValue[core.STATE_KEY.SN] || oldValue[core.STATE_KEY.SN]
 
 				if (gsn && sn) {
-					newValue[core.STATE_KEY.POST_API_URL] = `https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`
-					newValue[core.STATE_KEY.COMMENTS_API_URL] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`
+					newValue[
+						core.STATE_KEY.POST_API_URL
+					] = `https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`
+					newValue[
+						core.STATE_KEY.COMMENTS_API_URL
+					] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`
 				}
 			}
 
 			return newValue
 		}
-	
+
 		return _plugin
-	}	
+	}
 
 	// 初始化每個插件
-	[_CorePlugin, ...plugins].forEach((plugin) => {
+	;[_CorePlugin, ...plugins].forEach((plugin) => {
 		try {
 			const _plugin = plugin(CORE)
 
 			// 初始化config
-			Object.entries(_plugin.config || {}).forEach((key, config) => {
+			Object.entries(_plugin.config || {}).forEach(([key, config]) => {
 				_configPanelElements.push({
 					key,
-					...config
+					...config,
 				})
 				_config[key] = config.defaultValue
 				if (config.defaultValue === undefined) {
-					LOG(`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`)
+					LOG(
+						`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`
+					)
 				}
 			})
-	
-			_plugins.push(plugin)
+
+			_plugins.push(_plugin)
 		} catch (e) {
-			LOG(`載入插件 ${plugin.pluginName} 失敗`, 'error')
+			LOG(`載入插件失敗, ${e.toString()}`, 'error')
 		}
 	})
-		
+
 	// 初始化 state (gsn, sn, comments)
 	_state[CORE.STATE_KEY.GSN] = guild.gsn
 	if (location && location.href.includes('post_detail.php')) {
 		const re =
-				/https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm
-			var url = document.URL
-			var urlMatch = re.exec(url)
+			/https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm
+		var url = document.URL
+		var urlMatch = re.exec(url)
 
-			_state[CORE.STATE_KEY.SN] = urlMatch[2]
+		_state[CORE.STATE_KEY.SN] = urlMatch?.[2]
 	}
 	_state[CORE.STATE_KEY.COMMENTS] = []
 
@@ -151,7 +179,6 @@ const BHGV2Core = ({ plugins, library }) => {
 
 	// 觸發一次所有插件的 onMutateState
 	CORE.mutateState(_state)
-
 
 	// // 初始化設定介面
 	// const _configPanelHTML = (config) => `
@@ -171,19 +198,16 @@ const BHGV2Core = ({ plugins, library }) => {
 			// fillFormConfig(storedConfig)
 			// runConfigApply()
 			hasTakenOver = true
-
-			console.log('has taken over :D')
 		}
 	})
 }
 
 ;(function () {
 	BHGV2Core({
-		plugins: [
-			BHGV2_AutoRefresh
-		],
+		plugins: [BHGV2_AutoRefresh],
 		library: {
-			jQuery, $
-		}
+			jQuery,
+			$,
+		},
 	})
 })()
