@@ -1,13 +1,16 @@
 {
-  "name": "bahamut-guild-v2-toolkit",
-  "version": "1.0.0",
-  "description": "Bahamut Guild V2 toolkit, especially designed for RPG Fantasy.",
-  "main": "index.js",
-  "repository": "https://github.com/SilWolf/bahamut-guild-v2-toolkit.git",
-  "author": "SilWolf <silwolf1121@gmail.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-concat": "^2.6.1"
-  }
+	"name": "bahamut-guild-v2-toolkit",
+	"version": "1.0.0",
+	"description": "Bahamut Guild V2 toolkit, especially designed for RPG Fantasy.",
+	"main": "index.js",
+	"repository": "https://github.com/SilWolf/bahamut-guild-v2-toolkit.git",
+	"author": "SilWolf <silwolf1121@gmail.com>",
+	"license": "MIT",
+	"scripts": {
+		"build": "yarn gulp concat"
+	},
+	"devDependencies": {
+		"gulp": "^4.0.2",
+		"gulp-concat": "^2.6.1"
+	}
 }
