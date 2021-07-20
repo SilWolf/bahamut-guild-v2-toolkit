@@ -13,22 +13,43 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		prefix: 'BHGV2_AutoRefresh',
 	}
 
-	_plugin.config = {
-		[`${_plugin.prefix}:isEnable`]: {
+	_plugin.configs = [
+		{
 			key: `${_plugin.prefix}:isEnable`,
 			suffixLabel: '自動更新',
-			type: 'boolean',
+			dataType: 'boolean',
+			inputType: 'switch',
 			defaultValue: false,
 		},
-		[`${_plugin.prefix}:interval`]: {
+		{
 			key: `${_plugin.prefix}:interval`,
 			suffixLabel: '秒',
-			type: 'number',
+			dataType: 'number',
+			inputType: 'number',
 			defaultValue: false,
 		},
-	}
+		{
+			key: `${_plugin.prefix}:desktopNotification`,
+			suffixLabel: '自動更新時發送桌面通知',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: false,
+		},
+		{
+			key: `${_plugin.prefix}:desktopNotificationSound`,
+			suffixLabel: '提示音',
+			dataType: 'boolean',
+			inputType: 'checkbox',
+			defaultValue: false,
+		},
+	]
+
 	_plugin.configLayout = [
 		[`${_plugin.prefix}:isEnable`, `${_plugin.prefix}:interval`],
+		[
+			`${_plugin.prefix}:desktopNotification`,
+			`${_plugin.prefix}:desktopNotificationSound`,
+		],
 	]
 
 	return _plugin

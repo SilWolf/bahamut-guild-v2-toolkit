@@ -220,9 +220,9 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			const _plugin = plugin(CORE)
 
 			// 初始化config
-			Object.entries(_plugin.config || {}).forEach(([key, config]) => {
-				_config[key] = config.defaultValue
-				if (config.defaultValue === undefined) {
+			_plugin.configs?.forEach(({ key, defaultValue }) => {
+				_config[key] = defaultValue
+				if (defaultValue === undefined) {
 					LOG(
 						`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`
 					)
@@ -242,18 +242,20 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	// 更新設定版面
 	_dom.ConfigFormContent.innerHTML = ''
-	_plugins.forEach(({ config, configLayout }) => {
-		if (!config) {
+	_plugins.forEach(({ configs, configLayout }) => {
+		if (!configs) {
 			return
 		}
-		const _configLayout = configLayout || [Object.keys(config)]
+		const _configLayout = configLayout || [
+			configs.map((_config) => _config.key),
+		]
 
 		for (const row of _configLayout) {
 			const rowElement = document.createElement('div')
 			rowElement.classList.add('bhgv2-config-form-row')
 
 			for (const col of row) {
-				const configItem = config[col]
+				const configItem = configs.find((_config) => _config.key === col)
 				if (!configItem) {
 					return
 				}
@@ -264,36 +266,42 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				const prefixLabel = document.createElement('span')
 				prefixLabel.innerHTML = configItem.prefixLabel || ''
 
+				let inputWrapperElement: HTMLElement = document.createElement('label')
+
 				let inputElement: HTMLElement = document.createElement('div')
-				switch (configItem.type) {
+				switch (configItem.inputType) {
 					case 'number':
 					case 'text':
+					case 'checkbox':
 						inputElement = document.createElement('input')
-						inputElement.setAttribute('type', configItem.type)
-						inputElement.setAttribute('data-field', configItem.key)
-						inputElement.setAttribute('data-type', configItem.type)
+						inputElement.setAttribute('type', configItem.inputType)
 						break
 
-					case 'boolean':
-						inputElement = document.createElement('label')
-						inputElement.classList.add('switch')
+					case 'switch':
+						inputWrapperElement = document.createElement('label')
+						inputWrapperElement.classList.add('switch')
 
-						const _checkbox = document.createElement('input')
-						_checkbox.setAttribute('type', 'checkbox')
-						_checkbox.setAttribute('data-field', configItem.key)
-						_checkbox.setAttribute('data-type', configItem.type)
+						inputElement = document.createElement('input')
+						inputElement.setAttribute('type', 'checkbox')
 
 						const _slider = document.createElement('span')
 						_slider.classList.add('slider')
 
-						inputElement.append(_checkbox, _slider)
+						inputWrapperElement.append(_slider)
 						break
 				}
+
+				inputWrapperElement.setAttribute('for', configItem.key)
+
+				inputElement.setAttribute('id', configItem.key)
+				inputElement.setAttribute('data-field', configItem.key)
+				inputElement.setAttribute('data-type', configItem.dataType)
+				inputWrapperElement.prepend(inputElement)
 
 				const suffixLabel = document.createElement('span')
 				suffixLabel.innerHTML = configItem.suffixLabel || ''
 
-				colElement.append(prefixLabel, inputElement, suffixLabel)
+				colElement.append(prefixLabel, inputWrapperElement, suffixLabel)
 
 				rowElement.append(colElement)
 			}

@@ -23,7 +23,7 @@ export type TPluginConstructor = (core: TCore) => TPlugin
 export type TPlugin = {
 	pluginName: string
 	prefix: string
-	config?: Record<string, TPluginConfig>
+	configs?: TPluginConfig[]
 	configLayout?: string[][]
 	onEvent?: (eventName: string, payload: unknown) => void
 	onMutateState?: (newValue: TCoreState) => void
@@ -38,10 +38,12 @@ export type TPluginConfig = {
 	key: string
 	prefixLabel?: string
 	suffixLabel?: string
-	type: TPluginConfigType
+	dataType: TPluginConfigDataType
+	inputType: TPluginConfigInputType
 	defaultValue: TPluginConfigValue
 }
-export type TPluginConfigType = 'boolean' | 'number' | 'text'
+export type TPluginConfigDataType = 'boolean' | 'number' | 'text'
+export type TPluginConfigInputType = 'switch' | 'checkbox' | 'number' | 'text'
 export type TPluginConfigValue = boolean | number | string | undefined
 
 export type TLibrary = unknown

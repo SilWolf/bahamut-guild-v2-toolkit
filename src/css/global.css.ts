@@ -161,6 +161,7 @@ div[data-google-query-id] {
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
+	margin-bottom: 2px;
 }
 
 .bhgv2-config-form-content .bhgv2-config-form-col {
@@ -174,11 +175,12 @@ div[data-google-query-id] {
 	margin-right: 2px;
 }
 
-.bhgv2-config-form-content .bhgv2-config-form-col > input {
+.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],
+.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {
 	width: 2rem;
 }
 
 .bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {
-	margin-left: 1rem;
+	margin-left: 0.5rem;
 }
 `
