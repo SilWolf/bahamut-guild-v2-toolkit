@@ -12,7 +12,7 @@
 	"license": "MIT",
 	"homepage": "https://silwolf.io",
 	"scripts": {
-		"build": "yarn gulp concat"
+		"build": "yarn gulp build"
 	},
 	"devDependencies": {
 		"gulp": "^4.0.2",

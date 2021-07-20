@@ -5,14 +5,19 @@
  *
  *******************************************************************************************/
 
-const BHGV2_AutoRefresh = (core) => ({
-	prefix: 'auto-refresh',
-	configurations: [
-		{
+const BHGV2_AutoRefresh = (core) => {
+	const _plugin = {
+		pluginName = 'BHGV2_AutoRefresh',
+		prefix: 'BHGV2_AutoRefresh'
+	}
+
+	_plugin.config = {
+		[`${_plugin.prefix}:isEnable`]: {
 			label: '自動更新',
-			key: 'auto-refresh:auto-refresh',
 			type: 'boolean',
-			defaultValue: false,
-		},
-	],
-})
+			defaultValue: false
+		}
+	}
+
+	return _plugin
+}
