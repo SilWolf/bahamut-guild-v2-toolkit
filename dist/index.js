@@ -39,26 +39,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
+var global_css_1 = __importDefault(__webpack_require__(440));
+var postDetail_css_1 = __importDefault(__webpack_require__(507));
 /** 等待DOM準備完成 */
-var _waitForElm = function (selector) {
-    return new Promise(function (resolve) {
-        if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
-        }
-        var observer = new MutationObserver(function (mutations) {
-            if (document.querySelector(selector)) {
-                resolve(document.querySelector(selector));
-                observer.disconnect();
-            }
-        });
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-        });
-    });
-};
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
+    var _waitForElm = function (selector) {
+        return new Promise(function (resolve) {
+            if (document.querySelector(selector)) {
+                return resolve(document.querySelector(selector));
+            }
+            var observer = new MutationObserver(function (mutations) {
+                if (document.querySelector(selector)) {
+                    resolve(document.querySelector(selector));
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+        });
+    };
     var LOG = function (message, type) {
         if (type === void 0) { type = 'log'; }
         ;
@@ -75,6 +77,7 @@ var BHGV2Core = function (_a) {
         SN: 'sn',
         POST_API_URL: 'postApiUrl',
         COMMENTS_API_URL: 'commentsApiUrl',
+        USER_INFO: 'userInfo',
     };
     var CORE = {
         getConfig: function () { return _config; },
@@ -127,6 +130,7 @@ var BHGV2Core = function (_a) {
             _plugins.forEach(function (plugin) { var _a; return (_a = plugin.onEvent) === null || _a === void 0 ? void 0 : _a.call(plugin, eventName, payload); });
         },
         log: LOG,
+        DOM: {},
         STATE_KEY: CORE_STATE_KEY,
     };
     var _CorePlugin = function (core) {
@@ -167,7 +171,7 @@ var BHGV2Core = function (_a) {
             LOG("\u8F09\u5165\u63D2\u4EF6\u5931\u6557, " + e.toString(), 'error');
         }
     });
-    // 初始化 state (gsn, sn, comments)
+    // 初始化 state (gsn, sn, comments, userInfo)
     _state[CORE.STATE_KEY.GSN] = guild.gsn;
     if (location && location.href.includes('post_detail.php')) {
         var re = /https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm;
@@ -176,6 +180,7 @@ var BHGV2Core = function (_a) {
         _state[CORE.STATE_KEY.SN] = urlMatch === null || urlMatch === void 0 ? void 0 : urlMatch[2];
     }
     _state[CORE.STATE_KEY.COMMENTS] = [];
+    _state[CORE.STATE_KEY.USER_INFO] = guildPost.loginUser;
     // 觸發一次所有插件的 onMutateConfig
     CORE.mutateConfig(_config);
     // 觸發一次所有插件的 onMutateState
@@ -189,8 +194,53 @@ var BHGV2Core = function (_a) {
     var hasTakenOver = false;
     _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
         if (!hasTakenOver) {
-            //初始化設定面板
-            // _initConfigPanel(CORE.getAllConfig())
+            //　初始化設定面板
+            // 初始化 DOM 元件
+            var _dom_1 = CORE.DOM;
+            _dom_1.Head = document.getElementsByTagName('head')[0];
+            if (_dom_1.Head) {
+                _dom_1.HeadStyle = document.createElement('style');
+                _dom_1.HeadStyle.innerHTML = global_css_1.default;
+                if (location && location.href.includes('post_detail.php')) {
+                    _dom_1.HeadStyle.innerHTML += postDetail_css_1.default;
+                }
+                _dom_1.Head.appendChild(_dom_1.HeadStyle);
+            }
+            _dom_1.CommentList = document.getElementsByClassName('webview_commendlist')[0];
+            _dom_1.CommentList.classList.add('bhgv2-comment-list');
+            _dom_1.EditorContainer = _dom_1.CommentList.getElementsByClassName('c-reply__editor')[0];
+            _dom_1.EditorContainer.classList.add('bhgv2-editor-container');
+            _dom_1.Editor = _dom_1.EditorContainer.getElementsByClassName('reply-input')[0];
+            _dom_1.Editor.classList.add('bhgv2-editor');
+            _dom_1.EditorTextarea = _dom_1.Editor.getElementsByTagName('textarea')[0];
+            _dom_1.EditorTextarea.classList.add('bhgv2-editor-textarea');
+            _dom_1.EditorContainerFooter = document.createElement('div');
+            _dom_1.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
+            _dom_1.EditorContainer.appendChild(_dom_1.EditorContainerFooter);
+            _dom_1.ConfigPanelStatus = document.createElement('div');
+            _dom_1.ConfigPanelStatus.classList.add('bhgv2-config-status');
+            _dom_1.ConfigPanelSwitch = document.createElement('a');
+            _dom_1.ConfigPanelSwitch.classList.add('bhgv2-config-switch');
+            _dom_1.ConfigPanelSwitch.innerHTML = '插件設定';
+            _dom_1.ConfigPanelSwitch.setAttribute('href', '#');
+            _dom_1.EditorContainerFooter.appendChild(_dom_1.ConfigPanelStatus);
+            _dom_1.EditorContainerFooter.appendChild(_dom_1.ConfigPanelSwitch);
+            _dom_1.ConfigPanel = document.createElement('div');
+            _dom_1.ConfigPanel.classList.add('bhgv2-config-panel');
+            _dom_1.EditorContainer.append(_dom_1.ConfigPanel);
+            _dom_1.ConfigForm = document.createElement('form');
+            _dom_1.ConfigForm.classList.add('bhgv2-config-form');
+            _dom_1.ConfigPanel.append(_dom_1.ConfigForm);
+            _configPanelElements.forEach(function (item) {
+                var element = document.createElement('div');
+                element.innerHTML = item.label;
+                _dom_1.ConfigForm.append(element);
+            });
+            // 添加動作給 DOM
+            _dom_1.ConfigPanelSwitch.addEventListener('click', function (event) {
+                event.preventDefault();
+                _dom_1.ConfigPanel.classList.toggle('active');
+            });
             // const storedConfig = loadConfigFromLocalStorage()
             // setConfig(storedConfig)
             // fillFormConfig(storedConfig)
@@ -208,6 +258,26 @@ var BHGV2Core = function (_a) {
         },
     });
 })();
+
+
+/***/ }),
+
+/***/ 440:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n.bhgv2-comment-list > div {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list.inverted {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list.inverted > div {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list > div.bhgv2-editor-container {\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-panel .form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n}\n\n.bhgv2-config-panel .form-footer {\n\ttext-align: center;\n}\n";
+
+
+/***/ }),
+
+/***/ 507:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.default = "\n.bhgv2-comment-list .bhgv2-editor-container {\n\tposition: sticky;\n\ttop: 80px;\n\tmargin-left: -20px;\n\tmargin-right: -20px;\n\tpadding-left: 20px;\n\tpadding-right: 20px;\n\tbackground-color: rgba(180, 180, 180, 0.9);\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n}\n\n.bhgv2-comment-list .bhgv2-editor-container.dark {\n\tbackground-color: rgba(0, 0, 0, 0.9) !important;\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;\n}\n\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
 
 
 /***/ }),

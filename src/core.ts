@@ -10,33 +10,37 @@ import {
 } from './types'
 
 import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh'
+import pageStyleString from './css/global.css'
+import postStyle_post_detail from './css/postDetail.css'
 
 declare var guild: { gsn: number }
+declare var guildPost: any
 declare var jQuery: any
 declare var $: any
 
 /** 等待DOM準備完成 */
-const _waitForElm = (selector: string) => {
-	return new Promise((resolve) => {
-		if (document.querySelector(selector)) {
-			return resolve(document.querySelector(selector))
-		}
-
-		const observer = new MutationObserver((mutations) => {
-			if (document.querySelector(selector)) {
-				resolve(document.querySelector(selector))
-				observer.disconnect()
-			}
-		})
-
-		observer.observe(document.body, {
-			childList: true,
-			subtree: true,
-		})
-	})
-}
 
 const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
+	const _waitForElm = (selector: string) => {
+		return new Promise((resolve) => {
+			if (document.querySelector(selector)) {
+				return resolve(document.querySelector(selector))
+			}
+
+			const observer = new MutationObserver((mutations) => {
+				if (document.querySelector(selector)) {
+					resolve(document.querySelector(selector))
+					observer.disconnect()
+				}
+			})
+
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true,
+			})
+		})
+	}
+
 	const LOG = (message: string, type: 'log' | 'warn' | 'error' = 'log') => {
 		;(console[type] || console.log)(`[巴哈插件2.0] ${message}`)
 	}
@@ -55,6 +59,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		SN: 'sn',
 		POST_API_URL: 'postApiUrl',
 		COMMENTS_API_URL: 'commentsApiUrl',
+		USER_INFO: 'userInfo',
 	}
 
 	const CORE: TCore = {
@@ -100,6 +105,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			_plugins.forEach((plugin) => plugin.onEvent?.(eventName, payload))
 		},
 		log: LOG,
+		DOM: {},
 		STATE_KEY: CORE_STATE_KEY,
 	}
 
@@ -162,7 +168,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}
 	})
 
-	// 初始化 state (gsn, sn, comments)
+	// 初始化 state (gsn, sn, comments, userInfo)
 	_state[CORE.STATE_KEY.GSN] = guild.gsn
 	if (location && location.href.includes('post_detail.php')) {
 		const re =
@@ -173,6 +179,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		_state[CORE.STATE_KEY.SN] = urlMatch?.[2]
 	}
 	_state[CORE.STATE_KEY.COMMENTS] = []
+	_state[CORE.STATE_KEY.USER_INFO] = guildPost.loginUser
 
 	// 觸發一次所有插件的 onMutateConfig
 	CORE.mutateConfig(_config)
@@ -190,8 +197,76 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	let hasTakenOver = false
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
-			//初始化設定面板
-			// _initConfigPanel(CORE.getAllConfig())
+			//　初始化設定面板
+
+			// 初始化 DOM 元件
+			const _dom = CORE.DOM
+
+			_dom.Head = document.getElementsByTagName('head')[0]
+			if (_dom.Head) {
+				_dom.HeadStyle = document.createElement('style')
+				_dom.HeadStyle.innerHTML = pageStyleString
+				if (location && location.href.includes('post_detail.php')) {
+					_dom.HeadStyle.innerHTML += postStyle_post_detail
+				}
+				_dom.Head.appendChild(_dom.HeadStyle)
+			}
+
+			_dom.CommentList = document.getElementsByClassName(
+				'webview_commendlist'
+			)[0] as HTMLElement
+			_dom.CommentList.classList.add('bhgv2-comment-list')
+
+			_dom.EditorContainer = _dom.CommentList.getElementsByClassName(
+				'c-reply__editor'
+			)[0] as HTMLElement
+			_dom.EditorContainer.classList.add('bhgv2-editor-container')
+
+			_dom.Editor = _dom.EditorContainer.getElementsByClassName(
+				'reply-input'
+			)[0] as HTMLElement
+			_dom.Editor.classList.add('bhgv2-editor')
+
+			_dom.EditorTextarea = _dom.Editor.getElementsByTagName(
+				'textarea'
+			)[0] as HTMLElement
+			_dom.EditorTextarea.classList.add('bhgv2-editor-textarea')
+
+			_dom.EditorContainerFooter = document.createElement('div')
+			_dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer')
+			_dom.EditorContainer.appendChild(_dom.EditorContainerFooter)
+
+			_dom.ConfigPanelStatus = document.createElement('div')
+			_dom.ConfigPanelStatus.classList.add('bhgv2-config-status')
+
+			_dom.ConfigPanelSwitch = document.createElement('a')
+			_dom.ConfigPanelSwitch.classList.add('bhgv2-config-switch')
+			_dom.ConfigPanelSwitch.innerHTML = '插件設定'
+			_dom.ConfigPanelSwitch.setAttribute('href', '#')
+
+			_dom.EditorContainerFooter.appendChild(_dom.ConfigPanelStatus)
+			_dom.EditorContainerFooter.appendChild(_dom.ConfigPanelSwitch)
+
+			_dom.ConfigPanel = document.createElement('div')
+			_dom.ConfigPanel.classList.add('bhgv2-config-panel')
+			_dom.EditorContainer.append(_dom.ConfigPanel)
+
+			_dom.ConfigForm = document.createElement('form')
+			_dom.ConfigForm.classList.add('bhgv2-config-form')
+			_dom.ConfigPanel.append(_dom.ConfigForm)
+
+			_configPanelElements.forEach((item) => {
+				const element = document.createElement('div')
+				element.innerHTML = item.label
+
+				_dom.ConfigForm.append(element)
+			})
+
+			// 添加動作給 DOM
+			_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
+				event.preventDefault()
+				_dom.ConfigPanel.classList.toggle('active')
+			})
 
 			// const storedConfig = loadConfigFromLocalStorage()
 			// setConfig(storedConfig)

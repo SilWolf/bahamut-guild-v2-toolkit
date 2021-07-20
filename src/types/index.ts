@@ -13,6 +13,7 @@ export type TCore = {
 	useLibrary: (name: string, defaultLibraryIfNotFound: unknown) => unknown
 	emit: (eventName: string, payload: unknown) => void
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
+	DOM: Record<string, HTMLElement>
 
 	STATE_KEY: Record<string, string>
 }

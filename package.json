@@ -12,6 +12,7 @@
 	"license": "MIT",
 	"homepage": "https://silwolf.io",
 	"scripts": {
+		"dev": "nodemon --exec 'yarn' --watch './src/**/*.*' build",
 		"build": "webpack"
 	},
 	"devDependencies": {
@@ -20,6 +21,7 @@
 		"common-tags": "^1.8.0",
 		"eslint": "^7.31.0",
 		"eslint-config-prettier": "^8.3.0",
+		"nodemon": "^2.0.12",
 		"ts-loader": "^9.2.3",
 		"typescript": "^4.3.5",
 		"webpack": "^5.45.1",
