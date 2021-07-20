@@ -19,6 +19,7 @@
 		"@typescript-eslint/parser": "^4.28.4",
 		"common-tags": "^1.8.0",
 		"eslint": "^7.31.0",
+		"eslint-config-prettier": "^8.3.0",
 		"ts-loader": "^9.2.3",
 		"typescript": "^4.3.5",
 		"webpack": "^5.45.1",
