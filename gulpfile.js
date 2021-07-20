@@ -4,7 +4,10 @@ const gulp = require('gulp')
 const concat = require('gulp-concat')
 const ts = require('gulp-typescript')
 const clean = require('gulp-clean')
+const header = require('gulp-header')
 const merge = require('merge2')
+
+const usHeader = require('./userscriptHeader.js')
 
 gulp.task('concat', () => {
 	return gulp
@@ -31,6 +34,7 @@ gulp.task(
 			tsResult.js
 				.pipe(gulp.dest('dist/js'))
 				.pipe(concat('index.js'))
+				.pipe(header(usHeader))
 				.pipe(gulp.dest('dist')),
 		])
 	})
