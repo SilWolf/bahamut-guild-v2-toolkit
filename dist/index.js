@@ -44,23 +44,6 @@ var postDetail_css_1 = __importDefault(__webpack_require__(507));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
-    var _waitForElm = function (selector) {
-        return new Promise(function (resolve) {
-            if (document.querySelector(selector)) {
-                return resolve(document.querySelector(selector));
-            }
-            var observer = new MutationObserver(function (mutations) {
-                if (document.querySelector(selector)) {
-                    resolve(document.querySelector(selector));
-                    observer.disconnect();
-                }
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-            });
-        });
-    };
     var LOG = function (message, type) {
         if (type === void 0) { type = 'log'; }
         ;
@@ -151,8 +134,58 @@ var BHGV2Core = function (_a) {
             }
             return newValue;
         };
+        _plugin.css = [global_css_1.default];
+        if (location && location.href.includes('post_detail.php')) {
+            _plugin.css.push(postDetail_css_1.default);
+        }
         return _plugin;
     };
+    // ====================================================================================================
+    // 主程序
+    // ====================================================================================================
+    // 初始化 DOM 元件
+    var _dom = CORE.DOM;
+    _dom.Head = document.getElementsByTagName('head')[0];
+    _dom.HeadStyle = document.createElement('style');
+    _dom.Head.appendChild(_dom.HeadStyle);
+    if (_dom.Head) {
+        _dom.HeadStyle = document.createElement('style');
+        _dom.HeadStyle.innerHTML = global_css_1.default;
+        if (location && location.href.includes('post_detail.php')) {
+            _dom.HeadStyle.innerHTML += postDetail_css_1.default;
+        }
+        _dom.Head.appendChild(_dom.HeadStyle);
+    }
+    _dom.CommentList = document.getElementsByClassName('webview_commendlist')[0];
+    _dom.CommentList.classList.add('bhgv2-comment-list');
+    _dom.EditorContainer = _dom.CommentList.getElementsByClassName('c-reply__editor')[0];
+    _dom.EditorContainer.classList.add('bhgv2-editor-container');
+    _dom.Editor = _dom.EditorContainer.getElementsByClassName('reply-input')[0];
+    _dom.Editor.classList.add('bhgv2-editor');
+    _dom.EditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
+    _dom.EditorTextarea.classList.add('bhgv2-editor-textarea');
+    _dom.EditorContainerFooter = document.createElement('div');
+    _dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
+    _dom.EditorContainer.appendChild(_dom.EditorContainerFooter);
+    _dom.ConfigPanelStatus = document.createElement('div');
+    _dom.ConfigPanelStatus.classList.add('bhgv2-config-status');
+    _dom.ConfigPanelSwitch = document.createElement('a');
+    _dom.ConfigPanelSwitch.classList.add('bhgv2-config-switch');
+    _dom.ConfigPanelSwitch.innerHTML = '插件設定';
+    _dom.ConfigPanelSwitch.setAttribute('href', '#');
+    _dom.EditorContainerFooter.appendChild(_dom.ConfigPanelStatus);
+    _dom.EditorContainerFooter.appendChild(_dom.ConfigPanelSwitch);
+    _dom.ConfigPanel = document.createElement('div');
+    _dom.ConfigPanel.classList.add('bhgv2-config-panel');
+    _dom.EditorContainer.append(_dom.ConfigPanel);
+    _dom.ConfigForm = document.createElement('form');
+    _dom.ConfigForm.classList.add('bhgv2-config-form');
+    _dom.ConfigPanel.append(_dom.ConfigForm);
+    // 添加動作給 DOM
+    _dom.ConfigPanelSwitch.addEventListener('click', function (event) {
+        event.preventDefault();
+        _dom.ConfigPanel.classList.toggle('active');
+    });
     __spreadArray([_CorePlugin], plugins).forEach(function (plugin) {
         try {
             var _plugin_1 = plugin(CORE);
@@ -170,6 +203,17 @@ var BHGV2Core = function (_a) {
         catch (e) {
             LOG("\u8F09\u5165\u63D2\u4EF6\u5931\u6557, " + e.toString(), 'error');
         }
+    });
+    // 將所有插件的css塞進HeadStyle中
+    _dom.HeadStyle.innerHTML = _plugins
+        .reduce(function (prev, _plugin) { return __spreadArray(__spreadArray([], prev), (_plugin.css || [])); }, [])
+        .join('\n\n');
+    // 更新設定版面
+    _dom.ConfigForm.innerHTML = '';
+    _configPanelElements.forEach(function (item) {
+        var element = document.createElement('div');
+        element.innerHTML = item.label;
+        _dom.ConfigForm.append(element);
     });
     // 初始化 state (gsn, sn, comments, userInfo)
     _state[CORE.STATE_KEY.GSN] = guild.gsn;
@@ -191,71 +235,42 @@ var BHGV2Core = function (_a) {
     // 		${Object.values(config)}
     // 	</div>
     // `
-    var hasTakenOver = false;
-    _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
-        if (!hasTakenOver) {
-            //　初始化設定面板
-            // 初始化 DOM 元件
-            var _dom_1 = CORE.DOM;
-            _dom_1.Head = document.getElementsByTagName('head')[0];
-            if (_dom_1.Head) {
-                _dom_1.HeadStyle = document.createElement('style');
-                _dom_1.HeadStyle.innerHTML = global_css_1.default;
-                if (location && location.href.includes('post_detail.php')) {
-                    _dom_1.HeadStyle.innerHTML += postDetail_css_1.default;
-                }
-                _dom_1.Head.appendChild(_dom_1.HeadStyle);
-            }
-            _dom_1.CommentList = document.getElementsByClassName('webview_commendlist')[0];
-            _dom_1.CommentList.classList.add('bhgv2-comment-list');
-            _dom_1.EditorContainer = _dom_1.CommentList.getElementsByClassName('c-reply__editor')[0];
-            _dom_1.EditorContainer.classList.add('bhgv2-editor-container');
-            _dom_1.Editor = _dom_1.EditorContainer.getElementsByClassName('reply-input')[0];
-            _dom_1.Editor.classList.add('bhgv2-editor');
-            _dom_1.EditorTextarea = _dom_1.Editor.getElementsByTagName('textarea')[0];
-            _dom_1.EditorTextarea.classList.add('bhgv2-editor-textarea');
-            _dom_1.EditorContainerFooter = document.createElement('div');
-            _dom_1.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
-            _dom_1.EditorContainer.appendChild(_dom_1.EditorContainerFooter);
-            _dom_1.ConfigPanelStatus = document.createElement('div');
-            _dom_1.ConfigPanelStatus.classList.add('bhgv2-config-status');
-            _dom_1.ConfigPanelSwitch = document.createElement('a');
-            _dom_1.ConfigPanelSwitch.classList.add('bhgv2-config-switch');
-            _dom_1.ConfigPanelSwitch.innerHTML = '插件設定';
-            _dom_1.ConfigPanelSwitch.setAttribute('href', '#');
-            _dom_1.EditorContainerFooter.appendChild(_dom_1.ConfigPanelStatus);
-            _dom_1.EditorContainerFooter.appendChild(_dom_1.ConfigPanelSwitch);
-            _dom_1.ConfigPanel = document.createElement('div');
-            _dom_1.ConfigPanel.classList.add('bhgv2-config-panel');
-            _dom_1.EditorContainer.append(_dom_1.ConfigPanel);
-            _dom_1.ConfigForm = document.createElement('form');
-            _dom_1.ConfigForm.classList.add('bhgv2-config-form');
-            _dom_1.ConfigPanel.append(_dom_1.ConfigForm);
-            _configPanelElements.forEach(function (item) {
-                var element = document.createElement('div');
-                element.innerHTML = item.label;
-                _dom_1.ConfigForm.append(element);
-            });
-            // 添加動作給 DOM
-            _dom_1.ConfigPanelSwitch.addEventListener('click', function (event) {
-                event.preventDefault();
-                _dom_1.ConfigPanel.classList.toggle('active');
-            });
-            // const storedConfig = loadConfigFromLocalStorage()
-            // setConfig(storedConfig)
-            // fillFormConfig(storedConfig)
-            // runConfigApply()
-            hasTakenOver = true;
+    //　初始化設定面板
+    // const storedConfig = loadConfigFromLocalStorage()
+    // setConfig(storedConfig)
+    // fillFormConfig(storedConfig)
+    // runConfigApply()
+};
+var _waitForElm = function (selector) {
+    return new Promise(function (resolve) {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
         }
+        var observer = new MutationObserver(function (mutations) {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
     });
 };
 (function () {
-    BHGV2Core({
-        plugins: [bhgv2_auto_refresh_1.default],
-        library: {
-            jQuery: jQuery,
-            $: $,
-        },
+    var hasTakenOver = false;
+    _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
+        if (!hasTakenOver) {
+            BHGV2Core({
+                plugins: [bhgv2_auto_refresh_1.default],
+                library: {
+                    jQuery: jQuery,
+                    $: $,
+                },
+            });
+            hasTakenOver = true;
+        }
     });
 })();
 

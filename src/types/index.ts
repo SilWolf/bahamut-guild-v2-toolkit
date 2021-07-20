@@ -27,6 +27,7 @@ export type TPlugin = {
 	onEvent?: (eventName: string, payload: unknown) => void
 	onMutateState?: (newValue: TCoreState) => void
 	onMutateConfig?: (newValue: TCoreConfig) => void
+	css?: string[]
 }
 
 export type TCoreState = Record<string, unknown>
