@@ -10,6 +10,7 @@ import {
 } from './types'
 
 import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh'
+import BHGV2_CommentsReverse from './plugins/bhgv2-comments-reverse'
 
 import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
@@ -208,12 +209,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		_dom.ConfigFormFooterSave
 	)
 
-	// 添加動作給 DOM
-	_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
-		event.preventDefault()
-		_dom.ConfigPanel.classList.toggle('active')
-	})
-
 	// 初始化每個插件
 	;[_CorePlugin, ...plugins].forEach((plugin) => {
 		try {
@@ -294,7 +289,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				inputWrapperElement.setAttribute('for', configItem.key)
 
 				inputElement.setAttribute('id', configItem.key)
-				inputElement.setAttribute('data-field', configItem.key)
+				inputElement.setAttribute('data-config-key', configItem.key)
 				inputElement.setAttribute('data-type', configItem.dataType)
 				inputWrapperElement.prepend(inputElement)
 
@@ -322,6 +317,54 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	}
 	_state[CORE.STATE_KEY.COMMENTS] = []
 	_state[CORE.STATE_KEY.USER_INFO] = guildPost.loginUser
+
+	// 添加動作給 DOM
+	_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
+		event.preventDefault()
+		_dom.ConfigPanel.classList.toggle('active')
+	})
+
+	const _handleSubmitConfigForm = (event: MouseEvent) => {
+		event.preventDefault()
+		const form = CORE.DOM.ConfigForm
+		const newConfig = Array.from(
+			form.querySelectorAll<HTMLInputElement>('input[data-config-key]')
+		).reduce<TCoreConfig>((prev, element) => {
+			const key = element.getAttribute('data-config-key')
+			if (!key) {
+				return prev
+			}
+
+			const dataType = element.getAttribute('data-type')
+			let value = undefined
+
+			switch (dataType) {
+				case 'boolean':
+					value = element.checked
+					break
+				case 'number':
+					value = element.valueAsNumber
+					break
+				case 'text':
+					value = element.value
+					break
+			}
+
+			prev[key] = value
+
+			return prev
+		}, {})
+
+		CORE.mutateConfig(newConfig)
+	}
+	CORE.DOM.ConfigFormFooterSave.addEventListener(
+		'click',
+		_handleSubmitConfigForm
+	)
+	CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener(
+		'click',
+		_handleSubmitConfigForm
+	)
 
 	// 觸發一次所有插件的 onMutateConfig
 	CORE.mutateConfig(_config)
@@ -369,7 +412,7 @@ const _waitForElm = (selector: string) => {
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
 			BHGV2Core({
-				plugins: [BHGV2_AutoRefresh],
+				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse],
 				library: {
 					jQuery,
 					$,

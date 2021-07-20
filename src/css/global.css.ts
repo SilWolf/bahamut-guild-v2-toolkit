@@ -71,25 +71,6 @@ div[data-google-query-id] {
 	display: none;
 }
 
-.bhgv2-comment-list {
-	display: flex;
-	flex-direction: column;
-}
-.bhgv2-comment-list > div {
-	display: flex;
-	flex-direction: column;
-}
-
-.bhgv2-comment-list.inverted {
-	flex-direction: column-reverse;
-}
-.bhgv2-comment-list.inverted > div {
-	flex-direction: column-reverse;
-}
-.bhgv2-comment-list > div.bhgv2-editor-container {
-	flex-direction: column;
-}
-
 .bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;

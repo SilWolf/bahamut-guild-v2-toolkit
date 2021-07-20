@@ -39,6 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
+var bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
 var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
 /** 等待DOM準備完成 */
@@ -190,11 +191,6 @@ var BHGV2Core = function (_a) {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave);
-    // 添加動作給 DOM
-    _dom.ConfigPanelSwitch.addEventListener('click', function (event) {
-        event.preventDefault();
-        _dom.ConfigPanel.classList.toggle('active');
-    });
     __spreadArray([_CorePlugin], plugins).forEach(function (plugin) {
         var _a;
         try {
@@ -261,7 +257,7 @@ var BHGV2Core = function (_a) {
                 }
                 inputWrapperElement.setAttribute('for', configItem.key);
                 inputElement.setAttribute('id', configItem.key);
-                inputElement.setAttribute('data-field', configItem.key);
+                inputElement.setAttribute('data-config-key', configItem.key);
                 inputElement.setAttribute('data-type', configItem.dataType);
                 inputWrapperElement.prepend(inputElement);
                 var suffixLabel = document.createElement('span');
@@ -288,6 +284,39 @@ var BHGV2Core = function (_a) {
     }
     _state[CORE.STATE_KEY.COMMENTS] = [];
     _state[CORE.STATE_KEY.USER_INFO] = guildPost.loginUser;
+    // 添加動作給 DOM
+    _dom.ConfigPanelSwitch.addEventListener('click', function (event) {
+        event.preventDefault();
+        _dom.ConfigPanel.classList.toggle('active');
+    });
+    var _handleSubmitConfigForm = function (event) {
+        event.preventDefault();
+        var form = CORE.DOM.ConfigForm;
+        var newConfig = Array.from(form.querySelectorAll('input[data-config-key]')).reduce(function (prev, element) {
+            var key = element.getAttribute('data-config-key');
+            if (!key) {
+                return prev;
+            }
+            var dataType = element.getAttribute('data-type');
+            var value = undefined;
+            switch (dataType) {
+                case 'boolean':
+                    value = element.checked;
+                    break;
+                case 'number':
+                    value = element.valueAsNumber;
+                    break;
+                case 'text':
+                    value = element.value;
+                    break;
+            }
+            prev[key] = value;
+            return prev;
+        }, {});
+        CORE.mutateConfig(newConfig);
+    };
+    CORE.DOM.ConfigFormFooterSave.addEventListener('click', _handleSubmitConfigForm);
+    CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', _handleSubmitConfigForm);
     // 觸發一次所有插件的 onMutateConfig
     CORE.mutateConfig(_config);
     // 觸發一次所有插件的 onMutateState
@@ -326,7 +355,7 @@ var _waitForElm = function (selector) {
     _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
         if (!hasTakenOver) {
             BHGV2Core({
-                plugins: [bhgv2_auto_refresh_1.default],
+                plugins: [bhgv2_auto_refresh_1.default, bhgv2_comments_reverse_1.default],
                 library: {
                     jQuery: jQuery,
                     $: $,
@@ -345,7 +374,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n.bhgv2-comment-list > div {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list.inverted {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list.inverted > div {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list > div.bhgv2-editor-container {\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-panel .form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 1rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-panel .form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 1rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n";
 
 
 /***/ }),
@@ -416,6 +445,50 @@ var BHGV2_AutoRefresh = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_AutoRefresh;
+
+
+/***/ }),
+
+/***/ 547:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_CommentsReverse - 顛倒哈拉串
+ *  顛倒哈拉串
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_CommentsReverse = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_CommentsReverse',
+        prefix: 'BHGV2_CommentsReverse',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + ":isEnable",
+            suffixLabel: '顛倒哈拉串',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.css = [
+        "\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list > div {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list.bhgv2-comments-reverse-enabled {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list.bhgv2-comments-reverse-enabled > div {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t",
+    ];
+    _plugin.onMutateConfig = function (newValue) {
+        console.log(newValue);
+        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
+            var dom = core.DOM.CommentList;
+            if (dom) {
+                dom.classList.toggle('bhgv2-comments-reverse-enabled', newValue[_plugin.prefix + ":isEnable"]);
+            }
+        }
+    };
+    return _plugin;
+};
+exports.default = BHGV2_CommentsReverse;
 
 
 /***/ })
