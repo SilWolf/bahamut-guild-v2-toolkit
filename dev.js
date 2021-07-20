@@ -8,10 +8,10 @@
 // @include      /guild.gamer.com.tw/post_detail.php
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM_notification
-// @require      file:///Users/user/Desktop/bahamut-guild-v2-toolkit/bahamut-guild-v2-toolkits.user.js
+// @require      file:///Users/silwolf/Desktop/bahamut-guild-v2-toolkit/bahamut-guild-v2-toolkits.user.js
 // ==/UserScript==
 
-; (function () {
+;(function () {
 	'use strict'
 
 	// Your code here...
