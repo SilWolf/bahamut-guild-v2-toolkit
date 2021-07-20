@@ -192,6 +192,22 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.ConfigForm.classList.add('bhgv2-config-form')
 	_dom.ConfigPanel.append(_dom.ConfigForm)
 
+	_dom.ConfigFormContent = document.createElement('div')
+	_dom.ConfigFormContent.classList.add('bhgv2-config-form-content')
+
+	_dom.ConfigFormFooter = document.createElement('div')
+	_dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer')
+	_dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormFooter)
+
+	_dom.ConfigFormFooterSaveAsDefault = document.createElement('button')
+	_dom.ConfigFormFooterSaveAsDefault.innerHTML = '設為預設值'
+	_dom.ConfigFormFooterSave = document.createElement('button')
+	_dom.ConfigFormFooterSave.innerHTML = '儲存'
+	_dom.ConfigFormFooter.append(
+		_dom.ConfigFormFooterSaveAsDefault,
+		_dom.ConfigFormFooterSave
+	)
+
 	// 添加動作給 DOM
 	_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
 		event.preventDefault()
@@ -225,7 +241,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		.join('\n\n')
 
 	// 更新設定版面
-	_dom.ConfigForm.innerHTML = ''
+	_dom.ConfigFormContent.innerHTML = ''
 	_plugins.forEach(({ config, configLayout }) => {
 		if (!config) {
 			return
@@ -282,7 +298,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				rowElement.append(colElement)
 			}
 
-			_dom.ConfigForm.append(rowElement)
+			_dom.ConfigFormContent.append(rowElement)
 		}
 	})
 

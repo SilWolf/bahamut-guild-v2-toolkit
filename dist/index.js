@@ -180,6 +180,16 @@ var BHGV2Core = function (_a) {
     _dom.ConfigForm = document.createElement('form');
     _dom.ConfigForm.classList.add('bhgv2-config-form');
     _dom.ConfigPanel.append(_dom.ConfigForm);
+    _dom.ConfigFormContent = document.createElement('div');
+    _dom.ConfigFormContent.classList.add('bhgv2-config-form-content');
+    _dom.ConfigFormFooter = document.createElement('div');
+    _dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer');
+    _dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormFooter);
+    _dom.ConfigFormFooterSaveAsDefault = document.createElement('button');
+    _dom.ConfigFormFooterSaveAsDefault.innerHTML = '設為預設值';
+    _dom.ConfigFormFooterSave = document.createElement('button');
+    _dom.ConfigFormFooterSave.innerHTML = '儲存';
+    _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave);
     // 添加動作給 DOM
     _dom.ConfigPanelSwitch.addEventListener('click', function (event) {
         event.preventDefault();
@@ -207,7 +217,7 @@ var BHGV2Core = function (_a) {
         .reduce(function (prev, _plugin) { return __spreadArray(__spreadArray([], prev), (_plugin.css || [])); }, [])
         .join('\n\n');
     // 更新設定版面
-    _dom.ConfigForm.innerHTML = '';
+    _dom.ConfigFormContent.innerHTML = '';
     _plugins.forEach(function (_a) {
         var config = _a.config, configLayout = _a.configLayout;
         if (!config) {
@@ -254,7 +264,7 @@ var BHGV2Core = function (_a) {
                 colElement.append(prefixLabel, inputElement, suffixLabel);
                 rowElement.append(colElement);
             }
-            _dom.ConfigForm.append(rowElement);
+            _dom.ConfigFormContent.append(rowElement);
         }
     });
     // 初始化 state (gsn, sn, comments, userInfo)
@@ -324,7 +334,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n.bhgv2-comment-list > div {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list.inverted {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list.inverted > div {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list > div.bhgv2-editor-container {\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-panel .form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n}\n\n.bhgv2-config-panel .form-footer {\n\ttext-align: center;\n}\n\n.bhgv2-config-form .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form .bhgv2-config-form-col > input {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 1rem;\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n.bhgv2-comment-list > div {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list.inverted {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list.inverted > div {\n\tflex-direction: column-reverse;\n}\n.bhgv2-comment-list > div.bhgv2-editor-container {\n\tflex-direction: column;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-panel .form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 1rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > input {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 1rem;\n}\n";
 
 
 /***/ }),
