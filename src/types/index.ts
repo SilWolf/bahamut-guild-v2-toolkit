@@ -24,6 +24,7 @@ export type TPlugin = {
 	pluginName: string
 	prefix: string
 	config?: Record<string, TPluginConfig>
+	configLayout?: string[][]
 	onEvent?: (eventName: string, payload: unknown) => void
 	onMutateState?: (newValue: TCoreState) => void
 	onMutateConfig?: (newValue: TCoreConfig) => void
@@ -34,12 +35,13 @@ export type TCoreState = Record<string, unknown>
 export type TCoreConfig = Record<string, TPluginConfigValue>
 
 export type TPluginConfig = {
-	key?: string
-	label: string
+	key: string
+	prefixLabel?: string
+	suffixLabel?: string
 	type: TPluginConfigType
 	defaultValue: TPluginConfigValue
 }
-export type TPluginConfigType = 'boolean' | 'number' | 'string'
+export type TPluginConfigType = 'boolean' | 'number' | 'text'
 export type TPluginConfigValue = boolean | number | string | undefined
 
 export type TLibrary = unknown

@@ -151,4 +151,29 @@ div[data-google-query-id] {
 .bhgv2-config-panel .form-footer {
 	text-align: center;
 }
+
+.bhgv2-config-form .bhgv2-config-form-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.bhgv2-config-form .bhgv2-config-form-col {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.bhgv2-config-form .bhgv2-config-form-col > * {
+	display: inline-block;
+	margin-right: 2px;
+}
+
+.bhgv2-config-form .bhgv2-config-form-col > input {
+	width: 2rem;
+}
+
+.bhgv2-config-form .bhgv2-config-form-col + .bhgv2-config-form-col {
+	margin-left: 1rem;
+}
 `

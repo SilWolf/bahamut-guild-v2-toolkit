@@ -32,7 +32,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	}
 	const _config: TCoreConfig = {}
 	const _state: TCoreState = {}
-	const _configPanelElements: TPluginConfig[] = []
 
 	const CORE_STATE_KEY = {
 		COMMENTS: 'comments',
@@ -206,10 +205,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 			// 初始化config
 			Object.entries(_plugin.config || {}).forEach(([key, config]) => {
-				_configPanelElements.push({
-					key,
-					...config,
-				})
 				_config[key] = config.defaultValue
 				if (config.defaultValue === undefined) {
 					LOG(
@@ -231,11 +226,64 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	// 更新設定版面
 	_dom.ConfigForm.innerHTML = ''
-	_configPanelElements.forEach((item) => {
-		const element = document.createElement('div')
-		element.innerHTML = item.label
+	_plugins.forEach(({ config, configLayout }) => {
+		if (!config) {
+			return
+		}
+		const _configLayout = configLayout || [Object.keys(config)]
 
-		_dom.ConfigForm.append(element)
+		for (const row of _configLayout) {
+			const rowElement = document.createElement('div')
+			rowElement.classList.add('bhgv2-config-form-row')
+
+			for (const col of row) {
+				const configItem = config[col]
+				if (!configItem) {
+					return
+				}
+
+				const colElement = document.createElement('div')
+				colElement.classList.add('bhgv2-config-form-col')
+
+				const prefixLabel = document.createElement('span')
+				prefixLabel.innerHTML = configItem.prefixLabel || ''
+
+				let inputElement: HTMLElement = document.createElement('div')
+				switch (configItem.type) {
+					case 'number':
+					case 'text':
+						inputElement = document.createElement('input')
+						inputElement.setAttribute('type', configItem.type)
+						inputElement.setAttribute('data-field', configItem.key)
+						inputElement.setAttribute('data-type', configItem.type)
+						break
+
+					case 'boolean':
+						inputElement = document.createElement('label')
+						inputElement.classList.add('switch')
+
+						const _checkbox = document.createElement('input')
+						_checkbox.setAttribute('type', 'checkbox')
+						_checkbox.setAttribute('data-field', configItem.key)
+						_checkbox.setAttribute('data-type', configItem.type)
+
+						const _slider = document.createElement('span')
+						_slider.classList.add('slider')
+
+						inputElement.append(_checkbox, _slider)
+						break
+				}
+
+				const suffixLabel = document.createElement('span')
+				suffixLabel.innerHTML = configItem.suffixLabel || ''
+
+				colElement.append(prefixLabel, inputElement, suffixLabel)
+
+				rowElement.append(colElement)
+			}
+
+			_dom.ConfigForm.append(rowElement)
+		}
 	})
 
 	// 初始化 state (gsn, sn, comments, userInfo)

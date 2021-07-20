@@ -15,11 +15,21 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 
 	_plugin.config = {
 		[`${_plugin.prefix}:isEnable`]: {
-			label: '自動更新',
+			key: `${_plugin.prefix}:isEnable`,
+			suffixLabel: '自動更新',
 			type: 'boolean',
 			defaultValue: false,
 		},
+		[`${_plugin.prefix}:interval`]: {
+			key: `${_plugin.prefix}:interval`,
+			suffixLabel: '秒',
+			type: 'number',
+			defaultValue: false,
+		},
 	}
+	_plugin.configLayout = [
+		[`${_plugin.prefix}:isEnable`, `${_plugin.prefix}:interval`],
+	]
 
 	return _plugin
 }
