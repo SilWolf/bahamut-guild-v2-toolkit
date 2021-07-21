@@ -474,20 +474,43 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}
 	} catch {}
 
-	// 初始化state comments
-	const _CommentList = CORE.DOM.CommentList
-	if (_CommentList) {
-		const _newComments = Array.from(
-			_CommentList.children
-		).map<TCoreStateComment>((element) => ({
-			id: element.getAttribute('data-csn') as string,
-			element,
-		}))
+	// 初始化state comments (用Interval等到comment list真的生成好)
+	let _initialCommentListInterval: NodeJS.Timer
+	_initialCommentListInterval = setInterval(() => {
+		const _CommentListOuter = CORE.DOM.CommentListOuter
 
-		CORE.mutateState({
-			latestComments: _newComments,
-		})
-	}
+		if (_CommentListOuter) {
+			const commentCount =
+				parseInt(
+					_CommentListOuter.getAttribute('data-comment-count') as string
+				) || 0
+
+			if (commentCount === 0) {
+				clearInterval(_initialCommentListInterval)
+				return
+			}
+
+			const _CommentList = CORE.DOM.CommentList
+			if (_CommentList) {
+				if (_CommentList.children.length === 0) {
+					return
+				}
+
+				const _newComments = Array.from(
+					_CommentList.children
+				).map<TCoreStateComment>((element) => ({
+					id: element.getAttribute('data-csn') as string,
+					element,
+				}))
+
+				CORE.mutateState({
+					latestComments: _newComments,
+				})
+			}
+
+			clearInterval(_initialCommentListInterval)
+		}
+	}, 200)
 
 	return CORE
 }
@@ -516,7 +539,7 @@ const _waitForElm = (selector: string) => {
 	let hasTakenOver = false
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
-			const core = BHGV2Core({
+			BHGV2Core({
 				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse, BHGV2_DarkMode],
 				library: {
 					jQuery,

@@ -397,17 +397,32 @@ var BHGV2Core = function (_a) {
         }
     }
     catch (_b) { }
-    // 初始化state comments
-    var _CommentList = CORE.DOM.CommentList;
-    if (_CommentList) {
-        var _newComments = Array.from(_CommentList.children).map(function (element) { return ({
-            id: element.getAttribute('data-csn'),
-            element: element,
-        }); });
-        CORE.mutateState({
-            latestComments: _newComments,
-        });
-    }
+    // 初始化state comments (用Interval等到comment list真的生成好)
+    var _initialCommentListInterval;
+    _initialCommentListInterval = setInterval(function () {
+        var _CommentListOuter = CORE.DOM.CommentListOuter;
+        if (_CommentListOuter) {
+            var commentCount = parseInt(_CommentListOuter.getAttribute('data-comment-count')) || 0;
+            if (commentCount === 0) {
+                clearInterval(_initialCommentListInterval);
+                return;
+            }
+            var _CommentList = CORE.DOM.CommentList;
+            if (_CommentList) {
+                if (_CommentList.children.length === 0) {
+                    return;
+                }
+                var _newComments = Array.from(_CommentList.children).map(function (element) { return ({
+                    id: element.getAttribute('data-csn'),
+                    element: element,
+                }); });
+                CORE.mutateState({
+                    latestComments: _newComments,
+                });
+            }
+            clearInterval(_initialCommentListInterval);
+        }
+    }, 200);
     return CORE;
 };
 var _waitForElm = function (selector) {
@@ -431,7 +446,7 @@ var _waitForElm = function (selector) {
     var hasTakenOver = false;
     _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
         if (!hasTakenOver) {
-            var core = BHGV2Core({
+            BHGV2Core({
                 plugins: [bhgv2_auto_refresh_1.default, bhgv2_comments_reverse_1.default, bhgv2_dark_mode_1.default],
                 library: {
                     jQuery: jQuery,
