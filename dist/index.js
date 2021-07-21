@@ -43,6 +43,7 @@ var bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
 var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
 var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
+var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -148,6 +149,11 @@ var BHGV2Core = function (_a) {
                             user: guildPost.loginUser,
                         }))[0];
                         newElement.classList.add('bhgv2-comment');
+                        var _replyContentUser = newElement.querySelector('.reply-content__user');
+                        if (_replyContentUser) {
+                            newElement.setAttribute('data-user', _replyContentUser.textContent);
+                            newElement.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
+                        }
                         return newElement;
                     };
                     var oldestLatestComment = newValue.latestComments[0];
@@ -165,6 +171,11 @@ var BHGV2Core = function (_a) {
                         if (newComment.element &&
                             core.commentsMap[newComment.id] === undefined) {
                             newComment.element.classList.add('bhgv2-comment');
+                            var _replyContentUser = newComment.element.querySelector('.reply-content__user');
+                            if (_replyContentUser) {
+                                newComment.element.setAttribute('data-user', _replyContentUser.textContent);
+                                newComment.element.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
+                            }
                             core.commentsMap[newComment.id] = newComment;
                             revisedLatestComments.push(newComment);
                             continue;
@@ -489,7 +500,12 @@ var _waitForElm = function (selector) {
     _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
         if (!hasTakenOver) {
             BHGV2Core({
-                plugins: [bhgv2_auto_refresh_1.default, bhgv2_comments_reverse_1.default, bhgv2_dark_mode_1.default],
+                plugins: [
+                    bhgv2_auto_refresh_1.default,
+                    bhgv2_comments_reverse_1.default,
+                    bhgv2_dark_mode_1.default,
+                    bhgv2_rainbow_1.default,
+                ],
                 library: {
                     jQuery: jQuery,
                     $: $,
@@ -862,6 +878,89 @@ var BHGV2_DarkMode = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_DarkMode;
+
+
+/***/ }),
+
+/***/ 87:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_Rainbow - 彩虹留言
+ *  給自己以外的玩家留言填上顏色
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_Rainbow = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_Rainbow',
+        prefix: 'BHGV2_Rainbow',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + ":isEnable",
+            suffixLabel: '改變留言的底色',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
+    ];
+    var _colors = [
+        '#bacff5',
+        '#f5badb',
+        '#f5f2ba',
+        '#c6f5ba',
+        '#f5e3ba',
+        '#bcbaf5',
+        '#d8baf5',
+        '#8accdb',
+        '#db8ab3',
+        '#dbd48a',
+        '#8bdb8a',
+    ];
+    _plugin.css = _colors.map(function (color, index) {
+        return "\n\t\t\t.bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-" + index + " {\n\t\t\t\tbackground-color: " + color + ";\n\t\t\t}\n\t\t";
+    });
+    _plugin.onMutateConfig = function (newValue) {
+        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
+            var dom = core.DOM.CommentList;
+            if (dom) {
+                dom.classList.toggle('bhgv2-color-comment-enabled', newValue[_plugin.prefix + ":isEnable"]);
+            }
+        }
+    };
+    var _cachedUserId = {};
+    _plugin.onMutateState = function (newValue) {
+        if (newValue.latestComments !== undefined) {
+            // 高亮其他人的訊息
+            var userInfo = core.getState().userInfo;
+            var myId_1 = userInfo === null || userInfo === void 0 ? void 0 : userInfo.id;
+            newValue.latestComments.forEach(function (comment) {
+                var commentElement = comment.element;
+                if (!commentElement) {
+                    return;
+                }
+                var commentUserId = commentElement === null || commentElement === void 0 ? void 0 : commentElement.getAttribute('data-userid');
+                if (!commentUserId) {
+                    return;
+                }
+                if (commentUserId === myId_1) {
+                    return;
+                }
+                var colorIndex = _cachedUserId[commentUserId];
+                if (colorIndex === undefined) {
+                    colorIndex = Object.keys(_cachedUserId).length % _colors.length;
+                    _cachedUserId[commentUserId] = colorIndex;
+                }
+                commentElement.classList.add("bhgv2-color-comment-" + colorIndex);
+            });
+        }
+    };
+    return _plugin;
+};
+exports.default = BHGV2_Rainbow;
 
 
 /***/ })

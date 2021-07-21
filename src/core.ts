@@ -18,6 +18,7 @@ import BHGV2_DarkMode from './plugins/bhgv2-dark-mode'
 
 import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
+import BHGV2_Rainbow from './plugins/bhgv2-rainbow'
 
 declare var jQuery: any
 declare var $: any
@@ -58,7 +59,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		getStateByNames: (...names) => {
 			return names.reduce<TCoreState>((prev, key) => {
 				if (_state[key] !== undefined) {
-					prev[key] = _state[key]
+					prev[key] = _state[key] as any
 				}
 				return prev
 			}, {})
@@ -66,7 +67,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		mutateState: (newValue) => {
 			_plugins.forEach((plugin) => plugin.onMutateState?.(newValue))
 			Object.entries(newValue).forEach(([key, value]) => {
-				_state[key as TCoreStateKey] = value
+				_state[key as TCoreStateKey] = value as any
 			})
 		},
 
@@ -141,6 +142,19 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							})
 						)[0]
 						newElement.classList.add('bhgv2-comment')
+						const _replyContentUser = newElement.querySelector<HTMLLinkElement>(
+							'.reply-content__user'
+						)
+						if (_replyContentUser) {
+							newElement.setAttribute(
+								'data-user',
+								_replyContentUser.textContent as string
+							)
+							newElement.setAttribute(
+								'data-userid',
+								_replyContentUser.href.split('/').pop() as string
+							)
+						}
 
 						return newElement
 					}
@@ -170,6 +184,21 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							core.commentsMap[newComment.id] === undefined
 						) {
 							newComment.element.classList.add('bhgv2-comment')
+							const _replyContentUser =
+								newComment.element.querySelector<HTMLLinkElement>(
+									'.reply-content__user'
+								)
+							if (_replyContentUser) {
+								newComment.element.setAttribute(
+									'data-user',
+									_replyContentUser.textContent as string
+								)
+								newComment.element.setAttribute(
+									'data-userid',
+									_replyContentUser.href.split('/').pop() as string
+								)
+							}
+
 							core.commentsMap[newComment.id] = newComment
 							revisedLatestComments.push(newComment)
 							continue
@@ -601,7 +630,12 @@ const _waitForElm = (selector: string) => {
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
 			BHGV2Core({
-				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse, BHGV2_DarkMode],
+				plugins: [
+					BHGV2_AutoRefresh,
+					BHGV2_CommentsReverse,
+					BHGV2_DarkMode,
+					BHGV2_Rainbow,
+				],
 				library: {
 					jQuery,
 					$,

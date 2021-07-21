@@ -38,13 +38,19 @@ export type TCoreState = {
 	latestComments?: TCoreStateComment[]
 	isInit?: boolean
 	commentsCount?: number
-	userInfo?: any
+	userInfo?: TCoreStateUserInfo
 }
 export type TCoreStateKey = keyof TCoreState
 export type TCoreStateComment = {
 	id: string
 	payload?: TComment
 	element?: Element | undefined
+}
+export type TCoreStateUserInfo = {
+	avatar: string
+	id: string
+	login: string
+	nickname: string
 }
 
 export type TCoreConfig = Record<string, TPluginConfigValue>
