@@ -10,11 +10,6 @@ export default `
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-.bhgv2-comment-list .bhgv2-editor-container.dark {
-	background-color: rgba(0, 0, 0, 0.9) !important;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
-}
-
 .bhgv2-editor .bhgv2-editor-textarea {
 	min-height: 66px;
 }

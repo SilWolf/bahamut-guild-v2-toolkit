@@ -14,6 +14,7 @@ import BHGV2_CommentsReverse from './plugins/bhgv2-comments-reverse'
 
 import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
+import BHGV2_DarkMode from './plugins/bhgv2-dark-mode'
 
 declare var guild: { gsn: number }
 declare var guildPost: any
@@ -430,19 +431,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			CORE.mutateConfig(JSON.parse(_storedConfigJSON))
 		}
 	} catch {}
-	// // 初始化設定介面
-	// const _configPanelHTML = (config) => `
-	// 	<div class="bhgv2-config-panel">
-	// 		${Object.values(config)}
-	// 	</div>
-	// `
-
-	//　初始化設定面板
-
-	// const storedConfig = loadConfigFromLocalStorage()
-	// setConfig(storedConfig)
-	// fillFormConfig(storedConfig)
-	// runConfigApply()
 }
 
 const _waitForElm = (selector: string) => {
@@ -470,7 +458,7 @@ const _waitForElm = (selector: string) => {
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
 			BHGV2Core({
-				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse],
+				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse, BHGV2_DarkMode],
 				library: {
 					jQuery,
 					$,

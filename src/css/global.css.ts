@@ -93,16 +93,8 @@ div[data-google-query-id] {
 	display: block;
 }
 
-.bhgv2-config-panel.dark {
-	background: #222222;
-}
-
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
 	border: 1px solid #999;
-}
-
-.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {
-	color: #c7c6cb;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {

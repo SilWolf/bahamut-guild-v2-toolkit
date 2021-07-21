@@ -42,6 +42,7 @@ var bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
 var bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
 var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
+var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -366,17 +367,6 @@ var BHGV2Core = function (_a) {
         }
     }
     catch (_b) { }
-    // // 初始化設定介面
-    // const _configPanelHTML = (config) => `
-    // 	<div class="bhgv2-config-panel">
-    // 		${Object.values(config)}
-    // 	</div>
-    // `
-    //　初始化設定面板
-    // const storedConfig = loadConfigFromLocalStorage()
-    // setConfig(storedConfig)
-    // fillFormConfig(storedConfig)
-    // runConfigApply()
 };
 var _waitForElm = function (selector) {
     return new Promise(function (resolve) {
@@ -400,7 +390,7 @@ var _waitForElm = function (selector) {
     _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
         if (!hasTakenOver) {
             BHGV2Core({
-                plugins: [bhgv2_auto_refresh_1.default, bhgv2_comments_reverse_1.default],
+                plugins: [bhgv2_auto_refresh_1.default, bhgv2_comments_reverse_1.default, bhgv2_dark_mode_1.default],
                 library: {
                     jQuery: jQuery,
                     $: $,
@@ -419,7 +409,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.dark {\n\tbackground: #222222;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel.dark input {\n\tcolor: #c7c6cb;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n";
 
 
 /***/ }),
@@ -429,7 +419,7 @@ exports.default = "/* The switch - the box around the slider */\n.switch {\n\tpo
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "\n.bhgv2-comment-list .bhgv2-editor-container {\n\tposition: sticky;\n\ttop: 80px;\n\tmargin-left: -20px;\n\tmargin-right: -20px;\n\tpadding-left: 20px;\n\tpadding-right: 20px;\n\tbackground-color: rgba(180, 180, 180, 0.9);\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n}\n\n.bhgv2-comment-list .bhgv2-editor-container.dark {\n\tbackground-color: rgba(0, 0, 0, 0.9) !important;\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;\n}\n\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
+exports.default = "\n.bhgv2-comment-list .bhgv2-editor-container {\n\tposition: sticky;\n\ttop: 80px;\n\tmargin-left: -20px;\n\tmargin-right: -20px;\n\tpadding-left: 20px;\n\tpadding-right: 20px;\n\tbackground-color: rgba(180, 180, 180, 0.9);\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n}\n\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
 
 
 /***/ }),
@@ -533,6 +523,90 @@ var BHGV2_CommentsReverse = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_CommentsReverse;
+
+
+/***/ }),
+
+/***/ 340:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_DarkMode - 黑闇模式
+ *  當啟動巴哈的黑闇模式時，使插件介面也跟著黑闇起來
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_DarkMode = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_DarkMode',
+        prefix: 'BHGV2_DarkMode',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + ":isEnable",
+            suffixLabel: '巴哈開啟黑闇模式時切換介面顏色',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
+    ];
+    _plugin.css = [
+        "\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark {\n\t\t\t\tbackground-color: rgba(0, 0, 0, 0.9) !important;\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel {\n\t\t\t\tbackground: #222222;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel input {\n\t\t\t\tcolor: #c7c6cb;\n\t\t\t}\n\t\t",
+    ];
+    _plugin.onMutateConfig = function (newValue) {
+        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
+            var dom = core.DOM.EditorContainer;
+            if (dom) {
+                dom.classList.toggle('bhgv2-dark-mode-enabled', newValue[_plugin.prefix + ":isEnable"]);
+            }
+        }
+    };
+    var _getCookie = function (name) {
+        var _a;
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length == 2) {
+            return (_a = parts.pop()) === null || _a === void 0 ? void 0 : _a.split(';').shift();
+        }
+    };
+    var darkModeObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(function () {
+            //檢查c-reply__editor是否存在，避免不必要的error觸發
+            var editorContainer = core.DOM.EditorContainer;
+            if (!editorContainer) {
+                return;
+            }
+            if (location && location.href.includes('post_detail.php')) {
+                if (_getCookie('ckForumDarkTheme') == 'yes') {
+                    document
+                        .getElementsByClassName('c-reply__editor')[0]
+                        .classList.toggle('dark', true);
+                    document
+                        .getElementsByClassName('plugin-config-form')[0]
+                        .classList.toggle('dark', true);
+                }
+                else {
+                    document
+                        .getElementsByClassName('c-reply__editor')[0]
+                        .classList.toggle('dark', false);
+                    document
+                        .getElementsByClassName('plugin-config-form')[0]
+                        .classList.toggle('dark', false);
+                }
+            }
+        });
+    });
+    var target = core.DOM.Head;
+    darkModeObserver.observe(target, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+    });
+    return _plugin;
+};
+exports.default = BHGV2_DarkMode;
 
 
 /***/ })
