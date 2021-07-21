@@ -134,6 +134,26 @@ var BHGV2Core = function (_a) {
             }
             return newValue;
         };
+        _plugin.onMutateConfig = function (newValue) {
+            var form = core.DOM.ConfigFormContent;
+            if (!form) {
+                return;
+            }
+            Object.keys(newValue).forEach(function (key) {
+                var input = form.querySelector("input[data-config-key='" + key + "']");
+                if (input) {
+                    switch (input.getAttribute('data-type')) {
+                        case 'number':
+                        case 'text':
+                            input.value = newValue[key] || '';
+                            break;
+                        case 'boolean':
+                            input.checked = newValue[key] || false;
+                            break;
+                    }
+                }
+            });
+        };
         _plugin.css = [global_css_1.default];
         if (location && location.href.includes('post_detail.php')) {
             _plugin.css.push(postDetail_css_1.default);
@@ -297,7 +317,7 @@ var BHGV2Core = function (_a) {
             _dom.ConfigFormMessage.innerHTML = '';
         }, 2000);
     };
-    var _handleSubmitConfigForm = function (event) {
+    var _handleSubmitConfigForm = function (event, options) {
         event.preventDefault();
         var form = CORE.DOM.ConfigForm;
         var newConfig = Array.from(form.querySelectorAll('input[data-config-key]')).reduce(function (prev, element) {
@@ -322,19 +342,30 @@ var BHGV2Core = function (_a) {
             return prev;
         }, {});
         CORE.mutateConfig(newConfig);
+        if (options === null || options === void 0 ? void 0 : options.saveAsDefault) {
+            window.localStorage.setItem('bahamut-guild-v2-toolkit:config', JSON.stringify(newConfig));
+        }
     };
     CORE.DOM.ConfigFormFooterSave.addEventListener('click', function (event) {
         _handleSubmitConfigForm(event);
         _showConfigFormMessage('已儲存設定');
     });
     CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', function (event) {
-        _handleSubmitConfigForm(event);
+        _handleSubmitConfigForm(event, { saveAsDefault: true });
         _showConfigFormMessage('已設為預設值及儲存設定');
     });
     // 觸發一次所有插件的 onMutateConfig
     CORE.mutateConfig(_config);
     // 觸發一次所有插件的 onMutateState
     CORE.mutateState(_state);
+    // 讀取預設值
+    try {
+        var _storedConfigJSON = localStorage.getItem('bahamut-guild-v2-toolkit:config');
+        if (_storedConfigJSON) {
+            CORE.mutateConfig(JSON.parse(_storedConfigJSON));
+        }
+    }
+    catch (_b) { }
     // // 初始化設定介面
     // const _configPanelHTML = (config) => `
     // 	<div class="bhgv2-config-panel">

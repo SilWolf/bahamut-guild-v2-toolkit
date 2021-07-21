@@ -121,6 +121,30 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			return newValue
 		}
 
+		_plugin.onMutateConfig = (newValue) => {
+			const form = core.DOM.ConfigFormContent
+			if (!form) {
+				return
+			}
+
+			Object.keys(newValue).forEach((key: string) => {
+				const input = form.querySelector(
+					`input[data-config-key='${key}']`
+				) as HTMLInputElement
+				if (input) {
+					switch (input.getAttribute('data-type')) {
+						case 'number':
+						case 'text':
+							input.value = (newValue[key] as string) || ''
+							break
+						case 'boolean':
+							input.checked = (newValue[key] as boolean) || false
+							break
+					}
+				}
+			})
+		}
+
 		_plugin.css = [pageStyleString]
 		if (location && location.href.includes('post_detail.php')) {
 			_plugin.css.push(postStyle_post_detail)
@@ -338,7 +362,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}, 2000)
 	}
 
-	const _handleSubmitConfigForm = (event: MouseEvent) => {
+	const _handleSubmitConfigForm = (
+		event: MouseEvent,
+		options?: { saveAsDefault: boolean }
+	) => {
 		event.preventDefault()
 		const form = CORE.DOM.ConfigForm
 		const newConfig = Array.from(
@@ -370,13 +397,21 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}, {})
 
 		CORE.mutateConfig(newConfig)
+
+		if (options?.saveAsDefault) {
+			window.localStorage.setItem(
+				'bahamut-guild-v2-toolkit:config',
+				JSON.stringify(newConfig)
+			)
+		}
 	}
+
 	CORE.DOM.ConfigFormFooterSave.addEventListener('click', (event) => {
 		_handleSubmitConfigForm(event)
 		_showConfigFormMessage('已儲存設定')
 	})
 	CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', (event) => {
-		_handleSubmitConfigForm(event)
+		_handleSubmitConfigForm(event, { saveAsDefault: true })
 		_showConfigFormMessage('已設為預設值及儲存設定')
 	})
 
@@ -386,6 +421,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	// 觸發一次所有插件的 onMutateState
 	CORE.mutateState(_state)
 
+	// 讀取預設值
+	try {
+		const _storedConfigJSON = localStorage.getItem(
+			'bahamut-guild-v2-toolkit:config'
+		)
+		if (_storedConfigJSON) {
+			CORE.mutateConfig(JSON.parse(_storedConfigJSON))
+		}
+	} catch {}
 	// // 初始化設定介面
 	// const _configPanelHTML = (config) => `
 	// 	<div class="bhgv2-config-panel">
