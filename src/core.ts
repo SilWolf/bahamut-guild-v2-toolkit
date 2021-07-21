@@ -18,7 +18,6 @@ import BHGV2_DarkMode from './plugins/bhgv2-dark-mode'
 
 import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
-import { createNotification } from './helpers/notification.helper'
 
 declare var jQuery: any
 declare var $: any

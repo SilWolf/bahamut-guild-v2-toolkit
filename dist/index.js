@@ -605,6 +605,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var notification_helper_1 = __webpack_require__(804);
 var BHGV2_AutoRefresh = function (core) {
+    var _a;
     var _plugin = {
         pluginName: 'BHGV2_AutoRefresh',
         prefix: 'BHGV2_AutoRefresh',
@@ -625,14 +626,14 @@ var BHGV2_AutoRefresh = function (core) {
             defaultValue: 30,
         },
         {
-            key: _plugin.prefix + ":desktopNotification",
+            key: _plugin.prefix + ":notification",
             suffixLabel: '自動更新時發送桌面通知',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + ":desktopNotificationSound",
+            key: _plugin.prefix + ":notificationSound",
             suffixLabel: '提示音',
             dataType: 'boolean',
             inputType: 'checkbox',
@@ -641,11 +642,10 @@ var BHGV2_AutoRefresh = function (core) {
     ];
     _plugin.configLayout = [
         [_plugin.prefix + ":isEnable", _plugin.prefix + ":interval"],
-        [
-            _plugin.prefix + ":desktopNotification",
-            _plugin.prefix + ":desktopNotificationSound",
-        ],
+        [_plugin.prefix + ":notification", _plugin.prefix + ":notificationSound"],
     ];
+    var _statusDom = document.createElement('span');
+    (_a = core.DOM.ConfigPanelStatus) === null || _a === void 0 ? void 0 : _a.append(_statusDom);
     var _refreshIntervalObj = undefined;
     _plugin.onMutateConfig = function (newValue) {
         if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
@@ -655,14 +655,21 @@ var BHGV2_AutoRefresh = function (core) {
                     clearTimeout(_refreshIntervalObj);
                     _refreshIntervalObj = undefined;
                 }
+                _statusDom.style.display = 'none';
             }
             else if (isEnabled === true) {
                 if (_refreshIntervalObj) {
                     clearTimeout(_refreshIntervalObj);
                     _refreshIntervalObj = undefined;
                 }
-                var intervalMs_1 = (parseInt(newValue[_plugin.prefix + ":interval"]) || 30) *
-                    1000;
+                _statusDom.style.display = 'inline-block';
+                var _config = core.getConfig();
+                var _interval = parseInt(newValue[_plugin.prefix + ":interval"] ||
+                    _config[_plugin.prefix + ":interval"]);
+                if (!_interval || _interval <= 0) {
+                    _interval = 30;
+                }
+                var _intervalMs_1 = _interval * 1000;
                 var timeoutFn_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
                     var commentListApi, _a, comments, newCommentsCount, currentCommentsCount, latestComments, expectedNewCommentsCount, page, anotherComments;
                     return __generator(this, function (_b) {
@@ -705,12 +712,25 @@ var BHGV2_AutoRefresh = function (core) {
                                 return [3 /*break*/, 2];
                             case 4:
                                 core.mutateState({ latestComments: latestComments });
-                                _refreshIntervalObj = setTimeout(timeoutFn_1, intervalMs_1);
+                                _refreshIntervalObj = setTimeout(timeoutFn_1, _intervalMs_1);
                                 return [2 /*return*/];
                         }
                     });
                 }); };
-                _refreshIntervalObj = setTimeout(timeoutFn_1, intervalMs_1);
+                _refreshIntervalObj = setTimeout(timeoutFn_1, _intervalMs_1);
+                var _notification = newValue[_plugin.prefix + ":notification"] !== undefined
+                    ? newValue[_plugin.prefix + ":notification"]
+                    : _config[_plugin.prefix + ":notification"];
+                var _notificationSound = newValue[_plugin.prefix + ":notificationSound"] !== undefined
+                    ? newValue[_plugin.prefix + ":notificationSound"]
+                    : _config[_plugin.prefix + ":notificationSound"];
+                _statusDom.innerHTML = "\u81EA\u52D5\u66F4\u65B0\u4E2D(" + [
+                    _interval + "s",
+                    _notification ? '通知' : undefined,
+                    _notification && _notificationSound ? '聲音' : undefined,
+                ]
+                    .filter(function (item) { return !!item; })
+                    .join(',') + ")";
             }
         }
     };
@@ -720,7 +740,7 @@ var BHGV2_AutoRefresh = function (core) {
         }
         if (newValue.latestComments !== undefined) {
             var config = core.getConfig();
-            if (config[_plugin.prefix + ":desktopNotification"]) {
+            if (config[_plugin.prefix + ":notification"]) {
                 // 發送桌面通知
                 notification_helper_1.createNotification({
                     title: '測試用通知',

@@ -35,14 +35,14 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 			defaultValue: 30,
 		},
 		{
-			key: `${_plugin.prefix}:desktopNotification`,
+			key: `${_plugin.prefix}:notification`,
 			suffixLabel: '自動更新時發送桌面通知',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
 		},
 		{
-			key: `${_plugin.prefix}:desktopNotificationSound`,
+			key: `${_plugin.prefix}:notificationSound`,
 			suffixLabel: '提示音',
 			dataType: 'boolean',
 			inputType: 'checkbox',
@@ -52,11 +52,11 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 
 	_plugin.configLayout = [
 		[`${_plugin.prefix}:isEnable`, `${_plugin.prefix}:interval`],
-		[
-			`${_plugin.prefix}:desktopNotification`,
-			`${_plugin.prefix}:desktopNotificationSound`,
-		],
+		[`${_plugin.prefix}:notification`, `${_plugin.prefix}:notificationSound`],
 	]
+
+	const _statusDom = document.createElement('span')
+	core.DOM.ConfigPanelStatus?.append(_statusDom)
 
 	let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
 
@@ -69,15 +69,28 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 					clearTimeout(_refreshIntervalObj)
 					_refreshIntervalObj = undefined
 				}
+
+				_statusDom.style.display = 'none'
 			} else if (isEnabled === true) {
 				if (_refreshIntervalObj) {
 					clearTimeout(_refreshIntervalObj)
 					_refreshIntervalObj = undefined
 				}
 
-				const intervalMs =
-					(parseInt(newValue[`${_plugin.prefix}:interval`] as string) || 30) *
-					1000
+				_statusDom.style.display = 'inline-block'
+
+				const _config = core.getConfig()
+
+				let _interval = parseInt(
+					(newValue[`${_plugin.prefix}:interval`] as string) ||
+						(_config[`${_plugin.prefix}:interval`] as string)
+				)
+
+				if (!_interval || _interval <= 0) {
+					_interval = 30
+				}
+
+				const _intervalMs = _interval * 1000
 
 				const timeoutFn = async () => {
 					const { commentListApi } = core.getState()
@@ -130,10 +143,27 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 
 					core.mutateState({ latestComments })
 
-					_refreshIntervalObj = setTimeout(timeoutFn, intervalMs)
+					_refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
 				}
 
-				_refreshIntervalObj = setTimeout(timeoutFn, intervalMs)
+				_refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
+
+				const _notification =
+					newValue[`${_plugin.prefix}:notification`] !== undefined
+						? newValue[`${_plugin.prefix}:notification`]
+						: _config[`${_plugin.prefix}:notification`]
+				const _notificationSound =
+					newValue[`${_plugin.prefix}:notificationSound`] !== undefined
+						? newValue[`${_plugin.prefix}:notificationSound`]
+						: _config[`${_plugin.prefix}:notificationSound`]
+
+				_statusDom.innerHTML = `自動更新中(${[
+					`${_interval}s`,
+					_notification ? '通知' : undefined,
+					_notification && _notificationSound ? '聲音' : undefined,
+				]
+					.filter((item) => !!item)
+					.join(',')})`
 			}
 		}
 	}
@@ -146,7 +176,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		if (newValue.latestComments !== undefined) {
 			const config = core.getConfig()
 
-			if (config[`${_plugin.prefix}:desktopNotification`]) {
+			if (config[`${_plugin.prefix}:notification`]) {
 				// 發送桌面通知
 				createNotification({
 					title: '測試用通知',
