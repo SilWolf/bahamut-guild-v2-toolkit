@@ -126,51 +126,83 @@ var BHGV2Core = function (_a) {
             }
             if (newValue.latestComments && newValue.latestComments.length > 0) {
                 var oldValue = core.getStateByNames('gsn', 'sn');
-                var gsn = newValue.gsn || oldValue.gsn;
-                var sn = newValue.sn || oldValue.sn;
+                var gsn_1 = newValue.gsn || oldValue.gsn;
+                var sn_1 = newValue.sn || oldValue.sn;
                 var CommentList = core.DOM.CommentList;
                 var revisedLatestComments = [];
                 // revisedLatestComments 的存在理由
                 // 因為mutateState會將資料往插件傳，所以必須過濾不必要的資料
                 // 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
-                if (gsn && sn && CommentList) {
-                    for (var _i = 0, _a = newValue.latestComments; _i < _a.length; _i++) {
-                        var comment = _a[_i];
-                        if (core.commentsMap[comment.id]) {
-                            continue;
-                        }
-                        if (comment.element) {
-                            comment.element.classList.add('bhgv2-comment');
-                            core.commentsMap[comment.id] = comment;
-                            continue;
-                        }
-                        var _payload = comment.payload;
-                        if (!_payload) {
-                            continue;
-                        }
+                if (gsn_1 && sn_1 && CommentList) {
+                    var _createCommentElement = function (payload) {
                         // 生成comment的element
                         var newElement = $(nunjucks.render('comment.njk.html', {
                             post: {
-                                id: sn,
+                                id: sn_1,
                                 commentCount: 0,
-                                to: { gsn: gsn },
+                                to: { gsn: gsn_1 },
                             },
-                            comment: __assign(__assign({}, _payload), { text: GuildTextUtil.mentionTagToMarkdown(gsn, _payload.text, _payload.tags, _payload.mentions), time: _payload.ctime }),
+                            comment: __assign(__assign({}, payload), { text: GuildTextUtil.mentionTagToMarkdown(gsn_1, payload.text, payload.tags, payload.mentions), time: payload.ctime }),
                             marked: GuildTextUtil.markedInstance,
                             youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
                             user: guildPost.loginUser,
                         }))[0];
                         newElement.classList.add('bhgv2-comment');
-                        CommentList.append(newElement);
-                        comment.element = newElement;
-                        core.commentsMap[comment.id] = comment;
-                        revisedLatestComments.push(comment);
+                        return newElement;
+                    };
+                    var oldestLatestComment = newValue.latestComments[0];
+                    var oldestLatestCommentId_1 = parseInt(oldestLatestComment.id);
+                    var oldCommentIndex = Array.from(CommentList.children).findIndex(function (e) {
+                        return parseInt(e.getAttribute('data-csn')) >=
+                            oldestLatestCommentId_1;
+                    });
+                    if (oldCommentIndex === -1) {
+                        oldCommentIndex = CommentList.children.length;
+                    }
+                    for (var newCommentIndex = 0; newCommentIndex < newValue.latestComments.length; newCommentIndex++) {
+                        var newComment = newValue.latestComments[newCommentIndex];
+                        var newCommentId = parseInt(newComment.id);
+                        if (newComment.element &&
+                            core.commentsMap[newComment.id] === undefined) {
+                            newComment.element.classList.add('bhgv2-comment');
+                            core.commentsMap[newComment.id] = newComment;
+                            revisedLatestComments.push(newComment);
+                            continue;
+                        }
+                        var _payload = newComment.payload;
+                        if (!_payload) {
+                            continue;
+                        }
+                        while (oldCommentIndex < 9999) {
+                            if (oldCommentIndex >= CommentList.children.length) {
+                                newComment.element = _createCommentElement(_payload);
+                                CommentList.append(newComment.element);
+                                oldCommentIndex++;
+                                revisedLatestComments.push(newComment);
+                                core.commentsMap[newComment.id] = newComment;
+                                break;
+                            }
+                            var oldCommentElement = CommentList.children[oldCommentIndex];
+                            var oldCommentId = parseInt(oldCommentElement.getAttribute('data-csn'));
+                            if (oldCommentId === newCommentId) {
+                                oldCommentIndex++;
+                                break;
+                            }
+                            else if (newCommentId < oldCommentId) {
+                                newComment.element = _createCommentElement(_payload);
+                                oldCommentElement.insertAdjacentElement('beforebegin', newComment.element);
+                                oldCommentIndex++;
+                                revisedLatestComments.push(newComment);
+                                core.commentsMap[newComment.id] = newComment;
+                                break;
+                            }
+                            oldCommentIndex++;
+                        }
                     }
                     newValue.commentsCount = Object.keys(core.commentsMap).length;
+                    newValue.latestComments =
+                        revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
                 }
-                console.log(revisedLatestComments);
-                newValue.latestComments =
-                    revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
             }
         };
         _plugin.onMutateConfig = function (newValue) {
@@ -427,6 +459,7 @@ var BHGV2Core = function (_a) {
                 }); });
                 CORE.mutateState({
                     latestComments: _newComments,
+                    isInit: true,
                 });
             }
             clearInterval(_initialCommentListInterval);
@@ -635,7 +668,6 @@ var BHGV2_AutoRefresh = function (core) {
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
-                                console.log('timeoutFn');
                                 commentListApi = core.getState().commentListApi;
                                 if (!commentListApi) {
                                     return [2 /*return*/];
@@ -672,7 +704,6 @@ var BHGV2_AutoRefresh = function (core) {
                                 }); }));
                                 return [3 /*break*/, 2];
                             case 4:
-                                console.log(latestComments);
                                 core.mutateState({ latestComments: latestComments });
                                 _refreshIntervalObj = setTimeout(timeoutFn_1, intervalMs_1);
                                 return [2 /*return*/];
@@ -684,11 +715,13 @@ var BHGV2_AutoRefresh = function (core) {
         }
     };
     _plugin.onMutateState = function (newValue) {
+        if (newValue.isInit) {
+            return;
+        }
         if (newValue.latestComments !== undefined) {
-            var config = core.getConfigByNames(_plugin.prefix + ":desktopNotification", _plugin.prefix + ":desktopNotificationSound");
+            var config = core.getConfig();
             if (config[_plugin.prefix + ":desktopNotification"]) {
                 // 發送桌面通知
-                console.log('send notification');
                 notification_helper_1.createNotification({
                     title: '測試用通知',
                     text: '測試用通知',

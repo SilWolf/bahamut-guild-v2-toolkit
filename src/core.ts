@@ -109,6 +109,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				const sn = newValue.sn || oldValue.sn
 
 				const CommentList = core.DOM.CommentList
+
 				const revisedLatestComments = []
 
 				// revisedLatestComments 的存在理由
@@ -116,21 +117,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				// 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
 
 				if (gsn && sn && CommentList) {
-					for (const comment of newValue.latestComments) {
-						if (core.commentsMap[comment.id]) {
-							continue
-						}
-						if (comment.element) {
-							comment.element.classList.add('bhgv2-comment')
-							core.commentsMap[comment.id] = comment
-							continue
-						}
-
-						const _payload = comment.payload
-						if (!_payload) {
-							continue
-						}
-
+					const _createCommentElement = (payload: TComment): HTMLElement => {
 						// 生成comment的element
 						const newElement: HTMLElement = $(
 							nunjucks.render('comment.njk.html', {
@@ -140,14 +127,14 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 									to: { gsn: gsn },
 								},
 								comment: {
-									..._payload,
+									...payload,
 									text: GuildTextUtil.mentionTagToMarkdown(
 										gsn,
-										_payload.text,
-										_payload.tags,
-										_payload.mentions
+										payload.text,
+										payload.tags,
+										payload.mentions
 									),
-									time: _payload.ctime,
+									time: payload.ctime,
 								},
 								marked: GuildTextUtil.markedInstance,
 								youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
@@ -156,20 +143,83 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 						)[0]
 						newElement.classList.add('bhgv2-comment')
 
-						CommentList.append(newElement)
-						comment.element = newElement
+						return newElement
+					}
 
-						core.commentsMap[comment.id] = comment
-						revisedLatestComments.push(comment)
+					const oldestLatestComment = newValue.latestComments[0]
+					const oldestLatestCommentId = parseInt(oldestLatestComment.id)
+					let oldCommentIndex = Array.from(CommentList.children).findIndex(
+						(e) =>
+							parseInt(e.getAttribute('data-csn') as string) >=
+							oldestLatestCommentId
+					)
+
+					if (oldCommentIndex === -1) {
+						oldCommentIndex = CommentList.children.length
+					}
+
+					for (
+						let newCommentIndex = 0;
+						newCommentIndex < newValue.latestComments.length;
+						newCommentIndex++
+					) {
+						const newComment = newValue.latestComments[newCommentIndex]
+						const newCommentId = parseInt(newComment.id)
+
+						if (
+							newComment.element &&
+							core.commentsMap[newComment.id] === undefined
+						) {
+							newComment.element.classList.add('bhgv2-comment')
+							core.commentsMap[newComment.id] = newComment
+							revisedLatestComments.push(newComment)
+							continue
+						}
+
+						const _payload = newComment.payload
+
+						if (!_payload) {
+							continue
+						}
+
+						while (oldCommentIndex < 9999) {
+							if (oldCommentIndex >= CommentList.children.length) {
+								newComment.element = _createCommentElement(_payload)
+								CommentList.append(newComment.element)
+								oldCommentIndex++
+								revisedLatestComments.push(newComment)
+								core.commentsMap[newComment.id] = newComment
+								break
+							}
+
+							const oldCommentElement = CommentList.children[oldCommentIndex]
+							const oldCommentId = parseInt(
+								oldCommentElement.getAttribute('data-csn') as string
+							)
+
+							if (oldCommentId === newCommentId) {
+								oldCommentIndex++
+								break
+							} else if (newCommentId < oldCommentId) {
+								newComment.element = _createCommentElement(_payload)
+								oldCommentElement.insertAdjacentElement(
+									'beforebegin',
+									newComment.element
+								)
+								oldCommentIndex++
+								revisedLatestComments.push(newComment)
+								core.commentsMap[newComment.id] = newComment
+								break
+							}
+
+							oldCommentIndex++
+						}
 					}
 
 					newValue.commentsCount = Object.keys(core.commentsMap).length
+					newValue.latestComments =
+						revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 				}
-
-				console.log(revisedLatestComments)
-
-				newValue.latestComments =
-					revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 			}
 		}
 
@@ -516,6 +566,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 				CORE.mutateState({
 					latestComments: _newComments,
+					isInit: true,
 				})
 			}
 

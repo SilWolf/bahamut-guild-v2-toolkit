@@ -80,7 +80,6 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 					1000
 
 				const timeoutFn = async () => {
-					console.log('timeoutFn')
 					const { commentListApi } = core.getState()
 					if (!commentListApi) {
 						return
@@ -129,8 +128,6 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						)
 					}
 
-					console.log(latestComments)
-
 					core.mutateState({ latestComments })
 
 					_refreshIntervalObj = setTimeout(timeoutFn, intervalMs)
@@ -142,15 +139,15 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateState = (newValue) => {
+		if (newValue.isInit) {
+			return
+		}
+
 		if (newValue.latestComments !== undefined) {
-			const config = core.getConfigByNames(
-				`${_plugin.prefix}:desktopNotification`,
-				`${_plugin.prefix}:desktopNotificationSound`
-			)
+			const config = core.getConfig()
 
 			if (config[`${_plugin.prefix}:desktopNotification`]) {
 				// 發送桌面通知
-				console.log('send notification')
 				createNotification({
 					title: '測試用通知',
 					text: '測試用通知',
