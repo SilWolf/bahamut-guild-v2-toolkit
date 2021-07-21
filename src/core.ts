@@ -196,9 +196,16 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.ConfigFormContent = document.createElement('div')
 	_dom.ConfigFormContent.classList.add('bhgv2-config-form-content')
 
+	_dom.ConfigFormMessage = document.createElement('div')
+	_dom.ConfigFormMessage.classList.add('bhgv2-config-form-message')
+
 	_dom.ConfigFormFooter = document.createElement('div')
 	_dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer')
-	_dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormFooter)
+	_dom.ConfigForm.append(
+		_dom.ConfigFormContent,
+		_dom.ConfigFormMessage,
+		_dom.ConfigFormFooter
+	)
 
 	_dom.ConfigFormFooterSaveAsDefault = document.createElement('button')
 	_dom.ConfigFormFooterSaveAsDefault.innerHTML = '設為預設值'
@@ -324,6 +331,13 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		_dom.ConfigPanel.classList.toggle('active')
 	})
 
+	const _showConfigFormMessage = (message: string) => {
+		_dom.ConfigFormMessage.innerHTML = message
+		setTimeout(() => {
+			_dom.ConfigFormMessage.innerHTML = ''
+		}, 2000)
+	}
+
 	const _handleSubmitConfigForm = (event: MouseEvent) => {
 		event.preventDefault()
 		const form = CORE.DOM.ConfigForm
@@ -357,14 +371,14 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 		CORE.mutateConfig(newConfig)
 	}
-	CORE.DOM.ConfigFormFooterSave.addEventListener(
-		'click',
-		_handleSubmitConfigForm
-	)
-	CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener(
-		'click',
-		_handleSubmitConfigForm
-	)
+	CORE.DOM.ConfigFormFooterSave.addEventListener('click', (event) => {
+		_handleSubmitConfigForm(event)
+		_showConfigFormMessage('已儲存設定')
+	})
+	CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', (event) => {
+		_handleSubmitConfigForm(event)
+		_showConfigFormMessage('已設為預設值及儲存設定')
+	})
 
 	// 觸發一次所有插件的 onMutateConfig
 	CORE.mutateConfig(_config)

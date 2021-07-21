@@ -106,11 +106,14 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {
+	display: inline-block;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 	background-color: #eee;
 	padding: 3px;
+	margin-left: 2px;
+	margin-right: 2px;
 	border: 1px solid #333;
 	color: #000;
 	text-decoration: none;
@@ -120,18 +123,19 @@ div[data-google-query-id] {
 	color: #ccc;
 }
 
-.bhgv2-config-panel .form-message {
+.bhgv2-config-form-message {
 	text-align: center;
 	color: #4a934a;
 	font-size: 12px;
 	min-height: 24px;
 	line-height: 16px;
 	padding: 4px;
+	margin-top: 0.5rem;
 }
 
 .bhgv2-config-form-footer {
 	text-align: center;
-	margin-top: 1rem;
+	margin-top: 0.5rem;
 }
 
 .bhgv2-config-form-footer > * + * {

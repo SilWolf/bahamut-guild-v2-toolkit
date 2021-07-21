@@ -49,7 +49,6 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 	]
 
 	_plugin.onMutateConfig = (newValue) => {
-		console.log(newValue)
 		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
 			const dom = core.DOM.CommentList
 			if (dom) {
