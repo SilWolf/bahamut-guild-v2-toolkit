@@ -1,8 +1,11 @@
 import {
+	TComment,
 	TCore,
 	TCoreConfig,
 	TCoreConstructor,
 	TCoreState,
+	TCoreStateComment,
+	TCoreStateKey,
 	TLibrary,
 	TPlugin,
 	TPluginConfig,
@@ -20,6 +23,8 @@ declare var guild: { gsn: number }
 declare var guildPost: any
 declare var jQuery: any
 declare var $: any
+declare var nunjucks: any
+declare var GuildTextUtil: any
 
 /** 等待DOM準備完成 */
 
@@ -34,15 +39,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	}
 	const _config: TCoreConfig = {}
 	const _state: TCoreState = {}
-
-	const CORE_STATE_KEY = {
-		COMMENTS: 'comments',
-		GSN: 'gsn',
-		SN: 'sn',
-		POST_API_URL: 'postApiUrl',
-		COMMENTS_API_URL: 'commentsApiUrl',
-		USER_INFO: 'userInfo',
-	}
 
 	const CORE: TCore = {
 		getConfig: () => _config,
@@ -73,7 +69,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		mutateState: (newValue) => {
 			_plugins.forEach((plugin) => plugin.onMutateState?.(newValue))
 			Object.entries(newValue).forEach(([key, value]) => {
-				_state[key] = value
+				_state[key as TCoreStateKey] = value
 			})
 		},
 
@@ -88,7 +84,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		},
 		log: LOG,
 		DOM: {},
-		STATE_KEY: CORE_STATE_KEY,
+		commentsMap: {},
 	}
 
 	const _CorePlugin: TPluginConstructor = (core) => {
@@ -98,28 +94,72 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}
 
 		_plugin.onMutateState = (newValue) => {
-			if (
-				newValue[core.STATE_KEY.GSN] !== undefined ||
-				newValue[core.STATE_KEY.SN] !== undefined
-			) {
-				const oldValue = core.getStateByNames(
-					core.STATE_KEY.GSN,
-					core.STATE_KEY.SN
-				)
-				const gsn = newValue[core.STATE_KEY.GSN] || oldValue[core.STATE_KEY.GSN]
-				const sn = newValue[core.STATE_KEY.SN] || oldValue[core.STATE_KEY.SN]
+			if (newValue.gsn !== undefined || newValue.sn !== undefined) {
+				const oldValue = core.getStateByNames('gsn', 'sn')
+				const gsn = newValue.gsn || oldValue.gsn
+				const sn = newValue.sn || oldValue.sn
 
 				if (gsn && sn) {
-					newValue[
-						core.STATE_KEY.POST_API_URL
-					] = `https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`
-					newValue[
-						core.STATE_KEY.COMMENTS_API_URL
-					] = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`
+					newValue.postApi = `https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`
+					newValue.commentListApi = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`
 				}
 			}
 
-			return newValue
+			if (newValue.latestComments) {
+				const oldValue = core.getStateByNames('gsn', 'sn')
+				const gsn = newValue.gsn || oldValue.gsn
+				const sn = newValue.sn || oldValue.sn
+
+				const CommentList = core.DOM.CommentList
+
+				if (gsn && sn && CommentList) {
+					for (const comment of newValue.latestComments) {
+						if (core.commentsMap[comment.id]) {
+							continue
+						}
+						if (comment.element) {
+							comment.element.classList.add('bhgv2-comment')
+							core.commentsMap[comment.id] = comment
+							continue
+						}
+
+						const _payload = comment.payload
+						if (!_payload) {
+							continue
+						}
+
+						// 生成comment的element
+						const newElement: HTMLElement = $(
+							nunjucks.render('comment.njk.html', {
+								post: {
+									id: sn,
+									commentCount: 0,
+									to: { gsn: gsn },
+								},
+								comment: {
+									..._payload,
+									text: GuildTextUtil.mentionTagToMarkdown(
+										gsn,
+										_payload.text,
+										_payload.tags,
+										_payload.mentions
+									),
+									time: _payload.ctime,
+								},
+								marked: GuildTextUtil.markedInstance,
+								youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
+								user: guildPost.loginUser,
+							})
+						)[0]
+						newElement.classList.add('bhgv2-comment')
+
+						CommentList.append(newElement)
+						comment.element = newElement
+
+						core.commentsMap[comment.id] = comment
+					}
+				}
+			}
 		}
 
 		_plugin.onMutateConfig = (newValue) => {
@@ -175,12 +215,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		_dom.Head.appendChild(_dom.HeadStyle)
 	}
 
-	_dom.CommentList = document.getElementsByClassName(
+	_dom.CommentListOuter = document.getElementsByClassName(
 		'webview_commendlist'
 	)[0] as HTMLElement
+	_dom.CommentListOuter.classList.add('bhgv2-comment-list-outer')
+
+	_dom.CommentList = _dom.CommentListOuter.firstElementChild as HTMLElement
 	_dom.CommentList.classList.add('bhgv2-comment-list')
 
-	_dom.EditorContainer = _dom.CommentList.getElementsByClassName(
+	_dom.EditorContainer = _dom.CommentListOuter.getElementsByClassName(
 		'c-reply__editor'
 	)[0] as HTMLElement
 	_dom.EditorContainer.classList.add('bhgv2-editor-container')
@@ -338,17 +381,16 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	})
 
 	// 初始化 state (gsn, sn, comments, userInfo)
-	_state[CORE.STATE_KEY.GSN] = guild.gsn
+	_state.gsn = guild.gsn
 	if (location && location.href.includes('post_detail.php')) {
 		const re =
 			/https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm
 		var url = document.URL
 		var urlMatch = re.exec(url)
 
-		_state[CORE.STATE_KEY.SN] = urlMatch?.[2]
+		_state.sn = parseInt(urlMatch?.[2] as string) || undefined
 	}
-	_state[CORE.STATE_KEY.COMMENTS] = []
-	_state[CORE.STATE_KEY.USER_INFO] = guildPost.loginUser
+	_state.userInfo = guildPost.loginUser
 
 	// 添加動作給 DOM
 	_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
@@ -431,6 +473,23 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			CORE.mutateConfig(JSON.parse(_storedConfigJSON))
 		}
 	} catch {}
+
+	// 初始化state comments
+	const _CommentList = CORE.DOM.CommentList
+	if (_CommentList) {
+		const _newComments = Array.from(
+			_CommentList.children
+		).map<TCoreStateComment>((element) => ({
+			id: element.getAttribute('data-csn') as string,
+			element,
+		}))
+
+		CORE.mutateState({
+			latestComments: _newComments,
+		})
+	}
+
+	return CORE
 }
 
 const _waitForElm = (selector: string) => {
@@ -457,11 +516,13 @@ const _waitForElm = (selector: string) => {
 	let hasTakenOver = false
 	_waitForElm('.webview_commendlist .c-reply__editor').then(() => {
 		if (!hasTakenOver) {
-			BHGV2Core({
+			const core = BHGV2Core({
 				plugins: [BHGV2_AutoRefresh, BHGV2_CommentsReverse, BHGV2_DarkMode],
 				library: {
 					jQuery,
 					$,
+					nunjucks,
+					GuildTextUtil,
 				},
 			})
 			hasTakenOver = true

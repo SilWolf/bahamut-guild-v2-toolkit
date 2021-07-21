@@ -68,23 +68,10 @@ const BHGV2_DarkMode: TPluginConstructor = (core) => {
 			if (!editorContainer) {
 				return
 			}
-			if (location && location.href.includes('post_detail.php')) {
-				if (_getCookie('ckForumDarkTheme') == 'yes') {
-					document
-						.getElementsByClassName('c-reply__editor')[0]
-						.classList.toggle('dark', true)
-					document
-						.getElementsByClassName('plugin-config-form')[0]
-						.classList.toggle('dark', true)
-				} else {
-					document
-						.getElementsByClassName('c-reply__editor')[0]
-						.classList.toggle('dark', false)
-					document
-						.getElementsByClassName('plugin-config-form')[0]
-						.classList.toggle('dark', false)
-				}
-			}
+			editorContainer.classList.toggle(
+				'dark',
+				_getCookie('ckForumDarkTheme') == 'yes'
+			)
 		})
 	})
 

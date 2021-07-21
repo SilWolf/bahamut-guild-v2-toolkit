@@ -25,20 +25,20 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 
 	_plugin.css = [
 		`
+			.bhgv2-comment-list-outer {
+				display: flex;
+				flex-direction: column;
+			}
 			.bhgv2-comment-list {
 				display: flex;
 				flex-direction: column;
 			}
-			.bhgv2-comment-list > div {
-				display: flex;
-				flex-direction: column;
-			}
 
-			.bhgv2-comment-list.bhgv2-comments-reverse-enabled {
+			.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled {
 				flex-direction: column-reverse;
 			}
 
-			.bhgv2-comment-list.bhgv2-comments-reverse-enabled > div {
+			.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled .bhgv2-comment-list {
 				flex-direction: column-reverse;
 			}
 			
@@ -50,7 +50,7 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 
 	_plugin.onMutateConfig = (newValue) => {
 		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
-			const dom = core.DOM.CommentList
+			const dom = core.DOM.CommentListOuter
 			if (dom) {
 				dom.classList.toggle(
 					'bhgv2-comments-reverse-enabled',

@@ -71,7 +71,7 @@ div[data-google-query-id] {
 	display: none;
 }
 
-.bhgv2-comment-list > div.bhgv2-editor-container .bhgv2-editor-container-footer {
+.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;

@@ -1,5 +1,5 @@
 export default `
-.bhgv2-comment-list .bhgv2-editor-container {
+.bhgv2-comment-list-outer .bhgv2-editor-container {
 	position: sticky;
 	top: 80px;
 	margin-left: -20px;

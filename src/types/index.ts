@@ -1,21 +1,20 @@
 export type TCoreConstructor = (props: {
 	plugins: TPluginConstructor[]
 	library: Record<string, TLibrary>
-}) => void
+}) => TCore
 
 export type TCore = {
 	getConfig: () => TCoreConfig
 	getConfigByNames: (...names: string[]) => TCoreConfig
 	mutateConfig: (newValue: TCoreConfig) => void
 	getState: () => TCoreState
-	getStateByNames: (...names: string[]) => TCoreState
+	getStateByNames: (...names: TCoreStateKey[]) => TCoreState
 	mutateState: (newValue: TCoreState) => void
+	commentsMap: Record<string, TCoreStateComment>
 	useLibrary: (name: string, defaultLibraryIfNotFound: unknown) => unknown
 	emit: (eventName: string, payload: unknown) => void
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
 	DOM: Record<string, HTMLElement>
-
-	STATE_KEY: Record<string, string>
 }
 
 export type TPluginConstructor = (core: TCore) => TPlugin
@@ -31,7 +30,21 @@ export type TPlugin = {
 	css?: string[]
 }
 
-export type TCoreState = Record<string, unknown>
+export type TCoreState = {
+	gsn?: number
+	sn?: number
+	postApi?: string
+	commentListApi?: string
+	latestComments?: TCoreStateComment[]
+	userInfo?: any
+}
+export type TCoreStateKey = keyof TCoreState
+export type TCoreStateComment = {
+	id: string
+	payload?: TComment
+	element?: Element | undefined
+}
+
 export type TCoreConfig = Record<string, TPluginConfigValue>
 
 export type TPluginConfig = {
@@ -47,3 +60,56 @@ export type TPluginConfigInputType = 'switch' | 'checkbox' | 'number' | 'text'
 export type TPluginConfigValue = boolean | number | string | undefined
 
 export type TLibrary = unknown
+
+export type TCommentsListApiResponse = {
+	data: {
+		commentCount: number
+		comments: TComment[]
+		nextPage: number
+		publisher: {
+			name: string
+			id: string
+		}
+		to: {
+			name: string
+			id: string
+			gsn: number
+			privateType: number
+		}
+		totalPage: number
+	}
+}
+
+export type TComment = {
+	text: string
+	id: string
+	children: number
+	likeCount: number
+	dislikeCount: number
+	isLike: number
+	commentCount: string
+	image: unknown[]
+	mentions: TCommentMention[]
+	tags: unknown[]
+	time: string
+	ctime: string
+	name: string
+	userid: string
+	canCheckIn: number
+	fansAvatar: string
+	propic: string
+	type: number
+	editable: boolean
+	deletable: boolean
+	urlPreview: {
+		urlLink: string
+	}
+	contentImages: string[]
+	position: number
+}
+
+export type TCommentMention = {
+	id: string
+	offset: string
+	length: string
+}
