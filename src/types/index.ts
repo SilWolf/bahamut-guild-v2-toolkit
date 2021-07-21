@@ -36,6 +36,7 @@ export type TCoreState = {
 	postApi?: string
 	commentListApi?: string
 	latestComments?: TCoreStateComment[]
+	commentsCount?: number
 	userInfo?: any
 }
 export type TCoreStateKey = keyof TCoreState

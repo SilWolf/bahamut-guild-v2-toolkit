@@ -14,17 +14,15 @@ import {
 
 import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh'
 import BHGV2_CommentsReverse from './plugins/bhgv2-comments-reverse'
+import BHGV2_DarkMode from './plugins/bhgv2-dark-mode'
 
 import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
-import BHGV2_DarkMode from './plugins/bhgv2-dark-mode'
+import { createNotification } from './helpers/notification.helper'
 
-declare var guild: { gsn: number }
-declare var guildPost: any
 declare var jQuery: any
 declare var $: any
 declare var nunjucks: any
-declare var GuildTextUtil: any
 
 /** 等待DOM準備完成 */
 
@@ -105,12 +103,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				}
 			}
 
-			if (newValue.latestComments) {
+			if (newValue.latestComments && newValue.latestComments.length > 0) {
 				const oldValue = core.getStateByNames('gsn', 'sn')
 				const gsn = newValue.gsn || oldValue.gsn
 				const sn = newValue.sn || oldValue.sn
 
 				const CommentList = core.DOM.CommentList
+				const revisedLatestComments = []
+
+				// revisedLatestComments 的存在理由
+				// 因為mutateState會將資料往插件傳，所以必須過濾不必要的資料
+				// 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
 
 				if (gsn && sn && CommentList) {
 					for (const comment of newValue.latestComments) {
@@ -157,8 +160,16 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 						comment.element = newElement
 
 						core.commentsMap[comment.id] = comment
+						revisedLatestComments.push(comment)
 					}
+
+					newValue.commentsCount = Object.keys(core.commentsMap).length
 				}
+
+				console.log(revisedLatestComments)
+
+				newValue.latestComments =
+					revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 			}
 		}
 

@@ -5,8 +5,10 @@
  *
  *******************************************************************************************/
 
+import { createNotification } from '../../helpers/notification.helper'
 import {
 	TCommentsListApiResponse,
+	TCoreStateComment,
 	TPlugin,
 	TPluginConstructor,
 } from '../../types'
@@ -56,65 +58,106 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		],
 	]
 
-	// let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
+	let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
 
-	// const _fetchLatestComment = () => {
-	// 	const state = core.getStateByNames(core.co)
+	_plugin.onMutateConfig = (newValue) => {
+		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
+			const isEnabled = newValue[`${_plugin.prefix}:isEnable`]
 
-	// 	if (state.commentListApi) {
-	// 		return
-	// 	}
+			if (isEnabled === false) {
+				if (_refreshIntervalObj) {
+					clearTimeout(_refreshIntervalObj)
+					_refreshIntervalObj = undefined
+				}
+			} else if (isEnabled === true) {
+				if (_refreshIntervalObj) {
+					clearTimeout(_refreshIntervalObj)
+					_refreshIntervalObj = undefined
+				}
 
-	// 	fetch(state[core.STATE_KEY.COMMENTS_API_URL] as string, {
-	// 		credentials: 'include',
-	// 	})
-	// 		.then((res) => res.json())
-	// 		.then((res: TCommentsListApiResponse) => {
-	// 			const { comments, commentCount, nextPage } = res.data
-	// 			const currentCommentsCount = CommentList.childElementCount
+				const intervalMs =
+					(parseInt(newValue[`${_plugin.prefix}:interval`] as string) || 30) *
+					1000
 
-	// 			const expectedNewCommentsCount = currentCommentsCount - commentCount
-	// 			if (expectedNewCommentsCount < 0) {
-	// 				const newComments = await fetchAllComments().then(
-	// 					(response) => response.data.comments
-	// 				)
-	// 				clearComments()
-	// 				appendNewComments(newComments)
-	// 				return
-	// 			}
-	// 			const newComments =
+				const timeoutFn = async () => {
+					console.log('timeoutFn')
+					const { commentListApi } = core.getState()
+					if (!commentListApi) {
+						return
+					}
 
-	// 		})
+					const { comments, commentCount: newCommentsCount } = await fetch(
+						commentListApi,
+						{
+							credentials: 'include',
+						}
+					)
+						.then((res) => res.json())
+						.then((res: TCommentsListApiResponse) => res.data)
 
-	// 	const CommentList = core.DOM.CommentList
-	// 	if (!CommentList) {
-	// 		return
-	// 	}
+					const { commentsCount: currentCommentsCount } = core.getState()
+					const latestComments: TCoreStateComment[] = [
+						...comments.map((_comment) => ({
+							id: _comment.id,
+							payload: _comment,
+						})),
+					]
+					const expectedNewCommentsCount =
+						newCommentsCount - (currentCommentsCount || 0)
 
-	// }
+					let page = 0
+					while (
+						latestComments.length < expectedNewCommentsCount &&
+						page < 999
+					) {
+						page++
 
-	// _plugin.onMutateConfig = (newValue) => {
-	// 	if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
-	// 		const isEnabled = newValue[`${_plugin.prefix}:isEnable`]
+						const { comments: anotherComments } = await fetch(
+							commentListApi + `&page=${page}`,
+							{
+								credentials: 'include',
+							}
+						)
+							.then((res) => res.json())
+							.then((res: TCommentsListApiResponse) => res.data)
 
-	// 		if (isEnabled === false) {
-	// 			if (_refreshIntervalObj) {
-	// 				clearInterval(_refreshIntervalObj)
-	// 				_refreshIntervalObj = undefined
-	// 			}
-	// 		} else if (isEnabled === true) {
-	// 			if (_refreshIntervalObj) {
-	// 				clearInterval(_refreshIntervalObj)
-	// 				_refreshIntervalObj = undefined
-	// 			}
+						latestComments.push(
+							...anotherComments.map((_comment) => ({
+								id: _comment.id,
+								payload: _comment,
+							}))
+						)
+					}
 
-	// 			const intervalMs =
-	// 				(parseInt(newValue[`${_plugin.prefix}:interval`] as string) || 30) *
-	// 				1000
-	// 			_refreshIntervalObj = setInterval(() => {}, intervalMs)
-	// 		}
-	// 	}
-	// }
+					console.log(latestComments)
+
+					core.mutateState({ latestComments })
+
+					_refreshIntervalObj = setTimeout(timeoutFn, intervalMs)
+				}
+
+				_refreshIntervalObj = setTimeout(timeoutFn, intervalMs)
+			}
+		}
+	}
+
+	_plugin.onMutateState = (newValue) => {
+		if (newValue.latestComments !== undefined) {
+			const config = core.getConfigByNames(
+				`${_plugin.prefix}:desktopNotification`,
+				`${_plugin.prefix}:desktopNotificationSound`
+			)
+
+			if (config[`${_plugin.prefix}:desktopNotification`]) {
+				// 發送桌面通知
+				console.log('send notification')
+				createNotification({
+					title: '測試用通知',
+					text: '測試用通知',
+				})
+			}
+		}
+	}
 
 	return _plugin
 }

@@ -40,9 +40,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
 var bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
+var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
 var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
-var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -124,11 +124,15 @@ var BHGV2Core = function (_a) {
                     newValue.commentListApi = "https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=" + gsn + "&messageId=" + sn;
                 }
             }
-            if (newValue.latestComments) {
+            if (newValue.latestComments && newValue.latestComments.length > 0) {
                 var oldValue = core.getStateByNames('gsn', 'sn');
                 var gsn = newValue.gsn || oldValue.gsn;
                 var sn = newValue.sn || oldValue.sn;
                 var CommentList = core.DOM.CommentList;
+                var revisedLatestComments = [];
+                // revisedLatestComments 的存在理由
+                // 因為mutateState會將資料往插件傳，所以必須過濾不必要的資料
+                // 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
                 if (gsn && sn && CommentList) {
                     for (var _i = 0, _a = newValue.latestComments; _i < _a.length; _i++) {
                         var comment = _a[_i];
@@ -160,8 +164,13 @@ var BHGV2Core = function (_a) {
                         CommentList.append(newElement);
                         comment.element = newElement;
                         core.commentsMap[comment.id] = comment;
+                        revisedLatestComments.push(comment);
                     }
+                    newValue.commentsCount = Object.keys(core.commentsMap).length;
                 }
+                console.log(revisedLatestComments);
+                newValue.latestComments =
+                    revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
             }
         };
         _plugin.onMutateConfig = function (newValue) {
@@ -483,8 +492,34 @@ exports.default = "\n.bhgv2-comment-list-outer .bhgv2-editor-container {\n\tposi
 
 /***/ }),
 
+/***/ 804:
+/***/ (function(__unused_webpack_module, exports) {
+
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createNotification = void 0;
+var createNotification = function (options) {
+    var _options = __assign({ silent: false }, options);
+    GM_notification(_options);
+};
+exports.createNotification = createNotification;
+
+
+/***/ }),
+
 /***/ 503:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
 /*******************************************************************************************
@@ -493,7 +528,49 @@ exports.default = "\n.bhgv2-comment-list-outer .bhgv2-editor-container {\n\tposi
  *  每隔特定時間重新讀取一次哈拉串
  *
  *******************************************************************************************/
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+var notification_helper_1 = __webpack_require__(804);
 var BHGV2_AutoRefresh = function (core) {
     var _plugin = {
         pluginName: 'BHGV2_AutoRefresh',
@@ -536,55 +613,89 @@ var BHGV2_AutoRefresh = function (core) {
             _plugin.prefix + ":desktopNotificationSound",
         ],
     ];
-    // let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
-    // const _fetchLatestComment = () => {
-    // 	const state = core.getStateByNames(core.co)
-    // 	if (state.commentListApi) {
-    // 		return
-    // 	}
-    // 	fetch(state[core.STATE_KEY.COMMENTS_API_URL] as string, {
-    // 		credentials: 'include',
-    // 	})
-    // 		.then((res) => res.json())
-    // 		.then((res: TCommentsListApiResponse) => {
-    // 			const { comments, commentCount, nextPage } = res.data
-    // 			const currentCommentsCount = CommentList.childElementCount
-    // 			const expectedNewCommentsCount = currentCommentsCount - commentCount
-    // 			if (expectedNewCommentsCount < 0) {
-    // 				const newComments = await fetchAllComments().then(
-    // 					(response) => response.data.comments
-    // 				)
-    // 				clearComments()
-    // 				appendNewComments(newComments)
-    // 				return
-    // 			}
-    // 			const newComments =
-    // 		})
-    // 	const CommentList = core.DOM.CommentList
-    // 	if (!CommentList) {
-    // 		return
-    // 	}
-    // }
-    // _plugin.onMutateConfig = (newValue) => {
-    // 	if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
-    // 		const isEnabled = newValue[`${_plugin.prefix}:isEnable`]
-    // 		if (isEnabled === false) {
-    // 			if (_refreshIntervalObj) {
-    // 				clearInterval(_refreshIntervalObj)
-    // 				_refreshIntervalObj = undefined
-    // 			}
-    // 		} else if (isEnabled === true) {
-    // 			if (_refreshIntervalObj) {
-    // 				clearInterval(_refreshIntervalObj)
-    // 				_refreshIntervalObj = undefined
-    // 			}
-    // 			const intervalMs =
-    // 				(parseInt(newValue[`${_plugin.prefix}:interval`] as string) || 30) *
-    // 				1000
-    // 			_refreshIntervalObj = setInterval(() => {}, intervalMs)
-    // 		}
-    // 	}
-    // }
+    var _refreshIntervalObj = undefined;
+    _plugin.onMutateConfig = function (newValue) {
+        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
+            var isEnabled = newValue[_plugin.prefix + ":isEnable"];
+            if (isEnabled === false) {
+                if (_refreshIntervalObj) {
+                    clearTimeout(_refreshIntervalObj);
+                    _refreshIntervalObj = undefined;
+                }
+            }
+            else if (isEnabled === true) {
+                if (_refreshIntervalObj) {
+                    clearTimeout(_refreshIntervalObj);
+                    _refreshIntervalObj = undefined;
+                }
+                var intervalMs_1 = (parseInt(newValue[_plugin.prefix + ":interval"]) || 30) *
+                    1000;
+                var timeoutFn_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var commentListApi, _a, comments, newCommentsCount, currentCommentsCount, latestComments, expectedNewCommentsCount, page, anotherComments;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                console.log('timeoutFn');
+                                commentListApi = core.getState().commentListApi;
+                                if (!commentListApi) {
+                                    return [2 /*return*/];
+                                }
+                                return [4 /*yield*/, fetch(commentListApi, {
+                                        credentials: 'include',
+                                    })
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (res) { return res.data; })];
+                            case 1:
+                                _a = _b.sent(), comments = _a.comments, newCommentsCount = _a.commentCount;
+                                currentCommentsCount = core.getState().commentsCount;
+                                latestComments = __spreadArray([], comments.map(function (_comment) { return ({
+                                    id: _comment.id,
+                                    payload: _comment,
+                                }); }));
+                                expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
+                                page = 0;
+                                _b.label = 2;
+                            case 2:
+                                if (!(latestComments.length < expectedNewCommentsCount &&
+                                    page < 999)) return [3 /*break*/, 4];
+                                page++;
+                                return [4 /*yield*/, fetch(commentListApi + ("&page=" + page), {
+                                        credentials: 'include',
+                                    })
+                                        .then(function (res) { return res.json(); })
+                                        .then(function (res) { return res.data; })];
+                            case 3:
+                                anotherComments = (_b.sent()).comments;
+                                latestComments.push.apply(latestComments, anotherComments.map(function (_comment) { return ({
+                                    id: _comment.id,
+                                    payload: _comment,
+                                }); }));
+                                return [3 /*break*/, 2];
+                            case 4:
+                                console.log(latestComments);
+                                core.mutateState({ latestComments: latestComments });
+                                _refreshIntervalObj = setTimeout(timeoutFn_1, intervalMs_1);
+                                return [2 /*return*/];
+                        }
+                    });
+                }); };
+                _refreshIntervalObj = setTimeout(timeoutFn_1, intervalMs_1);
+            }
+        }
+    };
+    _plugin.onMutateState = function (newValue) {
+        if (newValue.latestComments !== undefined) {
+            var config = core.getConfigByNames(_plugin.prefix + ":desktopNotification", _plugin.prefix + ":desktopNotificationSound");
+            if (config[_plugin.prefix + ":desktopNotification"]) {
+                // 發送桌面通知
+                console.log('send notification');
+                notification_helper_1.createNotification({
+                    title: '測試用通知',
+                    text: '測試用通知',
+                });
+            }
+        }
+    };
     return _plugin;
 };
 exports.default = BHGV2_AutoRefresh;
