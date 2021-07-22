@@ -46,6 +46,7 @@ var postDetail_css_1 = __importDefault(__webpack_require__(507));
 var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
 var bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 var bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
+var bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -260,6 +261,7 @@ var BHGV2Core = function (_a) {
         }
         _dom.Head.appendChild(_dom.HeadStyle);
     }
+    _dom.Title = document.getElementsByTagName('title')[0];
     _dom.Body = document.getElementsByTagName('body')[0];
     _dom.Body.classList.add('bhgv2-body');
     _dom.CommentListOuter = document.getElementsByClassName('webview_commendlist')[0];
@@ -511,6 +513,7 @@ var _waitForElm = function (selector) {
                     bhgv2_rainbow_1.default,
                     bhgv2_dense_1.default,
                     bhgv2_master_layout_1.default,
+                    bhgv2_notify_on_title_1.default,
                 ],
                 library: {
                     jQuery: jQuery,
@@ -1068,6 +1071,119 @@ var BHGV2_MasterLayout = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_MasterLayout;
+
+
+/***/ }),
+
+/***/ 285:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_NotifyOnTitle - 標題提示
+ *  當有新的通知/訂閱/推薦時，在網頁標題上顯示數字
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_NotifyOnTitle = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_NotifyOnTitle',
+        prefix: 'BHGV2_NotifyOnTitle',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + "-isEnable",
+            suffixLabel: '標題顯示通知數目',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-doCountNotice",
+            suffixLabel: '通知',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-doCountSubscribe",
+            suffixLabel: '訂閱',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-doCountRecommend",
+            suffixLabel: '推薦',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+    ];
+    var _Title = core.DOM.Title;
+    var _originalTitleText = _Title.textContent;
+    var _getNofityCount = function () {
+        var config = core.getConfig();
+        var doCountBools = [
+            config[_plugin.prefix + "-doCountNotice"] || false,
+            config[_plugin.prefix + "-doCountSubscribe"] || false,
+            config[_plugin.prefix + "-doCountRecommend"] || false,
+        ];
+        return [
+            'topBar_light_0',
+            'topBar_light_1',
+            'topBar_light_2',
+        ].reduce(function (prev, name, i) {
+            if (!doCountBools[i]) {
+                return prev;
+            }
+            var _dom = document.getElementById(name);
+            if (!_dom || !_dom.firstChild) {
+                return prev;
+            }
+            return prev + (parseInt(_dom.firstChild.innerHTML) || 0);
+        }, 0);
+    };
+    var _changeTitleWithMsgCount = function (msgCount) {
+        if (!_Title || !_originalTitleText) {
+            return;
+        }
+        if (!msgCount || msgCount <= 0) {
+            _Title.innerText = _originalTitleText;
+            return;
+        }
+        else if (msgCount > 99) {
+            _Title.innerText = "(99+) " + _originalTitleText;
+            return;
+        }
+        _Title.innerText = "(" + msgCount + ") " + _originalTitleText;
+    };
+    var _observer = undefined;
+    _plugin.onMutateConfig = function (newValue) {
+        if (newValue[_plugin.prefix + "-isEnable"] === true && !_observer) {
+            var _target = document.getElementById('BH-top-data');
+            if (_target) {
+                _observer = new MutationObserver(function () {
+                    return _changeTitleWithMsgCount(_getNofityCount());
+                });
+                _observer.observe(_target, {
+                    attributes: true,
+                    childList: true,
+                    subtree: true,
+                });
+                _changeTitleWithMsgCount(_getNofityCount());
+            }
+        }
+        else if (newValue[_plugin.prefix + "-isEnable"] === false && _observer) {
+            _observer.disconnect();
+            _observer = undefined;
+            _changeTitleWithMsgCount(0);
+        }
+    };
+    return _plugin;
+};
+exports.default = BHGV2_NotifyOnTitle;
 
 
 /***/ }),

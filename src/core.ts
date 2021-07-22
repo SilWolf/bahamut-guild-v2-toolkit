@@ -21,6 +21,7 @@ import postStyle_post_detail from './css/postDetail.css'
 import BHGV2_Rainbow from './plugins/bhgv2-rainbow'
 import BHGV2_Dense from './plugins/bhgv2-dense'
 import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
+import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 
 declare var jQuery: any
 declare var $: any
@@ -305,6 +306,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}
 		_dom.Head.appendChild(_dom.HeadStyle)
 	}
+
+	_dom.Title = document.getElementsByTagName('title')[0] as HTMLElement
 
 	_dom.Body = document.getElementsByTagName('body')[0] as HTMLElement
 	_dom.Body.classList.add('bhgv2-body')
@@ -642,6 +645,7 @@ const _waitForElm = (selector: string) => {
 					BHGV2_Rainbow,
 					BHGV2_Dense,
 					BHGV2_MasterLayout,
+					BHGV2_NotifyOnTitle,
 				],
 				library: {
 					jQuery,
