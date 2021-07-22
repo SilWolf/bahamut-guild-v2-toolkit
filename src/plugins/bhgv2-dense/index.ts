@@ -98,8 +98,40 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				padding-left: 10px;
 				padding-right: 10px;
 			}
+
+			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
+				margin-left: 20px;
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
+				display: inline-block;
+			}
 		`,
 	]
+
+	_plugin.onMutateState = ({ latestComments }) => {
+		if (latestComments) {
+			latestComments.forEach((comment) => {
+				const { element } = comment
+				if (!element) {
+					return
+				}
+
+				const _tagButton = element.querySelector('button.reply-content__tag')
+				const _contentUser = element.querySelector('a.reply-content__user')
+				if (!_tagButton || !_contentUser) {
+					return
+				}
+
+				const _clonedTagButton = _tagButton.cloneNode(false) as HTMLElement
+				_clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`)
+				_clonedTagButton.innerText = '@'
+				_clonedTagButton.setAttribute('title', '回覆他')
+				_contentUser.insertAdjacentElement('afterend', _clonedTagButton)
+			})
+		}
+	}
 
 	_plugin.onMutateConfig = (newValue) => {
 		;['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach(

@@ -154,10 +154,21 @@ div[data-google-query-id] {
 
 .bhgv2-config-form-content .bhgv2-config-form-col input[type=text],
 .bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {
-	width: 2rem;
+	width: 3rem;
 }
 
 .bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {
 	margin-left: 0.5rem;
+}
+
+.bhgv2-config-form-actions {
+	display: flex;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	font-size: 12px;
+}
+
+.bhgv2-config-form-actions > * + * {
+	margin-left: 1rem;
 }
 `

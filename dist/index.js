@@ -46,6 +46,7 @@ var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
 var bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 var bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 var bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
+var bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -296,7 +297,9 @@ var BHGV2Core = function (_a) {
     _dom.ConfigFormMessage.classList.add('bhgv2-config-form-message');
     _dom.ConfigFormFooter = document.createElement('div');
     _dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer');
-    _dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormMessage, _dom.ConfigFormFooter);
+    _dom.ConfigFormActions = document.createElement('div');
+    _dom.ConfigFormActions.classList.add('bhgv2-config-form-actions');
+    _dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormMessage, _dom.ConfigFormFooter, _dom.ConfigFormActions);
     _dom.ConfigFormFooterSaveAsDefault = document.createElement('button');
     _dom.ConfigFormFooterSaveAsDefault.innerHTML = '設為預設值';
     _dom.ConfigFormFooterSave = document.createElement('button');
@@ -513,6 +516,7 @@ var _waitForElm = function (selector) {
                     bhgv2_dense_1.default,
                     bhgv2_master_layout_1.default,
                     bhgv2_notify_on_title_1.default,
+                    bhgv2_highlight_me_1.default,
                 ],
                 library: {
                     jQuery: jQuery,
@@ -534,7 +538,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 2rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n";
 
 
 /***/ }),
@@ -955,8 +959,29 @@ var BHGV2_Dense = function (core) {
         [_plugin.prefix + "-hideFooter"],
     ];
     _plugin.css = [
-        "\n\t\t\t.webview_commendlist {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\n\t\t\t.bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\t\t\t\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__cont.reply-content__cont.reply-content__cont {\n\t\t\t\tfont-size: 12px;\n\t\t\t\tline-height: 1;\n\t\t\t\tmargin-top: 0;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-tradUI .bhgv2-comment {\n\t\t\t\tbackground-color: #e9f5f4;\n\t\t\t\tborder: 1px solid #daebe9;\n\t\t\t\tmargin-top: 3px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-top: 6px;\n\t\t\t\tpadding-bottom: 6px;\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\t\t",
+        "\n\t\t\t.webview_commendlist {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\n\t\t\t.bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\t\t\t\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__cont.reply-content__cont.reply-content__cont {\n\t\t\t\tfont-size: 12px;\n\t\t\t\tline-height: 1;\n\t\t\t\tmargin-top: 0;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-tradUI .bhgv2-comment {\n\t\t\t\tbackground-color: #e9f5f4;\n\t\t\t\tborder: 1px solid #daebe9;\n\t\t\t\tmargin-top: 3px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-top: 6px;\n\t\t\t\tpadding-bottom: 6px;\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton {\n\t\t\t\tmargin-left: 20px;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter ." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton {\n\t\t\t\tdisplay: inline-block;\n\t\t\t}\n\t\t",
     ];
+    _plugin.onMutateState = function (_a) {
+        var latestComments = _a.latestComments;
+        if (latestComments) {
+            latestComments.forEach(function (comment) {
+                var element = comment.element;
+                if (!element) {
+                    return;
+                }
+                var _tagButton = element.querySelector('button.reply-content__tag');
+                var _contentUser = element.querySelector('a.reply-content__user');
+                if (!_tagButton || !_contentUser) {
+                    return;
+                }
+                var _clonedTagButton = _tagButton.cloneNode(false);
+                _clonedTagButton.classList.add(_plugin.prefix + "-clonedTagButton");
+                _clonedTagButton.innerText = '@';
+                _clonedTagButton.setAttribute('title', '回覆他');
+                _contentUser.insertAdjacentElement('afterend', _clonedTagButton);
+            });
+        }
+    };
     _plugin.onMutateConfig = function (newValue) {
         ;
         ['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach(function (key) {
@@ -971,6 +996,178 @@ var BHGV2_Dense = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_Dense;
+
+
+/***/ }),
+
+/***/ 898:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_HighlightMe - 高亮我
+ *  高亮你在留言中出現的名字
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_HighlightMe = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_HighlightMe',
+        prefix: 'BHGV2_HighlightMe',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + "-isEnabled",
+            suffixLabel: '高亮提及我的名字',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.css = [
+        "\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on {\n\t\t\t\tbackground: #ffe2c6;\n\t\t\t\tborder-left: 4px solid #fb7f00;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on ." + _plugin.prefix + "-name {\n\t\t\t\tbackground: #fb7f00;\n\t\t\t\tpadding: 2px 4px;\n\t\t\t\tcolor: #fff;\n\t\t\t\tfont-size: 115%;\n\t\t\t}\n\t\t",
+    ];
+    var _clickEvent = function (event) {
+        event.preventDefault();
+        var _target = event.currentTarget;
+        if (!_target) {
+            return;
+        }
+        _unhighlightAElement(_target);
+    };
+    var _highlightAElement = function (element) {
+        if (element.classList.contains(_plugin.prefix + "-on")) {
+            return;
+        }
+        element.classList.toggle(_plugin.prefix + "-on", true);
+        element.addEventListener('click', _clickEvent);
+    };
+    var _unhighlightAElement = function (element) {
+        if (!element.classList.contains(_plugin.prefix + "-on")) {
+            return;
+        }
+        element.classList.toggle(_plugin.prefix + "-on", false);
+        element.removeEventListener('click', _clickEvent);
+    };
+    var _highlightAll = function () {
+        var CommentList = core.DOM.CommentList;
+        if (!CommentList) {
+            return;
+        }
+        CommentList.querySelectorAll("." + _plugin.prefix + "-comment").forEach(function (element) { return _highlightAElement(element); });
+    };
+    var _unhighlightAll = function () {
+        var CommentList = core.DOM.CommentList;
+        if (!CommentList) {
+            return;
+        }
+        CommentList.querySelectorAll("." + _plugin.prefix + "-comment." + _plugin.prefix + "-on").forEach(function (element) { return _unhighlightAElement(element); });
+    };
+    var _highlightAllAfterMyLastComment = function () {
+        var userInfo = core.getState().userInfo;
+        var CommentList = core.DOM.CommentList;
+        if (!userInfo || !CommentList) {
+            return;
+        }
+        for (var i = CommentList.children.length - 1; i >= 0; i--) {
+            var element = CommentList.children[i];
+            _highlightAElement(element);
+            if (element.getAttribute('data-userid') === userInfo.id) {
+                break;
+            }
+        }
+    };
+    var _unhighlightAllBeforeMyLastComment = function () {
+        var userInfo = core.getState().userInfo;
+        var CommentList = core.DOM.CommentList;
+        if (!userInfo || !CommentList) {
+            return;
+        }
+        var myLastCommentFound = false;
+        for (var i = CommentList.children.length - 1; i >= 0; i--) {
+            var element = CommentList.children[i];
+            if (!myLastCommentFound) {
+                if (element.getAttribute('data-userid') === userInfo.id) {
+                    myLastCommentFound = true;
+                }
+                continue;
+            }
+            _unhighlightAElement(element);
+        }
+    };
+    var ConfigFormActions = core.DOM.ConfigFormActions;
+    var _buttonHighlightAll = document.createElement('a');
+    _buttonHighlightAll.setAttribute('href', '#');
+    _buttonHighlightAll.classList.add(_plugin.prefix + "-action");
+    _buttonHighlightAll.innerHTML = '高亮所有提及我的留言';
+    _buttonHighlightAll.addEventListener('click', function (e) {
+        e.preventDefault();
+        _highlightAll();
+    });
+    var _buttonUnhighlightAll = document.createElement('a');
+    _buttonUnhighlightAll.setAttribute('href', '#');
+    _buttonUnhighlightAll.classList.add(_plugin.prefix + "-action");
+    _buttonUnhighlightAll.innerHTML = '取消高亮';
+    _buttonUnhighlightAll.addEventListener('click', function (e) {
+        e.preventDefault();
+        _unhighlightAll();
+    });
+    var _buttonHighlightAllAfterMyLastComment = document.createElement('a');
+    _buttonHighlightAllAfterMyLastComment.setAttribute('href', '#');
+    _buttonHighlightAllAfterMyLastComment.classList.add(_plugin.prefix + "-action");
+    _buttonHighlightAllAfterMyLastComment.innerHTML = '高亮未讀';
+    _buttonHighlightAllAfterMyLastComment.addEventListener('click', function (e) {
+        e.preventDefault();
+        _highlightAllAfterMyLastComment();
+    });
+    var _buttonUnhighlightAllBeforeMyLastComment = document.createElement('a');
+    _buttonUnhighlightAllBeforeMyLastComment.setAttribute('href', '#');
+    _buttonUnhighlightAllBeforeMyLastComment.classList.add(_plugin.prefix + "-action");
+    _buttonUnhighlightAllBeforeMyLastComment.innerHTML = '取消高亮已讀';
+    _buttonUnhighlightAllBeforeMyLastComment.addEventListener('click', function (e) {
+        e.preventDefault();
+        _unhighlightAllBeforeMyLastComment();
+    });
+    ConfigFormActions.append(_buttonHighlightAll, _buttonUnhighlightAll, _buttonHighlightAllAfterMyLastComment, _buttonUnhighlightAllBeforeMyLastComment);
+    _plugin.onMutateState = function (_a) {
+        var latestComments = _a.latestComments, isInit = _a.isInit;
+        if (latestComments) {
+            var userInfo_1 = core.getState().userInfo;
+            if (userInfo_1) {
+                latestComments.forEach(function (comment) {
+                    var element = comment.element;
+                    if (!element) {
+                        return;
+                    }
+                    var allMeAnchors = element.querySelectorAll(".reply-content__cont a[href^=\"https://home.gamer.com.tw/" + userInfo_1.id + "\"]");
+                    if (allMeAnchors.length > 0) {
+                        allMeAnchors.forEach(function (_anchorElement) {
+                            _anchorElement.classList.add(_plugin.prefix + "-name");
+                        });
+                        element.classList.add(_plugin.prefix + "-comment");
+                        if (!isInit) {
+                            _highlightAElement(element);
+                        }
+                    }
+                });
+            }
+        }
+    };
+    _plugin.onMutateConfig = function (newValue) {
+        ;
+        ['isEnabled'].forEach(function (key) {
+            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
+                var dom = core.DOM.CommentListOuter;
+                if (dom) {
+                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                }
+            }
+        });
+    };
+    return _plugin;
+};
+exports.default = BHGV2_HighlightMe;
 
 
 /***/ }),

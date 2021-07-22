@@ -22,6 +22,7 @@ import BHGV2_Rainbow from './plugins/bhgv2-rainbow'
 import BHGV2_Dense from './plugins/bhgv2-dense'
 import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
 import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
+import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
 
 declare var jQuery: any
 declare var $: any
@@ -366,10 +367,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	_dom.ConfigFormFooter = document.createElement('div')
 	_dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer')
+
+	_dom.ConfigFormActions = document.createElement('div')
+	_dom.ConfigFormActions.classList.add('bhgv2-config-form-actions')
+
 	_dom.ConfigForm.append(
 		_dom.ConfigFormContent,
 		_dom.ConfigFormMessage,
-		_dom.ConfigFormFooter
+		_dom.ConfigFormFooter,
+		_dom.ConfigFormActions
 	)
 
 	_dom.ConfigFormFooterSaveAsDefault = document.createElement('button')
@@ -646,6 +652,7 @@ const _waitForElm = (selector: string) => {
 					BHGV2_Dense,
 					BHGV2_MasterLayout,
 					BHGV2_NotifyOnTitle,
+					BHGV2_HighlightMe,
 				],
 				library: {
 					jQuery,
