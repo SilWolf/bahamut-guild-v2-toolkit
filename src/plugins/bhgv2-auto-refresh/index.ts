@@ -39,14 +39,14 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 			suffixLabel: '自動更新時發送桌面通知',
 			dataType: 'boolean',
 			inputType: 'switch',
-			defaultValue: false,
+			defaultValue: true,
 		},
 		{
 			key: `${_plugin.prefix}:notificationSound`,
 			suffixLabel: '提示音',
 			dataType: 'boolean',
 			inputType: 'checkbox',
-			defaultValue: false,
+			defaultValue: true,
 		},
 	]
 

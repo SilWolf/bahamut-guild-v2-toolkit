@@ -44,6 +44,7 @@ var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
 var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
 var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
+var bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -505,6 +506,7 @@ var _waitForElm = function (selector) {
                     bhgv2_comments_reverse_1.default,
                     bhgv2_dark_mode_1.default,
                     bhgv2_rainbow_1.default,
+                    bhgv2_dense_1.default,
                 ],
                 library: {
                     jQuery: jQuery,
@@ -646,14 +648,14 @@ var BHGV2_AutoRefresh = function (core) {
             suffixLabel: '自動更新時發送桌面通知',
             dataType: 'boolean',
             inputType: 'switch',
-            defaultValue: false,
+            defaultValue: true,
         },
         {
             key: _plugin.prefix + ":notificationSound",
             suffixLabel: '提示音',
             dataType: 'boolean',
             inputType: 'checkbox',
-            defaultValue: false,
+            defaultValue: true,
         },
     ];
     _plugin.configLayout = [
@@ -882,6 +884,81 @@ exports.default = BHGV2_DarkMode;
 
 /***/ }),
 
+/***/ 115:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_Dense - 密集介面
+ *  縮小字體、減少間距，增加同時看到的留言數
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_Dense = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_Dense',
+        prefix: 'BHGV2_Dense',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + "-tradUI",
+            suffixLabel: '仿舊版的配色',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-sizeSmaller",
+            suffixLabel: '縮小字體',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideFooter",
+            suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-narrowerGutter",
+            suffixLabel: '更窄的間距',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.configLayout = [
+        [
+            _plugin.prefix + "-tradUI",
+            _plugin.prefix + "-sizeSmaller",
+            _plugin.prefix + "-narrowerGutter",
+        ],
+        [_plugin.prefix + "-hideFooter"],
+    ];
+    _plugin.css = [
+        "\n\t\t\t.webview_commendlist {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\n\t\t\t.bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\t\t\t\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__cont.reply-content__cont.reply-content__cont {\n\t\t\t\tfont-size: 12px;\n\t\t\t\tline-height: 1;\n\t\t\t\tmargin-top: 0;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-tradUI .bhgv2-comment {\n\t\t\t\tbackground-color: #e9f5f4;\n\t\t\t\tborder: 1px solid #daebe9;\n\t\t\t\tmargin-top: 3px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-top: 6px;\n\t\t\t\tpadding-bottom: 6px;\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\t\t",
+    ];
+    _plugin.onMutateConfig = function (newValue) {
+        ;
+        ['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach(function (key) {
+            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
+                var dom = core.DOM.CommentListOuter;
+                if (dom) {
+                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                }
+            }
+        });
+    };
+    return _plugin;
+};
+exports.default = BHGV2_Dense;
+
+
+/***/ }),
+
 /***/ 87:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -904,7 +981,7 @@ var BHGV2_Rainbow = function (core) {
             suffixLabel: '改變留言的底色',
             dataType: 'boolean',
             inputType: 'switch',
-            defaultValue: true,
+            defaultValue: false,
         },
     ];
     var _colors = [

@@ -19,7 +19,7 @@ const BHGV2_Rainbow: TPluginConstructor = (core) => {
 			suffixLabel: '改變留言的底色',
 			dataType: 'boolean',
 			inputType: 'switch',
-			defaultValue: true,
+			defaultValue: false,
 		},
 	]
 
