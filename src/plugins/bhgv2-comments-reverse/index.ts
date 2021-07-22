@@ -15,8 +15,15 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 
 	_plugin.configs = [
 		{
-			key: `${_plugin.prefix}:isEnable`,
+			key: `${_plugin.prefix}-isEnable`,
 			suffixLabel: '顛倒哈拉串',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: false,
+		},
+		{
+			key: `${_plugin.prefix}-editorSticky`,
+			suffixLabel: '輸入框貼在上邊沿',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
@@ -34,12 +41,23 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 				flex-direction: column;
 			}
 
-			.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled {
+			.bhgv2-comment-list-outer.${_plugin.prefix}-isEnable {
 				flex-direction: column-reverse;
 			}
 
-			.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled .bhgv2-comment-list {
+			.bhgv2-comment-list-outer.${_plugin.prefix}-isEnable .bhgv2-comment-list {
 				flex-direction: column-reverse;
+			}
+
+			.bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				position: sticky;
+				top: 80px;
+				margin-left: -20px;
+				margin-right: -20px;
+				padding-left: 20px;
+				padding-right: 20px;
+				background-color: rgba(180, 180, 180, 0.9);
+				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 			}
 			
 			.bhgv2-comment-list > div.bhgv2-editor-container {
@@ -49,15 +67,17 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 	]
 
 	_plugin.onMutateConfig = (newValue) => {
-		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
-			const dom = core.DOM.CommentListOuter
-			if (dom) {
-				dom.classList.toggle(
-					'bhgv2-comments-reverse-enabled',
-					newValue[`${_plugin.prefix}:isEnable`] as boolean
-				)
+		;['isEnable', 'editorSticky'].forEach((key) => {
+			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+				const dom = core.DOM.CommentListOuter
+				if (dom) {
+					dom.classList.toggle(
+						`${_plugin.prefix}-${key}`,
+						newValue[`${_plugin.prefix}-${key}`] as boolean
+					)
+				}
 			}
-		}
+		})
 	}
 
 	return _plugin

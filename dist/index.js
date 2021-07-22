@@ -538,7 +538,7 @@ exports.default = "/* The switch - the box around the slider */\n.switch {\n\tpo
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "\n.bhgv2-comment-list-outer .bhgv2-editor-container {\n\tposition: sticky;\n\ttop: 80px;\n\tmargin-left: -20px;\n\tmargin-right: -20px;\n\tpadding-left: 20px;\n\tpadding-right: 20px;\n\tbackground-color: rgba(180, 180, 180, 0.9);\n\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n}\n\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
+exports.default = "\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
 
 
 /***/ }),
@@ -792,23 +792,33 @@ var BHGV2_CommentsReverse = function (core) {
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + ":isEnable",
+            key: _plugin.prefix + "-isEnable",
             suffixLabel: '顛倒哈拉串',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-editorSticky",
+            suffixLabel: '輸入框貼在上邊沿',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
     ];
     _plugin.css = [
-        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer.bhgv2-comments-reverse-enabled .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t",
+        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t",
     ];
     _plugin.onMutateConfig = function (newValue) {
-        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
-            var dom = core.DOM.CommentListOuter;
-            if (dom) {
-                dom.classList.toggle('bhgv2-comments-reverse-enabled', newValue[_plugin.prefix + ":isEnable"]);
+        ;
+        ['isEnable', 'editorSticky'].forEach(function (key) {
+            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
+                var dom = core.DOM.CommentListOuter;
+                if (dom) {
+                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                }
             }
-        }
+        });
     };
     return _plugin;
 };
