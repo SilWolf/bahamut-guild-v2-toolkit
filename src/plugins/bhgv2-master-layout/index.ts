@@ -61,9 +61,8 @@ const BHGV2_MasterLayout: TPluginConstructor = (core) => {
 	]
 
 	_plugin.configLayout = [
+		[`${_plugin.prefix}-hideLeftMenu`, `${_plugin.prefix}-hideRightMenu`],
 		[
-			`${_plugin.prefix}-hideLeftMenu`,
-			`${_plugin.prefix}-hideRightMenu`,
 			`${_plugin.prefix}-hideCoverImage`,
 			`${_plugin.prefix}-hideHeader`,
 			`${_plugin.prefix}-hideTabMenu`,
