@@ -45,6 +45,7 @@ var global_css_1 = __importDefault(__webpack_require__(440));
 var postDetail_css_1 = __importDefault(__webpack_require__(507));
 var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
 var bhgv2_dense_1 = __importDefault(__webpack_require__(115));
+var bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
     var plugins = _a.plugins, library = _a.library;
@@ -259,6 +260,8 @@ var BHGV2Core = function (_a) {
         }
         _dom.Head.appendChild(_dom.HeadStyle);
     }
+    _dom.Body = document.getElementsByTagName('body')[0];
+    _dom.Body.classList.add('bhgv2-body');
     _dom.CommentListOuter = document.getElementsByClassName('webview_commendlist')[0];
     _dom.CommentListOuter.classList.add('bhgv2-comment-list-outer');
     _dom.CommentList = _dom.CommentListOuter.firstElementChild;
@@ -507,6 +510,7 @@ var _waitForElm = function (selector) {
                     bhgv2_dark_mode_1.default,
                     bhgv2_rainbow_1.default,
                     bhgv2_dense_1.default,
+                    bhgv2_master_layout_1.default,
                 ],
                 library: {
                     jQuery: jQuery,
@@ -807,7 +811,7 @@ var BHGV2_CommentsReverse = function (core) {
         },
     ];
     _plugin.css = [
-        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t",
+        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\ttop: 35px;\n\t\t\t}\n\n\t\t\t@media screen and (max-width: 769px) {\n\t\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\t\ttop: 44px;\n\t\t\t\t}\n\t\t\t}\n\t\t",
     ];
     _plugin.onMutateConfig = function (newValue) {
         ;
@@ -965,6 +969,106 @@ var BHGV2_Dense = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_Dense;
+
+
+/***/ }),
+
+/***/ 739:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_MasterLayout - 整頁介面
+ *  改變整個頁面的格局，例如隱藏左側選單、右側選單等等
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+var BHGV2_MasterLayout = function (core) {
+    var _plugin = {
+        pluginName: 'BHGV2_MasterLayout',
+        prefix: 'BHGV2_MasterLayout',
+    };
+    _plugin.configs = [
+        {
+            key: _plugin.prefix + "-hideLeftMenu",
+            suffixLabel: '隱藏左側選單',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideRightMenu",
+            suffixLabel: '隱藏右側欄',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideCoverImage",
+            suffixLabel: '隱藏封面圖',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideHeader",
+            prefixLabel: '(',
+            suffixLabel: '+標題)',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideTabMenu",
+            prefixLabel: '(',
+            suffixLabel: '+分頁選單)',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+        {
+            key: _plugin.prefix + "-hideGuildControlPanel",
+            suffixLabel: '隱藏公會操作版面',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.configLayout = [
+        [
+            _plugin.prefix + "-hideLeftMenu",
+            _plugin.prefix + "-hideRightMenu",
+            _plugin.prefix + "-hideCoverImage",
+            _plugin.prefix + "-hideHeader",
+            _plugin.prefix + "-hideTabMenu",
+        ],
+        [_plugin.prefix + "-hideGuildControlPanel"],
+    ];
+    _plugin.css = [
+        "\n\t\t\t." + _plugin.prefix + "-hideLeftMenu .main-sidebar_left {\n\t\t\t\twidth: 0;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-hideLeftMenu .main-container_center.main-container_center.main-container_center {\n\t\t\t\twidth: 100%;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-hideLeftMenu #left_menu-toggle {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideRightMenu .main-sidebar_right {\n\t\t\t\twidth: 0;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage .main-container_header .scenery-img.scenery-img.scenery-img {\n\t\t\t\theight: 70px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideHeader .main-container_header {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideHeader .main-nav {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-top: 5px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideTabMenu #main-nav {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideGuildControlPanel .sidebar-navbar_rwd {\n\t\t\t\tdisplay: none;\n\t\t\t}\t\t\t\n\t\t",
+    ];
+    _plugin.onMutateConfig = function (newValue) {
+        ;
+        [
+            'hideLeftMenu',
+            'hideRightMenu',
+            'hideCoverImage',
+            'hideHeader',
+            'hideTabMenu',
+            'hideGuildControlPanel',
+        ].forEach(function (key) {
+            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
+                var dom = core.DOM.Body;
+                if (dom) {
+                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                }
+            }
+        });
+    };
+    return _plugin;
+};
+exports.default = BHGV2_MasterLayout;
 
 
 /***/ }),

@@ -63,6 +63,16 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 			.bhgv2-comment-list > div.bhgv2-editor-container {
 				flex-direction: column;
 			}
+
+			.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				top: 35px;
+			}
+
+			@media screen and (max-width: 769px) {
+				.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+					top: 44px;
+				}
+			}
 		`,
 	]
 

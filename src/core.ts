@@ -20,6 +20,7 @@ import pageStyleString from './css/global.css'
 import postStyle_post_detail from './css/postDetail.css'
 import BHGV2_Rainbow from './plugins/bhgv2-rainbow'
 import BHGV2_Dense from './plugins/bhgv2-dense'
+import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
 
 declare var jQuery: any
 declare var $: any
@@ -304,6 +305,9 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		}
 		_dom.Head.appendChild(_dom.HeadStyle)
 	}
+
+	_dom.Body = document.getElementsByTagName('body')[0] as HTMLElement
+	_dom.Body.classList.add('bhgv2-body')
 
 	_dom.CommentListOuter = document.getElementsByClassName(
 		'webview_commendlist'
@@ -637,6 +641,7 @@ const _waitForElm = (selector: string) => {
 					BHGV2_DarkMode,
 					BHGV2_Rainbow,
 					BHGV2_Dense,
+					BHGV2_MasterLayout,
 				],
 				library: {
 					jQuery,
