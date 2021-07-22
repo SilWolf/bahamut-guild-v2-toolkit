@@ -538,7 +538,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n\tpadding-top: 5px;\n\tmargin-top: 5px;\n\tborder-top: 1px dashed #999;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-comment-list {\n\tmin-height: calc(100vh - 300px);\n}\n";
 
 
 /***/ }),
@@ -817,7 +817,7 @@ var BHGV2_CommentsReverse = function (core) {
         },
     ];
     _plugin.css = [
-        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\ttop: 35px;\n\t\t\t}\n\n\t\t\t@media screen and (max-width: 769px) {\n\t\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\t\ttop: 44px;\n\t\t\t\t}\n\t\t\t}\n\t\t",
+        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t\tjustify-content: flex-end;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\ttop: 35px;\n\t\t\t}\n\n\t\t\t@media screen and (max-width: 769px) {\n\t\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\t\ttop: 44px;\n\t\t\t\t}\n\t\t\t}\n\t\t",
     ];
     _plugin.onMutateConfig = function (newValue) {
         ;
@@ -1019,14 +1019,21 @@ var BHGV2_HighlightMe = function (core) {
     _plugin.configs = [
         {
             key: _plugin.prefix + "-isEnabled",
-            suffixLabel: '高亮提及我的名字',
+            suffixLabel: '高亮提及我的訊息',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
+        {
+            key: _plugin.prefix + "-onlyShowHighlighted",
+            suffixLabel: '只顯示高亮的訊息',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
     ];
     _plugin.css = [
-        "\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on {\n\t\t\t\tbackground: #ffe2c6;\n\t\t\t\tborder-left: 4px solid #fb7f00;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on ." + _plugin.prefix + "-name {\n\t\t\t\tbackground: #fb7f00;\n\t\t\t\tpadding: 2px 4px;\n\t\t\t\tcolor: #fff;\n\t\t\t\tfont-size: 115%;\n\t\t\t}\n\t\t",
+        "\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on {\n\t\t\t\tbackground: #ffe2c6;\n\t\t\t\tborder-left: 4px solid #fb7f00;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on ." + _plugin.prefix + "-name {\n\t\t\t\tbackground: #fb7f00;\n\t\t\t\tpadding: 2px 4px;\n\t\t\t\tcolor: #fff;\n\t\t\t\tfont-size: 115%;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-onlyShowHighlighted .bhgv2-comment:not(." + _plugin.prefix + "-on) {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\t\t",
     ];
     var _clickEvent = function (event) {
         event.preventDefault();
@@ -1037,6 +1044,9 @@ var BHGV2_HighlightMe = function (core) {
         _unhighlightAElement(_target);
     };
     var _highlightAElement = function (element) {
+        if (!element.classList.contains(_plugin.prefix + "-comment")) {
+            return;
+        }
         if (element.classList.contains(_plugin.prefix + "-on")) {
             return;
         }
@@ -1044,6 +1054,9 @@ var BHGV2_HighlightMe = function (core) {
         element.addEventListener('click', _clickEvent);
     };
     var _unhighlightAElement = function (element) {
+        if (!element.classList.contains(_plugin.prefix + "-comment")) {
+            return;
+        }
         if (!element.classList.contains(_plugin.prefix + "-on")) {
             return;
         }
@@ -1146,9 +1159,7 @@ var BHGV2_HighlightMe = function (core) {
                             _anchorElement.classList.add(_plugin.prefix + "-name");
                         });
                         element.classList.add(_plugin.prefix + "-comment");
-                        if (!isInit) {
-                            _highlightAElement(element);
-                        }
+                        _highlightAElement(element);
                     }
                 });
             }
@@ -1156,7 +1167,7 @@ var BHGV2_HighlightMe = function (core) {
     };
     _plugin.onMutateConfig = function (newValue) {
         ;
-        ['isEnabled'].forEach(function (key) {
+        ['isEnabled', 'onlyShowHighlighted'].forEach(function (key) {
             if (newValue[_plugin.prefix + "-" + key] !== undefined) {
                 var dom = core.DOM.CommentListOuter;
                 if (dom) {

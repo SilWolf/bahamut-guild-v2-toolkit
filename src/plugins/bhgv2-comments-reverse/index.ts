@@ -47,6 +47,7 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 
 			.bhgv2-comment-list-outer.${_plugin.prefix}-isEnable .bhgv2-comment-list {
 				flex-direction: column-reverse;
+				justify-content: flex-end;
 			}
 
 			.bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {

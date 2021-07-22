@@ -16,9 +16,16 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 	_plugin.configs = [
 		{
 			key: `${_plugin.prefix}-isEnabled`,
-			suffixLabel: '高亮提及我的名字',
+			suffixLabel: '高亮提及我的訊息',
 			dataType: 'boolean',
 			inputType: 'switch',
+			defaultValue: false,
+		},
+		{
+			key: `${_plugin.prefix}-onlyShowHighlighted`,
+			suffixLabel: '只顯示高亮的訊息',
+			dataType: 'boolean',
+			inputType: 'checkbox',
 			defaultValue: false,
 		},
 	]
@@ -36,6 +43,9 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 				color: #fff;
 				font-size: 115%;
 			}
+			.${_plugin.prefix}-onlyShowHighlighted .bhgv2-comment:not(.${_plugin.prefix}-on) {
+				display: none;
+			}
 		`,
 	]
 
@@ -50,6 +60,9 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 	}
 
 	const _highlightAElement = (element: Element) => {
+		if (!element.classList.contains(`${_plugin.prefix}-comment`)) {
+			return
+		}
 		if (element.classList.contains(`${_plugin.prefix}-on`)) {
 			return
 		}
@@ -58,6 +71,9 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 	}
 
 	const _unhighlightAElement = (element: Element) => {
+		if (!element.classList.contains(`${_plugin.prefix}-comment`)) {
+			return
+		}
 		if (!element.classList.contains(`${_plugin.prefix}-on`)) {
 			return
 		}
@@ -196,9 +212,7 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 
 						element.classList.add(`${_plugin.prefix}-comment`)
 
-						if (!isInit) {
-							_highlightAElement(element)
-						}
+						_highlightAElement(element)
 					}
 				})
 			}
@@ -206,7 +220,7 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateConfig = (newValue) => {
-		;['isEnabled'].forEach((key) => {
+		;['isEnabled', 'onlyShowHighlighted'].forEach((key) => {
 			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
 				const dom = core.DOM.CommentListOuter
 				if (dom) {

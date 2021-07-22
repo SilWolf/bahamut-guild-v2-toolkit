@@ -166,9 +166,16 @@ div[data-google-query-id] {
 	justify-content: flex-start;
 	flex-wrap: wrap;
 	font-size: 12px;
+	padding-top: 5px;
+	margin-top: 5px;
+	border-top: 1px dashed #999;
 }
 
 .bhgv2-config-form-actions > * + * {
 	margin-left: 1rem;
+}
+
+.bhgv2-comment-list {
+	min-height: calc(100vh - 300px);
 }
 `
