@@ -5,7 +5,6 @@
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
-// @include         /guild.gamer.com.tw/guild.php
 // @include         /guild.gamer.com.tw/post_detail.php
 // @grant           GM_notification
 // @updateUrl       https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js

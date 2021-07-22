@@ -8,7 +8,7 @@ const metadata = {
 	author: pkg.author,
 	contributors: pkg.contributors,
 	include: [
-		'/guild.gamer.com.tw/guild.php',
+		// '/guild.gamer.com.tw/guild.php',
 		'/guild.gamer.com.tw/post_detail.php',
 	],
 	grant: ['GM_notification'],
