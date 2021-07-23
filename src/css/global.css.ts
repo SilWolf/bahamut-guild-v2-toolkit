@@ -71,11 +71,38 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-editor-textarea-wrapper {
+	position: relative;
+}
+
+.bhgv2-editor-textarea-carbon {
+	position: absolute;
+	top: 2px;
+	bottom: 2px;
+	left: 2px;
+	right: 2px;
+
+	color: transparent;
+	font-size: 15px;
+	line-height: 1.5;
+	z-index: -1;
+}
+
+.bhgv2-editor-textarea-carbon-trailing {
+	padding-left: 3px;
+}
+
 .bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;
 	font-size: 12px;
+}
+
+.bhgv2-editor-container-reply-content-footer {
+	font-size: 12px;
+	color: #777;
+	padding: 2px 8px;
 }
 
 .bhgv2-editor-container-footer .bhgv2-config-status {

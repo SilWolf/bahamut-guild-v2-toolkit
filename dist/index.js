@@ -140,6 +140,10 @@ var BHGV2Core = function (_a) {
                 // 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
                 if (gsn_1 && sn_1 && CommentList) {
                     var _createCommentElement = function (payload) {
+                        var _a;
+                        if (!payload.position) {
+                            payload.position = ((_a = CORE.DOM.CommentList) === null || _a === void 0 ? void 0 : _a.children.length) + 1 || 1;
+                        }
                         // 生成comment的element
                         var newElement = $(nunjucks.render('comment.njk.html', {
                             post: {
@@ -271,15 +275,32 @@ var BHGV2Core = function (_a) {
     _dom.CommentList.classList.add('bhgv2-comment-list');
     _dom.EditorContainer = _dom.CommentListOuter.getElementsByClassName('c-reply__editor')[0];
     _dom.EditorContainer.classList.add('bhgv2-editor-container');
+    _dom.EditorContainerReplyContent =
+        _dom.EditorContainer.getElementsByClassName('reply-content')[0];
+    _dom.EditorContainerReplyContent.classList.add('bhgv2-editor-container-reply-content');
     _dom.Editor = _dom.EditorContainer.getElementsByClassName('reply-input')[0];
     _dom.Editor.classList.add('bhgv2-editor');
     var oldEditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
+    _dom.EditorTextareaWrapper = document.createElement('div');
+    _dom.EditorTextareaWrapper.classList.add('bhgv2-editor-textarea-wrapper');
+    _dom.EditorTextareaCarbon = document.createElement('div');
+    _dom.EditorTextareaCarbon.classList.add('bhgv2-editor-textarea-carbon');
+    _dom.EditorTextareaCarbonText = document.createElement('span');
+    _dom.EditorTextareaCarbonText.classList.add('bhgv2-editor-textarea-carbon-text');
+    _dom.EditorTextareaCarbonTrailing = document.createElement('span');
+    _dom.EditorTextareaCarbonTrailing.classList.add('bhgv2-editor-textarea-carbon-trailing');
+    _dom.EditorTextareaCarbon.append(_dom.EditorTextareaCarbonText, _dom.EditorTextareaCarbonTrailing);
     _dom.EditorTextarea = document.createElement('textarea');
     _dom.EditorTextarea.classList.add('content-edit');
     _dom.EditorTextarea.classList.add('bhgv2-editor-textarea');
     _dom.EditorTextarea.setAttribute('placeholder', '留言…');
-    oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextarea);
+    _dom.EditorTextareaWrapper.append(_dom.EditorTextareaCarbon, _dom.EditorTextarea);
+    oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextareaWrapper);
     (_b = oldEditorTextarea.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(oldEditorTextarea);
+    _dom.EditorContainerReplyContentFooter = document.createElement('div');
+    _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
+    _dom.EditorContainerReplyContentFooter.innerHTML = "Enter: \u767C\u9001\u3000Shift+Enter: \u63DB\u884C\u3000Tab: \u5FEB\u901F\u8F38\u5165\u3000/\u6307\u4EE4\u3000@\u5FEB\u901F\u8F38\u5165";
+    _dom.EditorContainerReplyContent.append(_dom.EditorContainerReplyContentFooter);
     _dom.EditorContainerFooter = document.createElement('div');
     _dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
     _dom.EditorContainer.appendChild(_dom.EditorContainerFooter);
@@ -451,6 +472,67 @@ var BHGV2Core = function (_a) {
         _handleSubmitConfigForm(event, { saveAsDefault: true });
         _showConfigFormMessage('已設為預設值及儲存設定');
     });
+    CORE.DOM.EditorTextarea.addEventListener('keydown', function (event) {
+        var key = event.key;
+        var textarea = event.currentTarget;
+        if (key === 'Enter' && !event.shiftKey) {
+            console.log('Enter');
+            event.preventDefault();
+            var content = textarea.value || '';
+            if (content.match(/^\s*$/)) {
+                console.log('請輸入內容');
+                return false;
+            }
+            var _a = CORE.getState(), gsn = _a.gsn, sn = _a.sn;
+            if (!gsn || !sn) {
+                console.log('GSN或SN是空值！');
+                return false;
+            }
+            textarea.setAttribute('disabled', 'true');
+            var formData = new FormData();
+            formData.append('gsn', gsn.toString());
+            formData.append('messageId', sn.toString());
+            formData.append('content', content);
+            formData.append('legacy', '1');
+            var csrf = new Bahamut.Csrf();
+            csrf.setCookie();
+            fetch('https://api.gamer.com.tw/guild/v1/comment_new.php', {
+                method: 'post',
+                body: formData,
+                headers: csrf.getFetchHeaders(),
+                credentials: 'include',
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (json) {
+                if (json.error) {
+                    Dialogify.alert(json.error.message);
+                    return;
+                }
+                CORE.mutateState({
+                    latestComments: [
+                        {
+                            id: json.data.commentId,
+                            payload: json.data.commentData,
+                        },
+                    ],
+                });
+            })
+                .finally(function () {
+                textarea.value = '';
+                textarea.removeAttribute('disabled');
+                textarea.focus();
+            });
+        }
+    });
+    CORE.DOM.EditorTextarea.addEventListener('input', function (event) {
+        var CarbonText = CORE.DOM.EditorTextareaCarbonText;
+        if (!CarbonText) {
+            return;
+        }
+        var textarea = event.currentTarget;
+        var content = textarea.value;
+        CarbonText.innerHTML = content.replace(/\n/g, '<br />');
+    });
     // 觸發一次所有插件的 onMutateConfig
     CORE.mutateConfig(_config);
     // 觸發一次所有插件的 onMutateState
@@ -544,7 +626,7 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n\tpadding-top: 5px;\n\tmargin-top: 5px;\n\tborder-top: 1px dashed #999;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-comment-list {\n\tmin-height: calc(100vh - 300px);\n}\n";
+exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-editor-textarea-wrapper {\n\tposition: relative;\n}\n\n.bhgv2-editor-textarea-carbon {\n\tposition: absolute;\n\ttop: 2px;\n\tbottom: 2px;\n\tleft: 2px;\n\tright: 2px;\n\n\tcolor: transparent;\n\tfont-size: 15px;\n\tline-height: 1.5;\n\tz-index: -1;\n}\n\n.bhgv2-editor-textarea-carbon-trailing {\n\tpadding-left: 3px;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-reply-content-footer {\n\tfont-size: 12px;\n\tcolor: #777;\n\tpadding: 2px 8px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n\tpadding-top: 5px;\n\tmargin-top: 5px;\n\tborder-top: 1px dashed #999;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-comment-list {\n\tmin-height: calc(100vh - 300px);\n}\n";
 
 
 /***/ }),

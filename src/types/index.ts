@@ -88,6 +88,21 @@ export type TCommentsListApiResponse = {
 	}
 }
 
+export type TPostCommentNewApiResponse = {
+	data: {
+		commentData: TComment
+		commentId: string
+		contxt: string
+		mention: TCommentMention[]
+		messageContent: string
+		messageuserId: string
+		time: string
+	}
+	error?: {
+		message: string
+	}
+}
+
 export type TComment = {
 	text: string
 	id: string

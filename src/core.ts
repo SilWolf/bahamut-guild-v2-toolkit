@@ -10,6 +10,7 @@ import {
 	TPlugin,
 	TPluginConfig,
 	TPluginConstructor,
+	TPostCommentNewApiResponse,
 } from './types'
 
 import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh'
@@ -122,6 +123,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 				if (gsn && sn && CommentList) {
 					const _createCommentElement = (payload: TComment): HTMLElement => {
+						if (!payload.position) {
+							payload.position = CORE.DOM.CommentList?.children.length + 1 || 1
+						}
+
 						// 生成comment的element
 						const newElement: HTMLElement = $(
 							nunjucks.render('comment.njk.html', {
@@ -326,6 +331,14 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	)[0] as HTMLElement
 	_dom.EditorContainer.classList.add('bhgv2-editor-container')
 
+	_dom.EditorContainerReplyContent =
+		_dom.EditorContainer.getElementsByClassName(
+			'reply-content'
+		)[0] as HTMLElement
+	_dom.EditorContainerReplyContent.classList.add(
+		'bhgv2-editor-container-reply-content'
+	)
+
 	_dom.Editor = _dom.EditorContainer.getElementsByClassName(
 		'reply-input'
 	)[0] as HTMLElement
@@ -335,13 +348,51 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		'textarea'
 	)[0] as HTMLElement
 
+	_dom.EditorTextareaWrapper = document.createElement('div')
+	_dom.EditorTextareaWrapper.classList.add('bhgv2-editor-textarea-wrapper')
+
+	_dom.EditorTextareaCarbon = document.createElement('div')
+	_dom.EditorTextareaCarbon.classList.add('bhgv2-editor-textarea-carbon')
+
+	_dom.EditorTextareaCarbonText = document.createElement('span')
+	_dom.EditorTextareaCarbonText.classList.add(
+		'bhgv2-editor-textarea-carbon-text'
+	)
+
+	_dom.EditorTextareaCarbonTrailing = document.createElement('span')
+	_dom.EditorTextareaCarbonTrailing.classList.add(
+		'bhgv2-editor-textarea-carbon-trailing'
+	)
+
+	_dom.EditorTextareaCarbon.append(
+		_dom.EditorTextareaCarbonText,
+		_dom.EditorTextareaCarbonTrailing
+	)
+
 	_dom.EditorTextarea = document.createElement('textarea')
 	_dom.EditorTextarea.classList.add('content-edit')
 	_dom.EditorTextarea.classList.add('bhgv2-editor-textarea')
 	_dom.EditorTextarea.setAttribute('placeholder', '留言…')
 
-	oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextarea)
+	_dom.EditorTextareaWrapper.append(
+		_dom.EditorTextareaCarbon,
+		_dom.EditorTextarea
+	)
+
+	oldEditorTextarea.insertAdjacentElement(
+		'afterend',
+		_dom.EditorTextareaWrapper
+	)
 	oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea)
+
+	_dom.EditorContainerReplyContentFooter = document.createElement('div')
+	_dom.EditorContainerReplyContentFooter.classList.add(
+		'bhgv2-editor-container-reply-content-footer'
+	)
+	_dom.EditorContainerReplyContentFooter.innerHTML = `Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入`
+	_dom.EditorContainerReplyContent.append(
+		_dom.EditorContainerReplyContentFooter
+	)
 
 	_dom.EditorContainerFooter = document.createElement('div')
 	_dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer')
@@ -566,6 +617,81 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', (event) => {
 		_handleSubmitConfigForm(event, { saveAsDefault: true })
 		_showConfigFormMessage('已設為預設值及儲存設定')
+	})
+
+	CORE.DOM.EditorTextarea.addEventListener(
+		'keydown',
+		(event: KeyboardEvent) => {
+			const key = event.key
+			const textarea = event.currentTarget as HTMLTextAreaElement
+
+			if (key === 'Enter' && !event.shiftKey) {
+				console.log('Enter')
+				event.preventDefault()
+
+				const content = textarea.value || ''
+				if (content.match(/^\s*$/)) {
+					console.log('請輸入內容')
+					return false
+				}
+
+				const { gsn, sn } = CORE.getState()
+				if (!gsn || !sn) {
+					console.log('GSN或SN是空值！')
+					return false
+				}
+
+				textarea.setAttribute('disabled', 'true')
+
+				const formData = new FormData()
+				formData.append('gsn', gsn.toString())
+				formData.append('messageId', sn.toString())
+				formData.append('content', content)
+				formData.append('legacy', '1')
+
+				const csrf = new Bahamut.Csrf()
+				csrf.setCookie()
+
+				fetch('https://api.gamer.com.tw/guild/v1/comment_new.php', {
+					method: 'post',
+					body: formData,
+					headers: csrf.getFetchHeaders(),
+					credentials: 'include',
+				})
+					.then((res) => res.json())
+					.then((json: TPostCommentNewApiResponse) => {
+						if (json.error) {
+							Dialogify.alert(json.error.message)
+							return
+						}
+
+						CORE.mutateState({
+							latestComments: [
+								{
+									id: json.data.commentId,
+									payload: json.data.commentData,
+								},
+							],
+						})
+					})
+					.finally(() => {
+						textarea.value = ''
+						textarea.removeAttribute('disabled')
+						textarea.focus()
+					})
+			}
+		}
+	)
+
+	CORE.DOM.EditorTextarea.addEventListener('input', (event) => {
+		const CarbonText = CORE.DOM.EditorTextareaCarbonText
+		if (!CarbonText) {
+			return
+		}
+		const textarea = event.currentTarget as HTMLTextAreaElement
+		const content = textarea.value
+
+		CarbonText.innerHTML = content.replace(/\n/g, '<br />')
 	})
 
 	// 觸發一次所有插件的 onMutateConfig
