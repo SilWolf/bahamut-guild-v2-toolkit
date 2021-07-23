@@ -71,11 +71,50 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-editor-textarea-wrapper {
+	position: relative;
+}
+
+.bhgv2-editor-textarea {
+	font-family: -apple-system, "San Francisco", Roboto, "Segoe UI", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Helvetica Neue", Helvetica, Roboto, Arial, "Lucida Grande", "PingFang TC", "蘋果儷中黑", "Apple LiGothic Medium", sans-serif;
+}
+
+.bhgv2-editor-textarea-carbon {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	color: transparent;
+	font-size: 15px;
+	line-height: 1.5;
+	pointer-events: none;
+}
+
+.bhgv2-editor-textarea-carbon-trailing {
+	padding-left: 3px;
+	color: #aaa;
+}
+
+.bhgv2-editor-textarea-carbon-trailing code {
+	font-size: 12px;
+	padding: 2px 4px;
+	background: #ddd;
+	border-radius: 2px;
+}
+
 .bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;
 	font-size: 12px;
+}
+
+.bhgv2-editor-container-reply-content-footer {
+	font-size: 12px;
+	color: #777;
+	padding: 2px 8px;
 }
 
 .bhgv2-editor-container-footer .bhgv2-config-status {

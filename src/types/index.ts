@@ -11,8 +11,8 @@ export type TCore = {
 	getStateByNames: (...names: TCoreStateKey[]) => TCoreState
 	mutateState: (newValue: TCoreState) => void
 	commentsMap: Record<string, TCoreStateComment>
-	useLibrary: (name: string, defaultLibraryIfNotFound: unknown) => unknown
-	emit: (eventName: string, payload: unknown) => void
+	useLibrary: (name: string, defaultLibraryIfNotFound?: unknown) => unknown
+	emit: (eventName: string, payload: unknown) => boolean
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
 	DOM: Record<string, HTMLElement>
 }
@@ -24,7 +24,7 @@ export type TPlugin = {
 	prefix: string
 	configs?: TPluginConfig[]
 	configLayout?: string[][]
-	onEvent?: (eventName: string, payload: unknown) => void
+	onEvent?: (eventName: string, payload: unknown) => boolean
 	onMutateState?: (newValue: TCoreState) => void
 	onMutateConfig?: (newValue: TCoreConfig) => void
 	css?: string[]
@@ -37,6 +37,7 @@ export type TCoreState = {
 	commentListApi?: string
 	latestComments?: TCoreStateComment[]
 	isInit?: boolean
+	isUserAction?: boolean
 	commentsCount?: number
 	userInfo?: TCoreStateUserInfo
 }
@@ -85,6 +86,21 @@ export type TCommentsListApiResponse = {
 			privateType: number
 		}
 		totalPage: number
+	}
+}
+
+export type TPostCommentNewApiResponse = {
+	data: {
+		commentData: TComment
+		commentId: string
+		contxt: string
+		mention: TCommentMention[]
+		messageContent: string
+		messageuserId: string
+		time: string
+	}
+	error?: {
+		message: string
 	}
 }
 
