@@ -246,6 +246,8 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.Title = document.getElementsByTagName('title')[0];
     _dom.Body = document.getElementsByTagName('body')[0];
     _dom.Body.classList.add('bhgv2-body');
+    _dom.BHBackground = document.getElementById('BH-background');
+    _dom.BHWrapper = document.getElementById('BH-wrapper');
     _dom.CommentListOuter = document.getElementsByClassName('webview_commendlist')[0];
     _dom.CommentListOuter.classList.add('bhgv2-comment-list-outer');
     _dom.CommentList = _dom.CommentListOuter.firstElementChild;
@@ -1802,41 +1804,213 @@ const BHGV2_QuickInput = (core) => {
             defaultValue: false,
         },
     ];
-    const wordMap = {
-        1: '[silwolf167:銀狼]',
-        2: '[GN02324817:鯊鯊~]',
-        3: '[a29719811:小元]',
-        all: '@1@2@3',
-        apple: '[apple:蘋果]',
-        banana: '[banana:香蕉]',
-        car: '[car:汽車]',
-        doll: '[doll:公仔]',
-        egg: '[egg:雞蛋]',
-        fish: '[fish:魚]',
-        goat: '[goat:山羊]',
-        r1: '快速回覆１',
-        r2: '快速回覆２',
-        r3: '快速回覆３',
-        r4: '快速回覆４',
-        d0: '（無傷）',
-        d1: '（輕傷）',
-        d2: '（中傷）',
-        d3: '（重傷）',
-        d4: '（瀕死）',
+    _plugin.css = [
+        `
+			.${_plugin.prefix}-backdrop {
+				position: fixed;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background-color: rgba(0, 0, 0, 0.75);
+				padding: 60px;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: stretch;
+				z-index: 120;
+
+				display: none;
+			}
+
+			.${_plugin.prefix}-backdrop.active {
+				display: block;
+			}
+
+			#${_plugin.prefix}-container {
+				flex: 1;
+				min-height: 0;
+				width: 100%;
+				max-width: 960px;
+				margin-left: auto;
+				margin-right: auto;
+				background: #fff;
+
+				display: flex;
+				flex-direction: column;
+			}
+
+			#${_plugin.prefix}-container > * {
+				padding: 15px;
+			}
+
+			#${_plugin.prefix}-header {
+				font-size: 1.5rem;
+				font-weight: bold;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			#${_plugin.prefix}-content {
+				flex: 1;
+				min-height: 0;
+				overflow-y: auto;
+			}
+
+			#${_plugin.prefix}-content table {
+				width: 100%;
+			}
+
+			#${_plugin.prefix}-content table td {
+				border-bottom: 1px solid #ccc;
+				padding-top: 8px;
+				padding-bottom: 8px;
+			}
+
+			#${_plugin.prefix}-content table td + td {
+				padding-left: 8px;
+			}
+
+			.${_plugin.prefix}-tbody-row .${_plugin.prefix}-tbody-row-key,
+			.${_plugin.prefix}-tbody-row .${_plugin.prefix}-tbody-row-content {
+				border: 1px solid #ccc;
+				padding: 5px;
+				width: 100%;
+				resize: none;
+				box-sizing: border-box;
+			}
+			
+			#${_plugin.prefix}-footer {
+				text-align: center;
+			}
+			
+			#${_plugin.prefix}-footer td {
+				border-bottom: 0
+			}
+		`,
+    ];
+    let _WORD_MAP = {};
+    const _saveWordMap = (_newValue) => {
+        localStorage.setItem(`${_plugin.prefix}-WordMap`, JSON.stringify(_newValue));
+        _WORD_MAP = _newValue;
     };
+    const Body = core.DOM.Body;
+    // 自製的設置視窗
+    const QuickInputConfigBackdrop = document.createElement('div');
+    QuickInputConfigBackdrop.classList.add(`${_plugin.prefix}-backdrop`);
+    Body.append(QuickInputConfigBackdrop);
+    const QuickInputConfigContainer = $(`
+		<div id="${_plugin.prefix}-container">
+			<div id="${_plugin.prefix}-header">
+				<h4>設置快速輸入</h4>
+				<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-close">關閉</button>
+			</div>
+			<div id="${_plugin.prefix}-content">
+				<table>
+					<thead>
+						<tr>
+							<td>@</td>
+							<td style="width: 75%">內容</td>
+							<td></td>
+						</tr>
+					</thead>
+					<tbody></tbody>
+					<tfoot>
+						<tr>
+							<td colspan="3">
+								<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-add">&plus; 新增</button>
+							</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+			<div id="${_plugin.prefix}-footer">
+				<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-save">儲存</button>
+			</div>
+		</div>
+	`)[0];
+    QuickInputConfigBackdrop.append(QuickInputConfigContainer);
+    const _createRow = ({ key, content, } = {}) => {
+        const _Row = $(`
+			<tr class="${_plugin.prefix}-tbody-row">
+				<td valign="top">
+					<input type="text" class="${_plugin.prefix}-tbody-row-key" value="${key || ''}" />
+				</td>
+				<td valign="top">
+					<textarea class="${_plugin.prefix}-tbody-row-content">${content || ''}</textarea>
+				</td>
+				<td>
+					<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-remove">刪除</button>
+				</td>
+			</tr>
+		`)[0];
+        const _RemoveButton = _Row.querySelector(`#${_plugin.prefix}-remove`);
+        _RemoveButton.addEventListener('click', () => {
+            confirm('確定要刪除嗎？') && _Row.parentNode.removeChild(_Row);
+        });
+        return _Row;
+    };
+    const QuickInputConfigTBody = QuickInputConfigContainer.getElementsByTagName('tbody')[0];
+    const QuickInputConfigAddButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-add`);
+    QuickInputConfigAddButton.addEventListener('click', () => QuickInputConfigTBody.append(_createRow()));
+    const QuickInputConfigCloseButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-close`);
+    QuickInputConfigCloseButton.addEventListener('click', () => QuickInputConfigBackdrop.classList.toggle('active', false));
+    const QuickInputConfigSaveButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-save`);
+    QuickInputConfigSaveButton.addEventListener('click', () => {
+        const _newValue = {};
+        for (let row of Array.from(QuickInputConfigTBody.children)) {
+            const key = row.querySelector(`.${_plugin.prefix}-tbody-row-key`)?.value;
+            const content = row.querySelector(`.${_plugin.prefix}-tbody-row-content`)?.value;
+            if (key.match(/^\s*$/) || content.match(/^\s*$/)) {
+                alert('必須填寫所有項目');
+                return;
+            }
+            if (key.match(/^\d+$/)) {
+                alert('不能用數字作為＠詞');
+                return;
+            }
+            if (!!_newValue[key]) {
+                alert('＠詞不能重覆');
+                return;
+            }
+            _newValue[key] = content;
+        }
+        _saveWordMap(_newValue);
+        alert('已儲存');
+    });
+    const _loadWordMap = () => {
+        _WORD_MAP = JSON.parse(localStorage.getItem(`${_plugin.prefix}-WordMap`) || '{}');
+    };
+    const _refreshConfigTable = () => {
+        QuickInputConfigTBody.innerHTML = '';
+        Object.entries(_WORD_MAP).forEach(([key, content]) => QuickInputConfigTBody.append(_createRow({ key, content })));
+    };
+    _loadWordMap();
+    _refreshConfigTable();
+    const ConfigFormActions = core.DOM.ConfigFormActions;
+    const _buttonShowConfigPanel = document.createElement('a');
+    _buttonShowConfigPanel.setAttribute('href', '#');
+    _buttonShowConfigPanel.classList.add(`${_plugin.prefix}-action`);
+    _buttonShowConfigPanel.innerHTML = '打開快速輸入設置';
+    _buttonShowConfigPanel.addEventListener('click', (e) => {
+        e.preventDefault();
+        QuickInputConfigBackdrop.classList.toggle('active', true);
+    });
+    ConfigFormActions.append(_buttonShowConfigPanel);
     const _formatCarbonTrailingHTML = (content) => `<code>TAB</code> ${content}`;
     const _findKeyWordPair = (text, { exactMatch } = {}) => {
         if (!exactMatch) {
-            const key = Object.keys(wordMap).find((_key) => _key.startsWith(text));
-            return key ? { key, word: wordMap[key] } : undefined;
+            const key = Object.keys(_WORD_MAP).find((_key) => _key.startsWith(text));
+            return key ? { key, word: _WORD_MAP[key] } : undefined;
         }
         let key = undefined;
-        Object.keys(wordMap).forEach((_key) => {
+        Object.keys(_WORD_MAP).forEach((_key) => {
             if (text.startsWith(_key)) {
                 key = _key;
             }
         });
-        return key ? { key, word: wordMap[key] } : undefined;
+        return key ? { key, word: _WORD_MAP[key] } : undefined;
     };
     _plugin.onEvent = (eventName, payload) => {
         const config = core.getConfig();

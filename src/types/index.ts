@@ -11,7 +11,7 @@ export type TCore = {
 	getStateByNames: (...names: TCoreStateKey[]) => TCoreState
 	mutateState: (newValue: TCoreState) => void
 	commentsMap: Record<string, TCoreStateComment>
-	useLibrary: (name: string, defaultLibraryIfNotFound: unknown) => unknown
+	useLibrary: (name: string, defaultLibraryIfNotFound?: unknown) => unknown
 	emit: (eventName: string, payload: unknown) => boolean
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
 	DOM: Record<string, HTMLElement>

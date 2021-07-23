@@ -26,8 +26,6 @@ import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
 import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
 
-declare var jQuery: any
-declare var $: any
 declare var nunjucks: any
 
 /** 等待DOM準備完成 */
@@ -322,6 +320,9 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	_dom.Body = document.getElementsByTagName('body')[0] as HTMLElement
 	_dom.Body.classList.add('bhgv2-body')
+
+	_dom.BHBackground = document.getElementById('BH-background') as HTMLElement
+	_dom.BHWrapper = document.getElementById('BH-wrapper') as HTMLElement
 
 	_dom.CommentListOuter = document.getElementsByClassName(
 		'webview_commendlist'
