@@ -331,10 +331,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	)[0] as HTMLElement
 	_dom.Editor.classList.add('bhgv2-editor')
 
-	_dom.EditorTextarea = _dom.Editor.getElementsByTagName(
+	const oldEditorTextarea = _dom.Editor.getElementsByTagName(
 		'textarea'
 	)[0] as HTMLElement
+
+	_dom.EditorTextarea = document.createElement('textarea')
+	_dom.EditorTextarea.classList.add('content-edit')
 	_dom.EditorTextarea.classList.add('bhgv2-editor-textarea')
+	_dom.EditorTextarea.setAttribute('placeholder', '留言…')
+
+	oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextarea)
+	oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea)
 
 	_dom.EditorContainerFooter = document.createElement('div')
 	_dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer')

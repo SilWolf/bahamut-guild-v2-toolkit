@@ -49,6 +49,7 @@ var bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 var bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
 /** 等待DOM準備完成 */
 var BHGV2Core = function (_a) {
+    var _b;
     var plugins = _a.plugins, library = _a.library;
     var LOG = function (message, type) {
         if (type === void 0) { type = 'log'; }
@@ -272,8 +273,13 @@ var BHGV2Core = function (_a) {
     _dom.EditorContainer.classList.add('bhgv2-editor-container');
     _dom.Editor = _dom.EditorContainer.getElementsByClassName('reply-input')[0];
     _dom.Editor.classList.add('bhgv2-editor');
-    _dom.EditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
+    var oldEditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
+    _dom.EditorTextarea = document.createElement('textarea');
+    _dom.EditorTextarea.classList.add('content-edit');
     _dom.EditorTextarea.classList.add('bhgv2-editor-textarea');
+    _dom.EditorTextarea.setAttribute('placeholder', '留言…');
+    oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextarea);
+    (_b = oldEditorTextarea.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(oldEditorTextarea);
     _dom.EditorContainerFooter = document.createElement('div');
     _dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
     _dom.EditorContainer.appendChild(_dom.EditorContainerFooter);
@@ -456,7 +462,7 @@ var BHGV2Core = function (_a) {
             CORE.mutateConfig(JSON.parse(_storedConfigJSON));
         }
     }
-    catch (_b) { }
+    catch (_c) { }
     // 初始化state comments (用Interval等到comment list真的生成好)
     var _initialCommentListInterval;
     _initialCommentListInterval = setInterval(function () {
