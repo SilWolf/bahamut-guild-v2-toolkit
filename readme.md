@@ -13,7 +13,7 @@
 
 #### 自動安裝
 
-2. 點擊以下連結，Tampermonkey 將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/dist/index.js)
+2. 點擊以下連結，Tampermonkey 將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/dist/bahamut-guild-v2-toolkit.user.js)
 3. 點擊安裝即可安裝完畢，進入 Tampermonkey 的控制台，如果見到了 Bahamut Guild V2 Toolkits 就代表安裝成功。
 
 #### 手動安裝

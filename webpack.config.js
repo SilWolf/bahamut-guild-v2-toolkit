@@ -25,7 +25,7 @@ module.exports = {
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-		filename: 'index.js',
+		filename: 'bahamut-guild-v2-toolkit.user.js',
 	},
 	plugins: [
 		new webpack.BannerPlugin({

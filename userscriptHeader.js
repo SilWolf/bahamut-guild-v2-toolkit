@@ -13,7 +13,7 @@ const metadata = {
 	],
 	grant: ['GM_notification'],
 	updateUrl: [
-		'https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/dist/index.js',
+		'https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/dist/bahamut-guild-v2-toolkit.user.js',
 	],
 }
 
