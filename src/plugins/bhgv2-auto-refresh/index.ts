@@ -169,7 +169,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateState = (newValue) => {
-		if (newValue.isInit) {
+		if (newValue.isInit || newValue.isUserAction) {
 			return
 		}
 

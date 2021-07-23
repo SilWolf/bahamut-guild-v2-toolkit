@@ -17,169 +17,146 @@
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
-var bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
-var bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
-var global_css_1 = __importDefault(__webpack_require__(440));
-var postDetail_css_1 = __importDefault(__webpack_require__(507));
-var bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
-var bhgv2_dense_1 = __importDefault(__webpack_require__(115));
-var bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
-var bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
-var bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
+const bhgv2_auto_refresh_1 = __importDefault(__webpack_require__(503));
+const bhgv2_comments_reverse_1 = __importDefault(__webpack_require__(547));
+const bhgv2_dark_mode_1 = __importDefault(__webpack_require__(340));
+const global_css_1 = __importDefault(__webpack_require__(440));
+const postDetail_css_1 = __importDefault(__webpack_require__(507));
+const bhgv2_rainbow_1 = __importDefault(__webpack_require__(87));
+const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
+const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
+const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
+const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
+const bhgv2_quick_input_1 = __importDefault(__webpack_require__(353));
 /** 等待DOM準備完成 */
-var BHGV2Core = function (_a) {
-    var _b;
-    var plugins = _a.plugins, library = _a.library;
-    var LOG = function (message, type) {
-        if (type === void 0) { type = 'log'; }
+const BHGV2Core = ({ plugins, library }) => {
+    const LOG = (message, type = 'log') => {
         ;
-        (console[type] || console.log)("[\u5DF4\u54C8\u63D2\u4EF62.0] " + message);
+        (console[type] || console.log)(`[巴哈插件2.0] ${message}`);
     };
-    var _plugins = [];
-    var _library = __assign({}, library);
-    var _config = {};
-    var _state = {};
-    var CORE = {
-        getConfig: function () { return _config; },
-        getConfigByNames: function () {
-            var names = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                names[_i] = arguments[_i];
-            }
-            return names.reduce(function (prev, key) {
+    const _plugins = [];
+    const _library = {
+        ...library,
+    };
+    const _config = {};
+    const _state = {};
+    const CORE = {
+        getConfig: () => _config,
+        getConfigByNames: (...names) => {
+            return names.reduce((prev, key) => {
                 if (_config[key] !== undefined) {
                     prev[key] = _config[key];
                 }
                 return prev;
             }, {});
         },
-        mutateConfig: function (newValue) {
-            _plugins.forEach(function (plugin) { var _a; return (_a = plugin.onMutateConfig) === null || _a === void 0 ? void 0 : _a.call(plugin, newValue); });
-            Object.entries(newValue).forEach(function (_a) {
-                var key = _a[0], value = _a[1];
+        mutateConfig: (newValue) => {
+            _plugins.forEach((plugin) => plugin.onMutateConfig?.(newValue));
+            Object.entries(newValue).forEach(([key, value]) => {
                 _config[key] = value;
             });
         },
-        getState: function () { return _state; },
-        getStateByNames: function () {
-            var names = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                names[_i] = arguments[_i];
-            }
-            return names.reduce(function (prev, key) {
+        getState: () => _state,
+        getStateByNames: (...names) => {
+            return names.reduce((prev, key) => {
                 if (_state[key] !== undefined) {
                     prev[key] = _state[key];
                 }
                 return prev;
             }, {});
         },
-        mutateState: function (newValue) {
-            _plugins.forEach(function (plugin) { var _a; return (_a = plugin.onMutateState) === null || _a === void 0 ? void 0 : _a.call(plugin, newValue); });
-            Object.entries(newValue).forEach(function (_a) {
-                var key = _a[0], value = _a[1];
+        mutateState: (newValue) => {
+            _plugins.forEach((plugin) => plugin.onMutateState?.(newValue));
+            Object.entries(newValue).forEach(([key, value]) => {
                 _state[key] = value;
             });
         },
-        useLibrary: function (name, defaultLibraryIfNotFound) {
+        useLibrary: (name, defaultLibraryIfNotFound) => {
             if (_library[name])
                 return _library[name];
             _library[name] = defaultLibraryIfNotFound;
             return _library[name];
         },
-        emit: function (eventName, payload) {
-            _plugins.forEach(function (plugin) { var _a; return (_a = plugin.onEvent) === null || _a === void 0 ? void 0 : _a.call(plugin, eventName, payload); });
+        emit: (eventName, payload) => {
+            return (_plugins
+                .map((plugin) => plugin.onEvent?.(eventName, payload))
+                .findIndex((result) => result === false) === -1);
         },
         log: LOG,
         DOM: {},
         commentsMap: {},
     };
-    var _CorePlugin = function (core) {
-        var _plugin = {
+    const _CorePlugin = (core) => {
+        const _plugin = {
             pluginName: 'BHGV2Core',
             prefix: 'BHGV2Core',
         };
-        _plugin.onMutateState = function (newValue) {
+        _plugin.onMutateState = (newValue) => {
             if (newValue.gsn !== undefined || newValue.sn !== undefined) {
-                var oldValue = core.getStateByNames('gsn', 'sn');
-                var gsn = newValue.gsn || oldValue.gsn;
-                var sn = newValue.sn || oldValue.sn;
+                const oldValue = core.getStateByNames('gsn', 'sn');
+                const gsn = newValue.gsn || oldValue.gsn;
+                const sn = newValue.sn || oldValue.sn;
                 if (gsn && sn) {
-                    newValue.postApi = "https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=" + gsn + "&messageId=" + sn;
-                    newValue.commentListApi = "https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=" + gsn + "&messageId=" + sn;
+                    newValue.postApi = `https://api.gamer.com.tw/guild/v1/post_detail.php?gsn=${gsn}&messageId=${sn}`;
+                    newValue.commentListApi = `https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${sn}`;
                 }
             }
             if (newValue.latestComments && newValue.latestComments.length > 0) {
-                var oldValue = core.getStateByNames('gsn', 'sn');
-                var gsn_1 = newValue.gsn || oldValue.gsn;
-                var sn_1 = newValue.sn || oldValue.sn;
-                var CommentList = core.DOM.CommentList;
-                var revisedLatestComments = [];
+                const oldValue = core.getStateByNames('gsn', 'sn');
+                const gsn = newValue.gsn || oldValue.gsn;
+                const sn = newValue.sn || oldValue.sn;
+                const CommentList = core.DOM.CommentList;
+                const revisedLatestComments = [];
                 // revisedLatestComments 的存在理由
                 // 因為mutateState會將資料往插件傳，所以必須過濾不必要的資料
                 // 這裡的邏輯是假如沒法生成element的話，就整個latestComments也不往下傳，以防不必要錯誤
-                if (gsn_1 && sn_1 && CommentList) {
-                    var _createCommentElement = function (payload) {
-                        var _a;
+                if (gsn && sn && CommentList) {
+                    const _createCommentElement = (payload) => {
                         if (!payload.position) {
-                            payload.position = ((_a = CORE.DOM.CommentList) === null || _a === void 0 ? void 0 : _a.children.length) + 1 || 1;
+                            payload.position = CORE.DOM.CommentList?.children.length + 1 || 1;
                         }
                         // 生成comment的element
-                        var newElement = $(nunjucks.render('comment.njk.html', {
+                        const newElement = $(nunjucks.render('comment.njk.html', {
                             post: {
-                                id: sn_1,
+                                id: sn,
                                 commentCount: 0,
-                                to: { gsn: gsn_1 },
+                                to: { gsn: gsn },
                             },
-                            comment: __assign(__assign({}, payload), { text: GuildTextUtil.mentionTagToMarkdown(gsn_1, payload.text, payload.tags, payload.mentions), time: payload.ctime }),
+                            comment: {
+                                ...payload,
+                                text: GuildTextUtil.mentionTagToMarkdown(gsn, payload.text, payload.tags, payload.mentions),
+                                time: payload.ctime,
+                            },
                             marked: GuildTextUtil.markedInstance,
                             youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
                             user: guildPost.loginUser,
                         }))[0];
                         newElement.classList.add('bhgv2-comment');
-                        var _replyContentUser = newElement.querySelector('.reply-content__user');
+                        const _replyContentUser = newElement.querySelector('.reply-content__user');
                         if (_replyContentUser) {
                             newElement.setAttribute('data-user', _replyContentUser.textContent);
                             newElement.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
                         }
                         return newElement;
                     };
-                    var oldestLatestComment = newValue.latestComments[0];
-                    var oldestLatestCommentId_1 = parseInt(oldestLatestComment.id);
-                    var oldCommentIndex = Array.from(CommentList.children).findIndex(function (e) {
-                        return parseInt(e.getAttribute('data-csn')) >=
-                            oldestLatestCommentId_1;
-                    });
+                    const oldestLatestComment = newValue.latestComments[0];
+                    const oldestLatestCommentId = parseInt(oldestLatestComment.id);
+                    let oldCommentIndex = Array.from(CommentList.children).findIndex((e) => parseInt(e.getAttribute('data-csn')) >=
+                        oldestLatestCommentId);
                     if (oldCommentIndex === -1) {
                         oldCommentIndex = CommentList.children.length;
                     }
-                    for (var newCommentIndex = 0; newCommentIndex < newValue.latestComments.length; newCommentIndex++) {
-                        var newComment = newValue.latestComments[newCommentIndex];
-                        var newCommentId = parseInt(newComment.id);
+                    for (let newCommentIndex = 0; newCommentIndex < newValue.latestComments.length; newCommentIndex++) {
+                        const newComment = newValue.latestComments[newCommentIndex];
+                        const newCommentId = parseInt(newComment.id);
                         if (newComment.element &&
                             core.commentsMap[newComment.id] === undefined) {
                             newComment.element.classList.add('bhgv2-comment');
-                            var _replyContentUser = newComment.element.querySelector('.reply-content__user');
+                            const _replyContentUser = newComment.element.querySelector('.reply-content__user');
                             if (_replyContentUser) {
                                 newComment.element.setAttribute('data-user', _replyContentUser.textContent);
                                 newComment.element.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
@@ -188,7 +165,7 @@ var BHGV2Core = function (_a) {
                             revisedLatestComments.push(newComment);
                             continue;
                         }
-                        var _payload = newComment.payload;
+                        const _payload = newComment.payload;
                         if (!_payload) {
                             continue;
                         }
@@ -201,8 +178,8 @@ var BHGV2Core = function (_a) {
                                 core.commentsMap[newComment.id] = newComment;
                                 break;
                             }
-                            var oldCommentElement = CommentList.children[oldCommentIndex];
-                            var oldCommentId = parseInt(oldCommentElement.getAttribute('data-csn'));
+                            const oldCommentElement = CommentList.children[oldCommentIndex];
+                            const oldCommentId = parseInt(oldCommentElement.getAttribute('data-csn'));
                             if (oldCommentId === newCommentId) {
                                 oldCommentIndex++;
                                 break;
@@ -224,13 +201,13 @@ var BHGV2Core = function (_a) {
                 }
             }
         };
-        _plugin.onMutateConfig = function (newValue) {
-            var form = core.DOM.ConfigFormContent;
+        _plugin.onMutateConfig = (newValue) => {
+            const form = core.DOM.ConfigFormContent;
             if (!form) {
                 return;
             }
-            Object.keys(newValue).forEach(function (key) {
-                var input = form.querySelector("input[data-config-key='" + key + "']");
+            Object.keys(newValue).forEach((key) => {
+                const input = form.querySelector(`input[data-config-key='${key}']`);
                 if (input) {
                     switch (input.getAttribute('data-type')) {
                         case 'number':
@@ -254,7 +231,7 @@ var BHGV2Core = function (_a) {
     // 主程序
     // ====================================================================================================
     // 初始化 DOM 元件
-    var _dom = CORE.DOM;
+    const _dom = CORE.DOM;
     _dom.Head = document.getElementsByTagName('head')[0];
     _dom.HeadStyle = document.createElement('style');
     _dom.Head.appendChild(_dom.HeadStyle);
@@ -280,7 +257,7 @@ var BHGV2Core = function (_a) {
     _dom.EditorContainerReplyContent.classList.add('bhgv2-editor-container-reply-content');
     _dom.Editor = _dom.EditorContainer.getElementsByClassName('reply-input')[0];
     _dom.Editor.classList.add('bhgv2-editor');
-    var oldEditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
+    const oldEditorTextarea = _dom.Editor.getElementsByTagName('textarea')[0];
     _dom.EditorTextareaWrapper = document.createElement('div');
     _dom.EditorTextareaWrapper.classList.add('bhgv2-editor-textarea-wrapper');
     _dom.EditorTextareaCarbon = document.createElement('div');
@@ -296,10 +273,10 @@ var BHGV2Core = function (_a) {
     _dom.EditorTextarea.setAttribute('placeholder', '留言…');
     _dom.EditorTextareaWrapper.append(_dom.EditorTextareaCarbon, _dom.EditorTextarea);
     oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextareaWrapper);
-    (_b = oldEditorTextarea.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(oldEditorTextarea);
+    oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea);
     _dom.EditorContainerReplyContentFooter = document.createElement('div');
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
-    _dom.EditorContainerReplyContentFooter.innerHTML = "Enter: \u767C\u9001\u3000Shift+Enter: \u63DB\u884C\u3000Tab: \u5FEB\u901F\u8F38\u5165\u3000/\u6307\u4EE4\u3000@\u5FEB\u901F\u8F38\u5165";
+    _dom.EditorContainerReplyContentFooter.innerHTML = `Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入`;
     _dom.EditorContainerReplyContent.append(_dom.EditorContainerReplyContentFooter);
     _dom.EditorContainerFooter = document.createElement('div');
     _dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
@@ -332,53 +309,49 @@ var BHGV2Core = function (_a) {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave);
-    __spreadArray([_CorePlugin], plugins).forEach(function (plugin) {
-        var _a;
+    [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
-            var _plugin_1 = plugin(CORE);
+            const _plugin = plugin(CORE);
             // 初始化config
-            (_a = _plugin_1.configs) === null || _a === void 0 ? void 0 : _a.forEach(function (_a) {
-                var key = _a.key, defaultValue = _a.defaultValue;
+            _plugin.configs?.forEach(({ key, defaultValue }) => {
                 _config[key] = defaultValue;
                 if (defaultValue === undefined) {
-                    LOG("\u63D2\u4EF6 " + _plugin_1.pluginName + "\u3000\u7684\u8A2D\u5B9A " + key + " \u7684 defaultValue \u70BA\u7A7A\uFF0C\u8ACB\u8A2D\u5B9A\u3002");
+                    LOG(`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`);
                 }
             });
-            _plugins.push(_plugin_1);
+            _plugins.push(_plugin);
         }
         catch (e) {
-            LOG("\u8F09\u5165\u63D2\u4EF6\u5931\u6557, " + e.toString(), 'error');
+            LOG(`載入插件失敗, ${e.toString()}`, 'error');
         }
     });
     // 將所有插件的css塞進HeadStyle中
     _dom.HeadStyle.innerHTML = _plugins
-        .reduce(function (prev, _plugin) { return __spreadArray(__spreadArray([], prev), (_plugin.css || [])); }, [])
+        .reduce((prev, _plugin) => [...prev, ...(_plugin.css || [])], [])
         .join('\n\n');
     // 更新設定版面
     _dom.ConfigFormContent.innerHTML = '';
-    _plugins.forEach(function (_a) {
-        var configs = _a.configs, configLayout = _a.configLayout;
+    _plugins.forEach(({ configs, configLayout }) => {
         if (!configs) {
             return;
         }
-        var _configLayout = configLayout || [
-            configs.map(function (_config) { return _config.key; }),
+        const _configLayout = configLayout || [
+            configs.map((_config) => _config.key),
         ];
-        for (var _i = 0, _configLayout_1 = _configLayout; _i < _configLayout_1.length; _i++) {
-            var row = _configLayout_1[_i];
-            var rowElement = document.createElement('div');
+        for (const row of _configLayout) {
+            const rowElement = document.createElement('div');
             rowElement.classList.add('bhgv2-config-form-row');
-            var _loop_1 = function (col) {
-                var configItem = configs.find(function (_config) { return _config.key === col; });
+            for (const col of row) {
+                const configItem = configs.find((_config) => _config.key === col);
                 if (!configItem) {
-                    return { value: void 0 };
+                    return;
                 }
-                var colElement = document.createElement('div');
+                const colElement = document.createElement('div');
                 colElement.classList.add('bhgv2-config-form-col');
-                var prefixLabel = document.createElement('span');
+                const prefixLabel = document.createElement('span');
                 prefixLabel.innerHTML = configItem.prefixLabel || '';
-                var inputWrapperElement = document.createElement('label');
-                var inputElement = document.createElement('div');
+                let inputWrapperElement = document.createElement('label');
+                let inputElement = document.createElement('div');
                 switch (configItem.inputType) {
                     case 'number':
                     case 'text':
@@ -391,7 +364,7 @@ var BHGV2Core = function (_a) {
                         inputWrapperElement.classList.add('switch');
                         inputElement = document.createElement('input');
                         inputElement.setAttribute('type', 'checkbox');
-                        var _slider = document.createElement('span');
+                        const _slider = document.createElement('span');
                         _slider.classList.add('slider');
                         inputWrapperElement.append(_slider);
                         break;
@@ -401,16 +374,10 @@ var BHGV2Core = function (_a) {
                 inputElement.setAttribute('data-config-key', configItem.key);
                 inputElement.setAttribute('data-type', configItem.dataType);
                 inputWrapperElement.prepend(inputElement);
-                var suffixLabel = document.createElement('span');
+                const suffixLabel = document.createElement('span');
                 suffixLabel.innerHTML = configItem.suffixLabel || '';
                 colElement.append(prefixLabel, inputWrapperElement, suffixLabel);
                 rowElement.append(colElement);
-            };
-            for (var _b = 0, row_1 = row; _b < row_1.length; _b++) {
-                var col = row_1[_b];
-                var state_1 = _loop_1(col);
-                if (typeof state_1 === "object")
-                    return state_1.value;
             }
             _dom.ConfigFormContent.append(rowElement);
         }
@@ -418,33 +385,33 @@ var BHGV2Core = function (_a) {
     // 初始化 state (gsn, sn, comments, userInfo)
     _state.gsn = guild.gsn;
     if (location && location.href.includes('post_detail.php')) {
-        var re = /https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm;
+        const re = /https:\/\/guild\.gamer\.com\.tw\/post_detail\.php\?gsn=(\d*)&sn=(\d*)/gm;
         var url = document.URL;
         var urlMatch = re.exec(url);
-        _state.sn = parseInt(urlMatch === null || urlMatch === void 0 ? void 0 : urlMatch[2]) || undefined;
+        _state.sn = parseInt(urlMatch?.[2]) || undefined;
     }
     _state.userInfo = guildPost.loginUser;
     // 添加動作給 DOM
-    _dom.ConfigPanelSwitch.addEventListener('click', function (event) {
+    _dom.ConfigPanelSwitch.addEventListener('click', (event) => {
         event.preventDefault();
         _dom.ConfigPanel.classList.toggle('active');
     });
-    var _showConfigFormMessage = function (message) {
+    const _showConfigFormMessage = (message) => {
         _dom.ConfigFormMessage.innerHTML = message;
-        setTimeout(function () {
+        setTimeout(() => {
             _dom.ConfigFormMessage.innerHTML = '';
         }, 2000);
     };
-    var _handleSubmitConfigForm = function (event, options) {
+    const _handleSubmitConfigForm = (event, options) => {
         event.preventDefault();
-        var form = CORE.DOM.ConfigForm;
-        var newConfig = Array.from(form.querySelectorAll('input[data-config-key]')).reduce(function (prev, element) {
-            var key = element.getAttribute('data-config-key');
+        const form = CORE.DOM.ConfigForm;
+        const newConfig = Array.from(form.querySelectorAll('input[data-config-key]')).reduce((prev, element) => {
+            const key = element.getAttribute('data-config-key');
             if (!key) {
                 return prev;
             }
-            var dataType = element.getAttribute('data-type');
-            var value = undefined;
+            const dataType = element.getAttribute('data-type');
+            let value = undefined;
             switch (dataType) {
                 case 'boolean':
                     value = element.checked;
@@ -460,41 +427,46 @@ var BHGV2Core = function (_a) {
             return prev;
         }, {});
         CORE.mutateConfig(newConfig);
-        if (options === null || options === void 0 ? void 0 : options.saveAsDefault) {
+        if (options?.saveAsDefault) {
             window.localStorage.setItem('bahamut-guild-v2-toolkit:config', JSON.stringify(newConfig));
         }
     };
-    CORE.DOM.ConfigFormFooterSave.addEventListener('click', function (event) {
+    CORE.DOM.ConfigFormFooterSave.addEventListener('click', (event) => {
         _handleSubmitConfigForm(event);
         _showConfigFormMessage('已儲存設定');
     });
-    CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', function (event) {
+    CORE.DOM.ConfigFormFooterSaveAsDefault.addEventListener('click', (event) => {
         _handleSubmitConfigForm(event, { saveAsDefault: true });
         _showConfigFormMessage('已設為預設值及儲存設定');
     });
-    CORE.DOM.EditorTextarea.addEventListener('keydown', function (event) {
-        var key = event.key;
-        var textarea = event.currentTarget;
+    CORE.DOM.EditorTextarea.addEventListener('keydown', (event) => {
+        const key = event.key;
+        const textarea = event.currentTarget;
+        const canContinue = CORE.emit('textarea-keydown', {
+            event,
+        });
+        if (!canContinue) {
+            return;
+        }
         if (key === 'Enter' && !event.shiftKey) {
-            console.log('Enter');
             event.preventDefault();
-            var content = textarea.value || '';
+            const content = textarea.value || '';
             if (content.match(/^\s*$/)) {
                 console.log('請輸入內容');
                 return false;
             }
-            var _a = CORE.getState(), gsn = _a.gsn, sn = _a.sn;
+            const { gsn, sn } = CORE.getState();
             if (!gsn || !sn) {
                 console.log('GSN或SN是空值！');
                 return false;
             }
             textarea.setAttribute('disabled', 'true');
-            var formData = new FormData();
+            const formData = new FormData();
             formData.append('gsn', gsn.toString());
             formData.append('messageId', sn.toString());
             formData.append('content', content);
             formData.append('legacy', '1');
-            var csrf = new Bahamut.Csrf();
+            const csrf = new Bahamut.Csrf();
             csrf.setCookie();
             fetch('https://api.gamer.com.tw/guild/v1/comment_new.php', {
                 method: 'post',
@@ -502,8 +474,8 @@ var BHGV2Core = function (_a) {
                 headers: csrf.getFetchHeaders(),
                 credentials: 'include',
             })
-                .then(function (res) { return res.json(); })
-                .then(function (json) {
+                .then((res) => res.json())
+                .then((json) => {
                 if (json.error) {
                     Dialogify.alert(json.error.message);
                     return;
@@ -515,23 +487,27 @@ var BHGV2Core = function (_a) {
                             payload: json.data.commentData,
                         },
                     ],
+                    isUserAction: true,
                 });
             })
-                .finally(function () {
+                .finally(() => {
                 textarea.value = '';
                 textarea.removeAttribute('disabled');
                 textarea.focus();
             });
-        }
-    });
-    CORE.DOM.EditorTextarea.addEventListener('input', function (event) {
-        var CarbonText = CORE.DOM.EditorTextareaCarbonText;
-        if (!CarbonText) {
             return;
         }
-        var textarea = event.currentTarget;
-        var content = textarea.value;
-        CarbonText.innerHTML = content.replace(/\n/g, '<br />');
+    });
+    CORE.DOM.EditorTextarea.addEventListener('input', (event) => {
+        const CarbonText = CORE.DOM.EditorTextareaCarbonText;
+        if (CarbonText) {
+            const textarea = event.currentTarget;
+            const content = textarea.value;
+            CarbonText.innerHTML = content.replace(/\n/g, '<br />');
+        }
+        CORE.emit('textarea-input', {
+            event,
+        });
     });
     // 觸發一次所有插件的 onMutateConfig
     CORE.mutateConfig(_config);
@@ -539,31 +515,31 @@ var BHGV2Core = function (_a) {
     CORE.mutateState(_state);
     // 讀取預設值
     try {
-        var _storedConfigJSON = localStorage.getItem('bahamut-guild-v2-toolkit:config');
+        const _storedConfigJSON = localStorage.getItem('bahamut-guild-v2-toolkit:config');
         if (_storedConfigJSON) {
             CORE.mutateConfig(JSON.parse(_storedConfigJSON));
         }
     }
-    catch (_c) { }
+    catch { }
     // 初始化state comments (用Interval等到comment list真的生成好)
-    var _initialCommentListInterval;
-    _initialCommentListInterval = setInterval(function () {
-        var _CommentListOuter = CORE.DOM.CommentListOuter;
+    let _initialCommentListInterval;
+    _initialCommentListInterval = setInterval(() => {
+        const _CommentListOuter = CORE.DOM.CommentListOuter;
         if (_CommentListOuter) {
-            var commentCount = parseInt(_CommentListOuter.getAttribute('data-comment-count')) || 0;
+            const commentCount = parseInt(_CommentListOuter.getAttribute('data-comment-count')) || 0;
             if (commentCount === 0) {
                 clearInterval(_initialCommentListInterval);
                 return;
             }
-            var _CommentList = CORE.DOM.CommentList;
+            const _CommentList = CORE.DOM.CommentList;
             if (_CommentList) {
                 if (_CommentList.children.length === 0) {
                     return;
                 }
-                var _newComments = Array.from(_CommentList.children).map(function (element) { return ({
+                const _newComments = Array.from(_CommentList.children).map((element) => ({
                     id: element.getAttribute('data-csn'),
-                    element: element,
-                }); });
+                    element,
+                }));
                 CORE.mutateState({
                     latestComments: _newComments,
                     isInit: true,
@@ -574,12 +550,12 @@ var BHGV2Core = function (_a) {
     }, 200);
     return CORE;
 };
-var _waitForElm = function (selector) {
-    return new Promise(function (resolve) {
+const _waitForElm = (selector) => {
+    return new Promise((resolve) => {
         if (document.querySelector(selector)) {
             return resolve(document.querySelector(selector));
         }
-        var observer = new MutationObserver(function (mutations) {
+        const observer = new MutationObserver((mutations) => {
             if (document.querySelector(selector)) {
                 resolve(document.querySelector(selector));
                 observer.disconnect();
@@ -592,8 +568,8 @@ var _waitForElm = function (selector) {
     });
 };
 (function () {
-    var hasTakenOver = false;
-    _waitForElm('.webview_commendlist .c-reply__editor').then(function () {
+    let hasTakenOver = false;
+    _waitForElm('.webview_commendlist .c-reply__editor').then(() => {
         if (!hasTakenOver) {
             BHGV2Core({
                 plugins: [
@@ -605,12 +581,13 @@ var _waitForElm = function (selector) {
                     bhgv2_master_layout_1.default,
                     bhgv2_notify_on_title_1.default,
                     bhgv2_highlight_me_1.default,
+                    bhgv2_quick_input_1.default,
                 ],
                 library: {
-                    jQuery: jQuery,
-                    $: $,
-                    nunjucks: nunjucks,
-                    GuildTextUtil: GuildTextUtil,
+                    jQuery,
+                    $,
+                    nunjucks,
+                    GuildTextUtil,
                 },
             });
             hasTakenOver = true;
@@ -626,7 +603,226 @@ var _waitForElm = function (selector) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "/* The switch - the box around the slider */\n.switch {\n\tposition: relative;\n\tdisplay: inline-block;\n\twidth: 30px;\n\theight: 17px;\n}\n\n/* Hide default HTML checkbox */\n.switch input {\n\topacity: 0;\n\twidth: 0;\n\theight: 0;\n}\n\n/* The slider */\n.slider {\n\tposition: absolute;\n\tcursor: pointer;\n\ttop: 0;\n\tleft: 0;\n\tright: 0;\n\tbottom: 0;\n\tbackground-color: #ccc;\n\t-webkit-transition: 0.4s;\n\ttransition: 0.4s;\n}\n\n.slider:before {\n\tposition: absolute;\n\tcontent: '';\n\theight: 13px;\n\twidth: 13px;\n\tleft: 2px;\n\tbottom: 2px;\n\tbackground-color: white;\n}\n\ninput:checked + .slider {\n\tbackground-color: #2196f3;\n}\n\ninput:focus + .slider {\n\tbox-shadow: 0 0 1px #2196f3;\n}\n\ninput:checked + .slider:before {\n\t-webkit-transform: translateX(13px);\n\t-ms-transform: translateX(13px);\n\ttransform: translateX(13px);\n}\n\n/* Rounded sliders */\n.slider.round {\n\tborder-radius: 17px;\n}\n\n.slider.round:before {\n\tborder-radius: 50%;\n}\n\n.text_content-hide {\n\tdisplay: block !important;\n}\n\n.more-text {\n\tdisplay: none;\n}\n\ndiv[data-google-query-id] {\n\tdisplay: none;\n}\n\n.bhgv2-editor-textarea-wrapper {\n\tposition: relative;\n}\n\n.bhgv2-editor-textarea-carbon {\n\tposition: absolute;\n\ttop: 2px;\n\tbottom: 2px;\n\tleft: 2px;\n\tright: 2px;\n\n\tcolor: transparent;\n\tfont-size: 15px;\n\tline-height: 1.5;\n\tz-index: -1;\n}\n\n.bhgv2-editor-textarea-carbon-trailing {\n\tpadding-left: 3px;\n}\n\n.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {\n\tdisplay: flex;\n\tflex-direction: row;\n\tpadding: 13px 0 5px;\n\tfont-size: 12px;\n}\n\n.bhgv2-editor-container-reply-content-footer {\n\tfont-size: 12px;\n\tcolor: #777;\n\tpadding: 2px 8px;\n}\n\n.bhgv2-editor-container-footer .bhgv2-config-status {\n\tflex: 1;\n}\n\n.bhgv2-config-panel {\n\tbackground: #ffffff;\n\tpadding: 8px;\n\tborder-radius: 4px;\n\tdisplay: none;\n}\n\n.bhgv2-config-panel.active {\n\tdisplay: block;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {\n\tborder: 1px solid #999;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {\n\tdisplay: inline-block;\n\t-webkit-border-radius: 5px;\n\t-moz-border-radius: 5px;\n\tborder-radius: 5px;\n\tbackground-color: #eee;\n\tpadding: 3px;\n\tmargin-left: 2px;\n\tmargin-right: 2px;\n\tborder: 1px solid #333;\n\tcolor: #000;\n\ttext-decoration: none;\n}\n\n.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {\n\tcolor: #ccc;\n}\n\n.bhgv2-config-form-message {\n\ttext-align: center;\n\tcolor: #4a934a;\n\tfont-size: 12px;\n\tmin-height: 24px;\n\tline-height: 16px;\n\tpadding: 4px;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer {\n\ttext-align: center;\n\tmargin-top: 0.5rem;\n}\n\n.bhgv2-config-form-footer > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-row {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tmargin-bottom: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: flex-start;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col > * {\n\tdisplay: inline-block;\n\tmargin-right: 2px;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],\n.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {\n\twidth: 3rem;\n}\n\n.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {\n\tmargin-left: 0.5rem;\n}\n\n.bhgv2-config-form-actions {\n\tdisplay: flex;\n\tjustify-content: flex-start;\n\tflex-wrap: wrap;\n\tfont-size: 12px;\n\tpadding-top: 5px;\n\tmargin-top: 5px;\n\tborder-top: 1px dashed #999;\n}\n\n.bhgv2-config-form-actions > * + * {\n\tmargin-left: 1rem;\n}\n\n.bhgv2-comment-list {\n\tmin-height: calc(100vh - 300px);\n}\n";
+exports.default = `/* The switch - the box around the slider */
+.switch {
+	position: relative;
+	display: inline-block;
+	width: 30px;
+	height: 17px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+/* The slider */
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	-webkit-transition: 0.4s;
+	transition: 0.4s;
+}
+
+.slider:before {
+	position: absolute;
+	content: '';
+	height: 13px;
+	width: 13px;
+	left: 2px;
+	bottom: 2px;
+	background-color: white;
+}
+
+input:checked + .slider {
+	background-color: #2196f3;
+}
+
+input:focus + .slider {
+	box-shadow: 0 0 1px #2196f3;
+}
+
+input:checked + .slider:before {
+	-webkit-transform: translateX(13px);
+	-ms-transform: translateX(13px);
+	transform: translateX(13px);
+}
+
+/* Rounded sliders */
+.slider.round {
+	border-radius: 17px;
+}
+
+.slider.round:before {
+	border-radius: 50%;
+}
+
+.text_content-hide {
+	display: block !important;
+}
+
+.more-text {
+	display: none;
+}
+
+div[data-google-query-id] {
+	display: none;
+}
+
+.bhgv2-editor-textarea-wrapper {
+	position: relative;
+}
+
+.bhgv2-editor-textarea {
+	font-family: -apple-system, "San Francisco", Roboto, "Segoe UI", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Helvetica Neue", Helvetica, Roboto, Arial, "Lucida Grande", "PingFang TC", "蘋果儷中黑", "Apple LiGothic Medium", sans-serif;
+}
+
+.bhgv2-editor-textarea-carbon {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	color: transparent;
+	font-size: 15px;
+	line-height: 1.5;
+	pointer-events: none;
+}
+
+.bhgv2-editor-textarea-carbon-trailing {
+	padding-left: 3px;
+	color: #aaa;
+}
+
+.bhgv2-editor-textarea-carbon-trailing code {
+	font-size: 12px;
+	padding: 2px 4px;
+	background: #ddd;
+	border-radius: 2px;
+}
+
+.bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
+	display: flex;
+	flex-direction: row;
+	padding: 13px 0 5px;
+	font-size: 12px;
+}
+
+.bhgv2-editor-container-reply-content-footer {
+	font-size: 12px;
+	color: #777;
+	padding: 2px 8px;
+}
+
+.bhgv2-editor-container-footer .bhgv2-config-status {
+	flex: 1;
+}
+
+.bhgv2-config-panel {
+	background: #ffffff;
+	padding: 8px;
+	border-radius: 4px;
+	display: none;
+}
+
+.bhgv2-config-panel.active {
+	display: block;
+}
+
+.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
+	border: 1px solid #999;
+}
+
+.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {
+	display: inline-block;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	background-color: #eee;
+	padding: 3px;
+	margin-left: 2px;
+	margin-right: 2px;
+	border: 1px solid #333;
+	color: #000;
+	text-decoration: none;
+}
+
+.bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button:disabled {
+	color: #ccc;
+}
+
+.bhgv2-config-form-message {
+	text-align: center;
+	color: #4a934a;
+	font-size: 12px;
+	min-height: 24px;
+	line-height: 16px;
+	padding: 4px;
+	margin-top: 0.5rem;
+}
+
+.bhgv2-config-form-footer {
+	text-align: center;
+	margin-top: 0.5rem;
+}
+
+.bhgv2-config-form-footer > * + * {
+	margin-left: 1rem;
+}
+
+.bhgv2-config-form-content .bhgv2-config-form-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	margin-bottom: 2px;
+}
+
+.bhgv2-config-form-content .bhgv2-config-form-col {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.bhgv2-config-form-content .bhgv2-config-form-col > * {
+	display: inline-block;
+	margin-right: 2px;
+}
+
+.bhgv2-config-form-content .bhgv2-config-form-col input[type=text],
+.bhgv2-config-form-content .bhgv2-config-form-col input[type=number] {
+	width: 3rem;
+}
+
+.bhgv2-config-form-content .bhgv2-config-form-col + .bhgv2-config-form-col {
+	margin-left: 0.5rem;
+}
+
+.bhgv2-config-form-actions {
+	display: flex;
+	justify-content: flex-start;
+	flex-wrap: wrap;
+	font-size: 12px;
+	padding-top: 5px;
+	margin-top: 5px;
+	border-top: 1px dashed #999;
+}
+
+.bhgv2-config-form-actions > * + * {
+	margin-left: 1rem;
+}
+
+.bhgv2-comment-list {
+	min-height: calc(100vh - 300px);
+}
+`;
 
 
 /***/ }),
@@ -636,30 +832,26 @@ exports.default = "/* The switch - the box around the slider */\n.switch {\n\tpo
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = "\n.bhgv2-editor .bhgv2-editor-textarea {\n\tmin-height: 66px;\n}\n";
+exports.default = `
+.bhgv2-editor .bhgv2-editor-textarea {
+	min-height: 66px;
+}
+`;
 
 
 /***/ }),
 
 /***/ 804:
-/***/ (function(__unused_webpack_module, exports) {
+/***/ ((__unused_webpack_module, exports) => {
 
 
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createNotification = void 0;
-var createNotification = function (options) {
-    var _options = __assign({ silent: false }, options);
+const createNotification = (options) => {
+    const _options = {
+        silent: false,
+        ...options,
+    };
     GM_notification(_options);
 };
 exports.createNotification = createNotification;
@@ -668,7 +860,7 @@ exports.createNotification = createNotification;
 /***/ }),
 
 /***/ 503:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 /*******************************************************************************************
@@ -677,79 +869,37 @@ exports.createNotification = createNotification;
  *  每隔特定時間重新讀取一次哈拉串
  *
  *******************************************************************************************/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var notification_helper_1 = __webpack_require__(804);
-var BHGV2_AutoRefresh = function (core) {
-    var _a;
-    var _plugin = {
+const notification_helper_1 = __webpack_require__(804);
+const BHGV2_AutoRefresh = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_AutoRefresh',
         prefix: 'BHGV2_AutoRefresh',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + ":isEnable",
+            key: `${_plugin.prefix}:isEnable`,
             suffixLabel: '自動更新',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + ":interval",
+            key: `${_plugin.prefix}:interval`,
             suffixLabel: '秒',
             dataType: 'number',
             inputType: 'number',
             defaultValue: 30,
         },
         {
-            key: _plugin.prefix + ":notification",
+            key: `${_plugin.prefix}:notification`,
             suffixLabel: '自動更新時發送桌面通知',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: true,
         },
         {
-            key: _plugin.prefix + ":notificationSound",
+            key: `${_plugin.prefix}:notificationSound`,
             suffixLabel: '提示音',
             dataType: 'boolean',
             inputType: 'checkbox',
@@ -757,15 +907,15 @@ var BHGV2_AutoRefresh = function (core) {
         },
     ];
     _plugin.configLayout = [
-        [_plugin.prefix + ":isEnable", _plugin.prefix + ":interval"],
-        [_plugin.prefix + ":notification", _plugin.prefix + ":notificationSound"],
+        [`${_plugin.prefix}:isEnable`, `${_plugin.prefix}:interval`],
+        [`${_plugin.prefix}:notification`, `${_plugin.prefix}:notificationSound`],
     ];
-    var _statusDom = document.createElement('span');
-    (_a = core.DOM.ConfigPanelStatus) === null || _a === void 0 ? void 0 : _a.append(_statusDom);
-    var _refreshIntervalObj = undefined;
-    _plugin.onMutateConfig = function (newValue) {
-        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
-            var isEnabled = newValue[_plugin.prefix + ":isEnable"];
+    const _statusDom = document.createElement('span');
+    core.DOM.ConfigPanelStatus?.append(_statusDom);
+    let _refreshIntervalObj = undefined;
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
+            const isEnabled = newValue[`${_plugin.prefix}:isEnable`];
             if (isEnabled === false) {
                 if (_refreshIntervalObj) {
                     clearTimeout(_refreshIntervalObj);
@@ -779,84 +929,72 @@ var BHGV2_AutoRefresh = function (core) {
                     _refreshIntervalObj = undefined;
                 }
                 _statusDom.style.display = 'inline-block';
-                var _config = core.getConfig();
-                var _interval = parseInt(newValue[_plugin.prefix + ":interval"] ||
-                    _config[_plugin.prefix + ":interval"]);
+                const _config = core.getConfig();
+                let _interval = parseInt(newValue[`${_plugin.prefix}:interval`] ||
+                    _config[`${_plugin.prefix}:interval`]);
                 if (!_interval || _interval <= 0) {
                     _interval = 30;
                 }
-                var _intervalMs_1 = _interval * 1000;
-                var timeoutFn_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
-                    var commentListApi, _a, comments, newCommentsCount, currentCommentsCount, latestComments, expectedNewCommentsCount, page, anotherComments;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                commentListApi = core.getState().commentListApi;
-                                if (!commentListApi) {
-                                    return [2 /*return*/];
-                                }
-                                return [4 /*yield*/, fetch(commentListApi, {
-                                        credentials: 'include',
-                                    })
-                                        .then(function (res) { return res.json(); })
-                                        .then(function (res) { return res.data; })];
-                            case 1:
-                                _a = _b.sent(), comments = _a.comments, newCommentsCount = _a.commentCount;
-                                currentCommentsCount = core.getState().commentsCount;
-                                latestComments = __spreadArray([], comments.map(function (_comment) { return ({
-                                    id: _comment.id,
-                                    payload: _comment,
-                                }); }));
-                                expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
-                                page = 0;
-                                _b.label = 2;
-                            case 2:
-                                if (!(latestComments.length < expectedNewCommentsCount &&
-                                    page < 999)) return [3 /*break*/, 4];
-                                page++;
-                                return [4 /*yield*/, fetch(commentListApi + ("&page=" + page), {
-                                        credentials: 'include',
-                                    })
-                                        .then(function (res) { return res.json(); })
-                                        .then(function (res) { return res.data; })];
-                            case 3:
-                                anotherComments = (_b.sent()).comments;
-                                latestComments.push.apply(latestComments, anotherComments.map(function (_comment) { return ({
-                                    id: _comment.id,
-                                    payload: _comment,
-                                }); }));
-                                return [3 /*break*/, 2];
-                            case 4:
-                                core.mutateState({ latestComments: latestComments });
-                                _refreshIntervalObj = setTimeout(timeoutFn_1, _intervalMs_1);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); };
-                _refreshIntervalObj = setTimeout(timeoutFn_1, _intervalMs_1);
-                var _notification = newValue[_plugin.prefix + ":notification"] !== undefined
-                    ? newValue[_plugin.prefix + ":notification"]
-                    : _config[_plugin.prefix + ":notification"];
-                var _notificationSound = newValue[_plugin.prefix + ":notificationSound"] !== undefined
-                    ? newValue[_plugin.prefix + ":notificationSound"]
-                    : _config[_plugin.prefix + ":notificationSound"];
-                _statusDom.innerHTML = "\u81EA\u52D5\u66F4\u65B0\u4E2D(" + [
-                    _interval + "s",
+                const _intervalMs = _interval * 1000;
+                const timeoutFn = async () => {
+                    const { commentListApi } = core.getState();
+                    if (!commentListApi) {
+                        return;
+                    }
+                    const { comments, commentCount: newCommentsCount } = await fetch(commentListApi, {
+                        credentials: 'include',
+                    })
+                        .then((res) => res.json())
+                        .then((res) => res.data);
+                    const { commentsCount: currentCommentsCount } = core.getState();
+                    const latestComments = [
+                        ...comments.map((_comment) => ({
+                            id: _comment.id,
+                            payload: _comment,
+                        })),
+                    ];
+                    const expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
+                    let page = 0;
+                    while (latestComments.length < expectedNewCommentsCount &&
+                        page < 999) {
+                        page++;
+                        const { comments: anotherComments } = await fetch(commentListApi + `&page=${page}`, {
+                            credentials: 'include',
+                        })
+                            .then((res) => res.json())
+                            .then((res) => res.data);
+                        latestComments.push(...anotherComments.map((_comment) => ({
+                            id: _comment.id,
+                            payload: _comment,
+                        })));
+                    }
+                    core.mutateState({ latestComments });
+                    _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
+                };
+                _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
+                const _notification = newValue[`${_plugin.prefix}:notification`] !== undefined
+                    ? newValue[`${_plugin.prefix}:notification`]
+                    : _config[`${_plugin.prefix}:notification`];
+                const _notificationSound = newValue[`${_plugin.prefix}:notificationSound`] !== undefined
+                    ? newValue[`${_plugin.prefix}:notificationSound`]
+                    : _config[`${_plugin.prefix}:notificationSound`];
+                _statusDom.innerHTML = `自動更新中(${[
+                    `${_interval}s`,
                     _notification ? '通知' : undefined,
                     _notification && _notificationSound ? '聲音' : undefined,
                 ]
-                    .filter(function (item) { return !!item; })
-                    .join(',') + ")";
+                    .filter((item) => !!item)
+                    .join(',')})`;
             }
         }
     };
-    _plugin.onMutateState = function (newValue) {
-        if (newValue.isInit) {
+    _plugin.onMutateState = (newValue) => {
+        if (newValue.isInit || newValue.isUserAction) {
             return;
         }
         if (newValue.latestComments !== undefined) {
-            var config = core.getConfig();
-            if (config[_plugin.prefix + ":notification"]) {
+            const config = core.getConfig();
+            if (config[`${_plugin.prefix}:notification`]) {
                 // 發送桌面通知
                 notification_helper_1.createNotification({
                     title: '測試用通知',
@@ -883,21 +1021,21 @@ exports.default = BHGV2_AutoRefresh;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_CommentsReverse = function (core) {
-    var _plugin = {
+const BHGV2_CommentsReverse = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_CommentsReverse',
         prefix: 'BHGV2_CommentsReverse',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + "-isEnable",
+            key: `${_plugin.prefix}-isEnable`,
             suffixLabel: '顛倒哈拉串',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-editorSticky",
+            key: `${_plugin.prefix}-editorSticky`,
             suffixLabel: '輸入框貼在上邊沿',
             dataType: 'boolean',
             inputType: 'switch',
@@ -905,15 +1043,58 @@ var BHGV2_CommentsReverse = function (core) {
         },
     ];
     _plugin.css = [
-        "\n\t\t\t.bhgv2-comment-list-outer {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\t\t\t.bhgv2-comment-list {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-isEnable .bhgv2-comment-list {\n\t\t\t\tflex-direction: column-reverse;\n\t\t\t\tjustify-content: flex-end;\n\t\t\t}\n\n\t\t\t.bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\tposition: sticky;\n\t\t\t\ttop: 80px;\n\t\t\t\tmargin-left: -20px;\n\t\t\t\tmargin-right: -20px;\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t\tbackground-color: rgba(180, 180, 180, 0.9);\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);\n\t\t\t}\n\t\t\t\n\t\t\t.bhgv2-comment-list > div.bhgv2-editor-container {\n\t\t\t\tflex-direction: column;\n\t\t\t}\n\n\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\ttop: 35px;\n\t\t\t}\n\n\t\t\t@media screen and (max-width: 769px) {\n\t\t\t\t.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer." + _plugin.prefix + "-editorSticky .bhgv2-editor-container {\n\t\t\t\t\ttop: 44px;\n\t\t\t\t}\n\t\t\t}\n\t\t",
+        `
+			.bhgv2-comment-list-outer {
+				display: flex;
+				flex-direction: column;
+			}
+			.bhgv2-comment-list {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.bhgv2-comment-list-outer.${_plugin.prefix}-isEnable {
+				flex-direction: column-reverse;
+			}
+
+			.bhgv2-comment-list-outer.${_plugin.prefix}-isEnable .bhgv2-comment-list {
+				flex-direction: column-reverse;
+				justify-content: flex-end;
+			}
+
+			.bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				position: sticky;
+				top: 80px;
+				margin-left: -20px;
+				margin-right: -20px;
+				padding-left: 20px;
+				padding-right: 20px;
+				background-color: rgba(180, 180, 180, 0.9);
+				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+			}
+			
+			.bhgv2-comment-list > div.bhgv2-editor-container {
+				flex-direction: column;
+			}
+
+			.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				top: 35px;
+			}
+
+			@media screen and (max-width: 769px) {
+				.BHGV2_MasterLayout-hideTabMenu .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+					top: 44px;
+				}
+			}
+		`,
     ];
-    _plugin.onMutateConfig = function (newValue) {
+    _plugin.onMutateConfig = (newValue) => {
         ;
-        ['isEnable', 'editorSticky'].forEach(function (key) {
-            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
-                var dom = core.DOM.CommentListOuter;
+        ['isEnable', 'editorSticky'].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.CommentListOuter;
                 if (dom) {
-                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
                 }
             }
         });
@@ -936,14 +1117,14 @@ exports.default = BHGV2_CommentsReverse;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_DarkMode = function (core) {
-    var _plugin = {
+const BHGV2_DarkMode = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_DarkMode',
         prefix: 'BHGV2_DarkMode',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + ":isEnable",
+            key: `${_plugin.prefix}:isEnable`,
             suffixLabel: '巴哈開啟黑闇模式時切換介面顏色',
             dataType: 'boolean',
             inputType: 'switch',
@@ -951,28 +1132,40 @@ var BHGV2_DarkMode = function (core) {
         },
     ];
     _plugin.css = [
-        "\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark {\n\t\t\t\tbackground-color: rgba(0, 0, 0, 0.9) !important;\n\t\t\t\tbox-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel {\n\t\t\t\tbackground: #222222;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel input {\n\t\t\t\tcolor: #c7c6cb;\n\t\t\t}\n\t\t",
+        `
+			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark {
+				background-color: rgba(0, 0, 0, 0.9) !important;
+				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
+			}
+
+			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel {
+				background: #222222;
+			}
+
+			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel input {
+				color: #c7c6cb;
+			}
+		`,
     ];
-    _plugin.onMutateConfig = function (newValue) {
-        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
-            var dom = core.DOM.EditorContainer;
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
+            const dom = core.DOM.EditorContainer;
             if (dom) {
-                dom.classList.toggle('bhgv2-dark-mode-enabled', newValue[_plugin.prefix + ":isEnable"]);
+                dom.classList.toggle('bhgv2-dark-mode-enabled', newValue[`${_plugin.prefix}:isEnable`]);
             }
         }
     };
-    var _getCookie = function (name) {
-        var _a;
-        var value = '; ' + document.cookie;
-        var parts = value.split('; ' + name + '=');
+    const _getCookie = (name) => {
+        const value = '; ' + document.cookie;
+        const parts = value.split('; ' + name + '=');
         if (parts.length == 2) {
-            return (_a = parts.pop()) === null || _a === void 0 ? void 0 : _a.split(';').shift();
+            return parts.pop()?.split(';').shift();
         }
     };
-    var darkModeObserver = new MutationObserver(function (mutations) {
-        mutations.forEach(function () {
+    const darkModeObserver = new MutationObserver(function (mutations) {
+        mutations.forEach(() => {
             //檢查c-reply__editor是否存在，避免不必要的error觸發
-            var editorContainer = core.DOM.EditorContainer;
+            const editorContainer = core.DOM.EditorContainer;
             if (!editorContainer) {
                 return;
             }
@@ -1003,35 +1196,35 @@ exports.default = BHGV2_DarkMode;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_Dense = function (core) {
-    var _plugin = {
+const BHGV2_Dense = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_Dense',
         prefix: 'BHGV2_Dense',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + "-tradUI",
+            key: `${_plugin.prefix}-tradUI`,
             suffixLabel: '仿舊版的配色',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-sizeSmaller",
+            key: `${_plugin.prefix}-sizeSmaller`,
             suffixLabel: '縮小字體',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideFooter",
+            key: `${_plugin.prefix}-hideFooter`,
             suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-narrowerGutter",
+            key: `${_plugin.prefix}-narrowerGutter`,
             suffixLabel: '更窄的間距',
             dataType: 'boolean',
             inputType: 'switch',
@@ -1040,43 +1233,95 @@ var BHGV2_Dense = function (core) {
     ];
     _plugin.configLayout = [
         [
-            _plugin.prefix + "-tradUI",
-            _plugin.prefix + "-sizeSmaller",
-            _plugin.prefix + "-narrowerGutter",
+            `${_plugin.prefix}-tradUI`,
+            `${_plugin.prefix}-sizeSmaller`,
+            `${_plugin.prefix}-narrowerGutter`,
         ],
-        [_plugin.prefix + "-hideFooter"],
+        [`${_plugin.prefix}-hideFooter`],
     ];
     _plugin.css = [
-        "\n\t\t\t.webview_commendlist {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\n\t\t\t.bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-right: 20px;\n\t\t\t}\n\n\t\t\t.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tmargin-left: 0;\n\t\t\t\tmargin-right: 0;\n\t\t\t}\n\t\t\t\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,\n\t\t\t." + _plugin.prefix + "-sizeSmaller .reply-content__cont.reply-content__cont.reply-content__cont {\n\t\t\t\tfont-size: 12px;\n\t\t\t\tline-height: 1;\n\t\t\t\tmargin-top: 0;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-tradUI .bhgv2-comment {\n\t\t\t\tbackground-color: #e9f5f4;\n\t\t\t\tborder: 1px solid #daebe9;\n\t\t\t\tmargin-top: 3px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {\n\t\t\t\tpadding-top: 6px;\n\t\t\t\tpadding-bottom: 6px;\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {\n\t\t\t\tpadding-left: 10px;\n\t\t\t\tpadding-right: 10px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton {\n\t\t\t\tmargin-left: 20px;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideFooter ." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton." + _plugin.prefix + "-clonedTagButton {\n\t\t\t\tdisplay: inline-block;\n\t\t\t}\n\t\t",
+        `
+			.webview_commendlist {
+				margin-left: 0;
+				margin-right: 0;
+			}
+
+			.bhgv2-comment.bhgv2-comment.bhgv2-comment {
+				padding-left: 20px;
+				padding-right: 20px;
+			}
+
+			.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
+				margin-left: 0;
+				margin-right: 0;
+			}
+			
+			.${_plugin.prefix}-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,
+			.${_plugin.prefix}-sizeSmaller .reply-content__cont.reply-content__cont.reply-content__cont {
+				font-size: 12px;
+				line-height: 1;
+				margin-top: 0;
+			}
+
+			.${_plugin.prefix}-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {
+				display: none;
+			}
+
+			.${_plugin.prefix}-tradUI .bhgv2-comment {
+				background-color: #e9f5f4;
+				border: 1px solid #daebe9;
+				margin-top: 3px;
+			}
+
+			.${_plugin.prefix}-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {
+				padding-top: 6px;
+				padding-bottom: 6px;
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+
+			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+
+			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
+				margin-left: 20px;
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
+				display: inline-block;
+			}
+		`,
     ];
-    _plugin.onMutateState = function (_a) {
-        var latestComments = _a.latestComments;
+    _plugin.onMutateState = ({ latestComments }) => {
         if (latestComments) {
-            latestComments.forEach(function (comment) {
-                var element = comment.element;
+            latestComments.forEach((comment) => {
+                const { element } = comment;
                 if (!element) {
                     return;
                 }
-                var _tagButton = element.querySelector('button.reply-content__tag');
-                var _contentUser = element.querySelector('a.reply-content__user');
+                const _tagButton = element.querySelector('button.reply-content__tag');
+                const _contentUser = element.querySelector('a.reply-content__user');
                 if (!_tagButton || !_contentUser) {
                     return;
                 }
-                var _clonedTagButton = _tagButton.cloneNode(false);
-                _clonedTagButton.classList.add(_plugin.prefix + "-clonedTagButton");
+                const _clonedTagButton = _tagButton.cloneNode(false);
+                _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
                 _clonedTagButton.innerText = '@';
                 _clonedTagButton.setAttribute('title', '回覆他');
                 _contentUser.insertAdjacentElement('afterend', _clonedTagButton);
             });
         }
     };
-    _plugin.onMutateConfig = function (newValue) {
+    _plugin.onMutateConfig = (newValue) => {
         ;
-        ['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach(function (key) {
-            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
-                var dom = core.DOM.CommentListOuter;
+        ['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.CommentListOuter;
                 if (dom) {
-                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
                 }
             }
         });
@@ -1099,21 +1344,21 @@ exports.default = BHGV2_Dense;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_HighlightMe = function (core) {
-    var _plugin = {
+const BHGV2_HighlightMe = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_HighlightMe',
         prefix: 'BHGV2_HighlightMe',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + "-isEnabled",
+            key: `${_plugin.prefix}-isEnabled`,
             suffixLabel: '高亮提及我的訊息',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-onlyShowHighlighted",
+            key: `${_plugin.prefix}-onlyShowHighlighted`,
             suffixLabel: '只顯示高亮的訊息',
             dataType: 'boolean',
             inputType: 'checkbox',
@@ -1121,73 +1366,88 @@ var BHGV2_HighlightMe = function (core) {
         },
     ];
     _plugin.css = [
-        "\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on {\n\t\t\t\tbackground: #ffe2c6;\n\t\t\t\tborder-left: 4px solid #fb7f00;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-isEnabled .bhgv2-comment." + _plugin.prefix + "-comment." + _plugin.prefix + "-on ." + _plugin.prefix + "-name {\n\t\t\t\tbackground: #fb7f00;\n\t\t\t\tpadding: 2px 4px;\n\t\t\t\tcolor: #fff;\n\t\t\t\tfont-size: 115%;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-onlyShowHighlighted .bhgv2-comment:not(." + _plugin.prefix + "-on) {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\t\t",
+        `
+			.${_plugin.prefix}-isEnabled .bhgv2-comment.${_plugin.prefix}-comment.${_plugin.prefix}-on {
+				background: #ffe2c6;
+				border-left: 4px solid #fb7f00;
+				cursor: pointer;
+			}
+			.${_plugin.prefix}-isEnabled .bhgv2-comment.${_plugin.prefix}-comment.${_plugin.prefix}-on .${_plugin.prefix}-name {
+				background: #fb7f00;
+				padding: 2px 4px;
+				color: #fff;
+				font-size: 115%;
+			}
+			.${_plugin.prefix}-onlyShowHighlighted .bhgv2-comment:not(.${_plugin.prefix}-on) {
+				display: none;
+			}
+		`,
     ];
-    var _clickEvent = function (event) {
+    const _clickEvent = (event) => {
         event.preventDefault();
-        var _target = event.currentTarget;
+        const _target = event.currentTarget;
         if (!_target) {
             return;
         }
         _unhighlightAElement(_target);
     };
-    var _highlightAElement = function (element) {
-        if (!element.classList.contains(_plugin.prefix + "-comment")) {
+    const _highlightAElement = (element) => {
+        if (!element.classList.contains(`${_plugin.prefix}-comment`)) {
             return;
         }
-        if (element.classList.contains(_plugin.prefix + "-on")) {
+        if (element.classList.contains(`${_plugin.prefix}-on`)) {
             return;
         }
-        element.classList.toggle(_plugin.prefix + "-on", true);
+        element.classList.toggle(`${_plugin.prefix}-on`, true);
         element.addEventListener('click', _clickEvent);
     };
-    var _unhighlightAElement = function (element) {
-        if (!element.classList.contains(_plugin.prefix + "-comment")) {
+    const _unhighlightAElement = (element) => {
+        if (!element.classList.contains(`${_plugin.prefix}-comment`)) {
             return;
         }
-        if (!element.classList.contains(_plugin.prefix + "-on")) {
+        if (!element.classList.contains(`${_plugin.prefix}-on`)) {
             return;
         }
-        element.classList.toggle(_plugin.prefix + "-on", false);
+        element.classList.toggle(`${_plugin.prefix}-on`, false);
         element.removeEventListener('click', _clickEvent);
     };
-    var _highlightAll = function () {
-        var CommentList = core.DOM.CommentList;
+    const _highlightAll = () => {
+        const CommentList = core.DOM.CommentList;
         if (!CommentList) {
             return;
         }
-        CommentList.querySelectorAll("." + _plugin.prefix + "-comment").forEach(function (element) { return _highlightAElement(element); });
+        CommentList.querySelectorAll(`.${_plugin.prefix}-comment`).forEach((element) => _highlightAElement(element));
     };
-    var _unhighlightAll = function () {
-        var CommentList = core.DOM.CommentList;
+    const _unhighlightAll = () => {
+        const CommentList = core.DOM.CommentList;
         if (!CommentList) {
             return;
         }
-        CommentList.querySelectorAll("." + _plugin.prefix + "-comment." + _plugin.prefix + "-on").forEach(function (element) { return _unhighlightAElement(element); });
+        CommentList.querySelectorAll(`.${_plugin.prefix}-comment.${_plugin.prefix}-on`).forEach((element) => _unhighlightAElement(element));
     };
-    var _highlightAllAfterMyLastComment = function () {
-        var userInfo = core.getState().userInfo;
-        var CommentList = core.DOM.CommentList;
+    const _highlightAllAfterMyLastComment = () => {
+        const { userInfo } = core.getState();
+        const CommentList = core.DOM.CommentList;
         if (!userInfo || !CommentList) {
             return;
         }
-        for (var i = CommentList.children.length - 1; i >= 0; i--) {
-            var element = CommentList.children[i];
+        for (let i = CommentList.children.length - 1; i >= 0; i--) {
+            const element = CommentList.children[i];
             _highlightAElement(element);
             if (element.getAttribute('data-userid') === userInfo.id) {
                 break;
             }
         }
     };
-    var _unhighlightAllBeforeMyLastComment = function () {
-        var userInfo = core.getState().userInfo;
-        var CommentList = core.DOM.CommentList;
+    const _unhighlightAllBeforeMyLastComment = () => {
+        const { userInfo } = core.getState();
+        const CommentList = core.DOM.CommentList;
         if (!userInfo || !CommentList) {
             return;
         }
-        var myLastCommentFound = false;
-        for (var i = CommentList.children.length - 1; i >= 0; i--) {
-            var element = CommentList.children[i];
+        let myLastCommentFound = false;
+        for (let i = CommentList.children.length - 1; i >= 0; i--) {
+            const element = CommentList.children[i];
             if (!myLastCommentFound) {
                 if (element.getAttribute('data-userid') === userInfo.id) {
                     myLastCommentFound = true;
@@ -1197,69 +1457,68 @@ var BHGV2_HighlightMe = function (core) {
             _unhighlightAElement(element);
         }
     };
-    var ConfigFormActions = core.DOM.ConfigFormActions;
-    var _buttonHighlightAll = document.createElement('a');
+    const ConfigFormActions = core.DOM.ConfigFormActions;
+    const _buttonHighlightAll = document.createElement('a');
     _buttonHighlightAll.setAttribute('href', '#');
-    _buttonHighlightAll.classList.add(_plugin.prefix + "-action");
+    _buttonHighlightAll.classList.add(`${_plugin.prefix}-action`);
     _buttonHighlightAll.innerHTML = '高亮所有提及我的留言';
-    _buttonHighlightAll.addEventListener('click', function (e) {
+    _buttonHighlightAll.addEventListener('click', (e) => {
         e.preventDefault();
         _highlightAll();
     });
-    var _buttonUnhighlightAll = document.createElement('a');
+    const _buttonUnhighlightAll = document.createElement('a');
     _buttonUnhighlightAll.setAttribute('href', '#');
-    _buttonUnhighlightAll.classList.add(_plugin.prefix + "-action");
+    _buttonUnhighlightAll.classList.add(`${_plugin.prefix}-action`);
     _buttonUnhighlightAll.innerHTML = '取消高亮';
-    _buttonUnhighlightAll.addEventListener('click', function (e) {
+    _buttonUnhighlightAll.addEventListener('click', (e) => {
         e.preventDefault();
         _unhighlightAll();
     });
-    var _buttonHighlightAllAfterMyLastComment = document.createElement('a');
+    const _buttonHighlightAllAfterMyLastComment = document.createElement('a');
     _buttonHighlightAllAfterMyLastComment.setAttribute('href', '#');
-    _buttonHighlightAllAfterMyLastComment.classList.add(_plugin.prefix + "-action");
+    _buttonHighlightAllAfterMyLastComment.classList.add(`${_plugin.prefix}-action`);
     _buttonHighlightAllAfterMyLastComment.innerHTML = '高亮未讀';
-    _buttonHighlightAllAfterMyLastComment.addEventListener('click', function (e) {
+    _buttonHighlightAllAfterMyLastComment.addEventListener('click', (e) => {
         e.preventDefault();
         _highlightAllAfterMyLastComment();
     });
-    var _buttonUnhighlightAllBeforeMyLastComment = document.createElement('a');
+    const _buttonUnhighlightAllBeforeMyLastComment = document.createElement('a');
     _buttonUnhighlightAllBeforeMyLastComment.setAttribute('href', '#');
-    _buttonUnhighlightAllBeforeMyLastComment.classList.add(_plugin.prefix + "-action");
+    _buttonUnhighlightAllBeforeMyLastComment.classList.add(`${_plugin.prefix}-action`);
     _buttonUnhighlightAllBeforeMyLastComment.innerHTML = '取消高亮已讀';
-    _buttonUnhighlightAllBeforeMyLastComment.addEventListener('click', function (e) {
+    _buttonUnhighlightAllBeforeMyLastComment.addEventListener('click', (e) => {
         e.preventDefault();
         _unhighlightAllBeforeMyLastComment();
     });
     ConfigFormActions.append(_buttonHighlightAll, _buttonUnhighlightAll, _buttonHighlightAllAfterMyLastComment, _buttonUnhighlightAllBeforeMyLastComment);
-    _plugin.onMutateState = function (_a) {
-        var latestComments = _a.latestComments, isInit = _a.isInit;
+    _plugin.onMutateState = ({ latestComments, isInit }) => {
         if (latestComments) {
-            var userInfo_1 = core.getState().userInfo;
-            if (userInfo_1) {
-                latestComments.forEach(function (comment) {
-                    var element = comment.element;
+            const { userInfo } = core.getState();
+            if (userInfo) {
+                latestComments.forEach((comment) => {
+                    const { element } = comment;
                     if (!element) {
                         return;
                     }
-                    var allMeAnchors = element.querySelectorAll(".reply-content__cont a[href^=\"https://home.gamer.com.tw/" + userInfo_1.id + "\"]");
+                    const allMeAnchors = element.querySelectorAll(`.reply-content__cont a[href^="https://home.gamer.com.tw/${userInfo.id}"]`);
                     if (allMeAnchors.length > 0) {
-                        allMeAnchors.forEach(function (_anchorElement) {
-                            _anchorElement.classList.add(_plugin.prefix + "-name");
+                        allMeAnchors.forEach((_anchorElement) => {
+                            _anchorElement.classList.add(`${_plugin.prefix}-name`);
                         });
-                        element.classList.add(_plugin.prefix + "-comment");
+                        element.classList.add(`${_plugin.prefix}-comment`);
                         _highlightAElement(element);
                     }
                 });
             }
         }
     };
-    _plugin.onMutateConfig = function (newValue) {
+    _plugin.onMutateConfig = (newValue) => {
         ;
-        ['isEnabled', 'onlyShowHighlighted'].forEach(function (key) {
-            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
-                var dom = core.DOM.CommentListOuter;
+        ['isEnabled', 'onlyShowHighlighted'].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.CommentListOuter;
                 if (dom) {
-                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
                 }
             }
         });
@@ -1282,35 +1541,35 @@ exports.default = BHGV2_HighlightMe;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_MasterLayout = function (core) {
-    var _plugin = {
+const BHGV2_MasterLayout = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_MasterLayout',
         prefix: 'BHGV2_MasterLayout',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + "-hideLeftMenu",
+            key: `${_plugin.prefix}-hideLeftMenu`,
             suffixLabel: '隱藏左側選單',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideRightMenu",
+            key: `${_plugin.prefix}-hideRightMenu`,
             suffixLabel: '隱藏右側欄',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideCoverImage",
+            key: `${_plugin.prefix}-hideCoverImage`,
             suffixLabel: '隱藏封面圖',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideHeader",
+            key: `${_plugin.prefix}-hideHeader`,
             prefixLabel: '(',
             suffixLabel: '+標題)',
             dataType: 'boolean',
@@ -1318,7 +1577,7 @@ var BHGV2_MasterLayout = function (core) {
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideTabMenu",
+            key: `${_plugin.prefix}-hideTabMenu`,
             prefixLabel: '(',
             suffixLabel: '+分頁選單)',
             dataType: 'boolean',
@@ -1326,7 +1585,7 @@ var BHGV2_MasterLayout = function (core) {
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-hideGuildControlPanel",
+            key: `${_plugin.prefix}-hideGuildControlPanel`,
             suffixLabel: '隱藏公會操作版面',
             dataType: 'boolean',
             inputType: 'switch',
@@ -1334,18 +1593,55 @@ var BHGV2_MasterLayout = function (core) {
         },
     ];
     _plugin.configLayout = [
-        [_plugin.prefix + "-hideLeftMenu", _plugin.prefix + "-hideRightMenu"],
+        [`${_plugin.prefix}-hideLeftMenu`, `${_plugin.prefix}-hideRightMenu`],
         [
-            _plugin.prefix + "-hideCoverImage",
-            _plugin.prefix + "-hideHeader",
-            _plugin.prefix + "-hideTabMenu",
+            `${_plugin.prefix}-hideCoverImage`,
+            `${_plugin.prefix}-hideHeader`,
+            `${_plugin.prefix}-hideTabMenu`,
         ],
-        [_plugin.prefix + "-hideGuildControlPanel"],
+        [`${_plugin.prefix}-hideGuildControlPanel`],
     ];
     _plugin.css = [
-        "\n\t\t\t." + _plugin.prefix + "-hideLeftMenu .main-sidebar_left {\n\t\t\t\twidth: 0;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-hideLeftMenu .main-container_center.main-container_center.main-container_center {\n\t\t\t\twidth: 100%;\n\t\t\t}\n\t\t\t." + _plugin.prefix + "-hideLeftMenu #left_menu-toggle {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideRightMenu .main-sidebar_right {\n\t\t\t\twidth: 0;\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage .main-container_header .scenery-img.scenery-img.scenery-img {\n\t\t\t\theight: 70px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideHeader .main-container_header {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideHeader .main-nav {\n\t\t\t\tpadding-left: 20px;\n\t\t\t\tpadding-top: 5px;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideCoverImage." + _plugin.prefix + "-hideTabMenu #main-nav {\n\t\t\t\tdisplay: none;\n\t\t\t}\n\n\t\t\t." + _plugin.prefix + "-hideGuildControlPanel .sidebar-navbar_rwd {\n\t\t\t\tdisplay: none;\n\t\t\t}\t\t\t\n\t\t",
+        `
+			.${_plugin.prefix}-hideLeftMenu .main-sidebar_left {
+				width: 0;
+				display: none;
+			}
+			.${_plugin.prefix}-hideLeftMenu .main-container_center.main-container_center.main-container_center {
+				width: 100%;
+			}
+			.${_plugin.prefix}-hideLeftMenu #left_menu-toggle {
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideRightMenu .main-sidebar_right {
+				width: 0;
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideCoverImage .main-container_header .scenery-img.scenery-img.scenery-img {
+				height: 70px;
+			}
+
+			.${_plugin.prefix}-hideCoverImage.${_plugin.prefix}-hideHeader .main-container_header {
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideCoverImage.${_plugin.prefix}-hideHeader .main-nav {
+				padding-left: 20px;
+				padding-top: 5px;
+			}
+
+			.${_plugin.prefix}-hideCoverImage.${_plugin.prefix}-hideTabMenu #main-nav {
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideGuildControlPanel .sidebar-navbar_rwd {
+				display: none;
+			}			
+		`,
     ];
-    _plugin.onMutateConfig = function (newValue) {
+    _plugin.onMutateConfig = (newValue) => {
         ;
         [
             'hideLeftMenu',
@@ -1354,11 +1650,11 @@ var BHGV2_MasterLayout = function (core) {
             'hideHeader',
             'hideTabMenu',
             'hideGuildControlPanel',
-        ].forEach(function (key) {
-            if (newValue[_plugin.prefix + "-" + key] !== undefined) {
-                var dom = core.DOM.Body;
+        ].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.Body;
                 if (dom) {
-                    dom.classList.toggle(_plugin.prefix + "-" + key, newValue[_plugin.prefix + "-" + key]);
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
                 }
             }
         });
@@ -1381,66 +1677,66 @@ exports.default = BHGV2_MasterLayout;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_NotifyOnTitle = function (core) {
-    var _plugin = {
+const BHGV2_NotifyOnTitle = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_NotifyOnTitle',
         prefix: 'BHGV2_NotifyOnTitle',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + "-isEnable",
+            key: `${_plugin.prefix}-isEnable`,
             suffixLabel: '標題顯示通知數目',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-doCountNotice",
+            key: `${_plugin.prefix}-doCountNotice`,
             suffixLabel: '通知',
             dataType: 'boolean',
             inputType: 'checkbox',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-doCountSubscribe",
+            key: `${_plugin.prefix}-doCountSubscribe`,
             suffixLabel: '訂閱',
             dataType: 'boolean',
             inputType: 'checkbox',
             defaultValue: false,
         },
         {
-            key: _plugin.prefix + "-doCountRecommend",
+            key: `${_plugin.prefix}-doCountRecommend`,
             suffixLabel: '推薦',
             dataType: 'boolean',
             inputType: 'checkbox',
             defaultValue: false,
         },
     ];
-    var _Title = core.DOM.Title;
-    var _originalTitleText = _Title.textContent;
-    var _getNofityCount = function () {
+    const _Title = core.DOM.Title;
+    const _originalTitleText = _Title.textContent;
+    const _getNofityCount = () => {
         var config = core.getConfig();
         var doCountBools = [
-            config[_plugin.prefix + "-doCountNotice"] || false,
-            config[_plugin.prefix + "-doCountSubscribe"] || false,
-            config[_plugin.prefix + "-doCountRecommend"] || false,
+            config[`${_plugin.prefix}-doCountNotice`] || false,
+            config[`${_plugin.prefix}-doCountSubscribe`] || false,
+            config[`${_plugin.prefix}-doCountRecommend`] || false,
         ];
         return [
             'topBar_light_0',
             'topBar_light_1',
             'topBar_light_2',
-        ].reduce(function (prev, name, i) {
+        ].reduce((prev, name, i) => {
             if (!doCountBools[i]) {
                 return prev;
             }
-            var _dom = document.getElementById(name);
+            const _dom = document.getElementById(name);
             if (!_dom || !_dom.firstChild) {
                 return prev;
             }
             return prev + (parseInt(_dom.firstChild.innerHTML) || 0);
         }, 0);
     };
-    var _changeTitleWithMsgCount = function (msgCount) {
+    const _changeTitleWithMsgCount = (msgCount) => {
         if (!_Title || !_originalTitleText) {
             return;
         }
@@ -1449,19 +1745,17 @@ var BHGV2_NotifyOnTitle = function (core) {
             return;
         }
         else if (msgCount > 99) {
-            _Title.innerText = "(99+) " + _originalTitleText;
+            _Title.innerText = `(99+) ${_originalTitleText}`;
             return;
         }
-        _Title.innerText = "(" + msgCount + ") " + _originalTitleText;
+        _Title.innerText = `(${msgCount}) ${_originalTitleText}`;
     };
-    var _observer = undefined;
-    _plugin.onMutateConfig = function (newValue) {
-        if (newValue[_plugin.prefix + "-isEnable"] === true && !_observer) {
-            var _target = document.getElementById('BH-top-data');
+    let _observer = undefined;
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}-isEnable`] === true && !_observer) {
+            const _target = document.getElementById('BH-top-data');
             if (_target) {
-                _observer = new MutationObserver(function () {
-                    return _changeTitleWithMsgCount(_getNofityCount());
-                });
+                _observer = new MutationObserver(() => _changeTitleWithMsgCount(_getNofityCount()));
                 _observer.observe(_target, {
                     attributes: true,
                     childList: true,
@@ -1470,7 +1764,7 @@ var BHGV2_NotifyOnTitle = function (core) {
                 _changeTitleWithMsgCount(_getNofityCount());
             }
         }
-        else if (newValue[_plugin.prefix + "-isEnable"] === false && _observer) {
+        else if (newValue[`${_plugin.prefix}-isEnable`] === false && _observer) {
             _observer.disconnect();
             _observer = undefined;
             _changeTitleWithMsgCount(0);
@@ -1479,6 +1773,168 @@ var BHGV2_NotifyOnTitle = function (core) {
     return _plugin;
 };
 exports.default = BHGV2_NotifyOnTitle;
+
+
+/***/ }),
+
+/***/ 353:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_QuickInput - 快速輸入
+ *  以類似 @Mention 的方式快速輸入預設內容
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const BHGV2_QuickInput = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_QuickInput',
+        prefix: 'BHGV2_QuickInput',
+    };
+    _plugin.configs = [
+        {
+            key: `${_plugin.prefix}-isEnabled`,
+            suffixLabel: '啟動快速輸入功能',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    const wordMap = {
+        1: '[silwolf167:銀狼]',
+        2: '[GN02324817:鯊鯊~]',
+        3: '[a29719811:小元]',
+        all: '@1@2@3',
+        apple: '[apple:蘋果]',
+        banana: '[banana:香蕉]',
+        car: '[car:汽車]',
+        doll: '[doll:公仔]',
+        egg: '[egg:雞蛋]',
+        fish: '[fish:魚]',
+        goat: '[goat:山羊]',
+        r1: '快速回覆１',
+        r2: '快速回覆２',
+        r3: '快速回覆３',
+        r4: '快速回覆４',
+        d0: '（無傷）',
+        d1: '（輕傷）',
+        d2: '（中傷）',
+        d3: '（重傷）',
+        d4: '（瀕死）',
+    };
+    const _formatCarbonTrailingHTML = (content) => `<code>TAB</code> ${content}`;
+    const _findKeyWordPair = (text, { exactMatch } = {}) => {
+        if (!exactMatch) {
+            const key = Object.keys(wordMap).find((_key) => _key.startsWith(text));
+            return key ? { key, word: wordMap[key] } : undefined;
+        }
+        let key = undefined;
+        Object.keys(wordMap).forEach((_key) => {
+            if (text.startsWith(_key)) {
+                key = _key;
+            }
+        });
+        return key ? { key, word: wordMap[key] } : undefined;
+    };
+    _plugin.onEvent = (eventName, payload) => {
+        const config = core.getConfig();
+        if (!config[`${_plugin.prefix}-isEnabled`]) {
+            return true;
+        }
+        if (eventName === 'textarea-input') {
+            const event = payload?.event;
+            if (!event) {
+                return true;
+            }
+            const textarea = event.currentTarget;
+            if (!textarea) {
+                return true;
+            }
+            const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing;
+            if (!CarbonTrailing) {
+                return true;
+            }
+            CarbonTrailing.innerHTML = '';
+            const content = textarea.value;
+            const match = content.match(/\@([^\s\@]+)$/);
+            if (match && match[1]) {
+                const inputText = match[1];
+                const pair = _findKeyWordPair(inputText);
+                if (pair && pair.word) {
+                    CarbonTrailing.innerHTML = _formatCarbonTrailingHTML(pair.word);
+                }
+            }
+        }
+        if (eventName === 'textarea-keydown') {
+            const event = payload?.event;
+            if (!event) {
+                return true;
+            }
+            const textarea = event.currentTarget;
+            if (!textarea) {
+                return true;
+            }
+            const key = event.key;
+            if (key === 'Tab' || key === 'Enter') {
+                let value = textarea.value;
+                let isValueChanged = false;
+                const CarbonText = core.DOM.EditorTextareaCarbonText;
+                if (!CarbonText) {
+                    return true;
+                }
+                const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing;
+                if (!CarbonTrailing) {
+                    return true;
+                }
+                const match = value.match(/\@([^\s\@]+)$/);
+                if (match && match[1]) {
+                    const pair = _findKeyWordPair(match[1]);
+                    if (pair && pair.word) {
+                        value = value.replace(/\@([^\s\@]+)$/, pair.word + ' ');
+                        CarbonTrailing.innerHTML = '';
+                        isValueChanged = true;
+                    }
+                }
+                const matches = [...textarea.value.matchAll(/\@([^\s\@]+)/g)];
+                if (matches) {
+                    for (let match of matches) {
+                        const pair = _findKeyWordPair(match[1], { exactMatch: true });
+                        if (pair && pair.word) {
+                            value = value.replace(`@${pair.key}`, pair.word + ' ');
+                            isValueChanged = true;
+                        }
+                    }
+                }
+                if (isValueChanged) {
+                    event.preventDefault();
+                    textarea.selectionStart = 0;
+                    textarea.selectionEnd = textarea.value.length;
+                    document.execCommand('insertText', false, value);
+                    textarea.style.height = 'auto';
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                    return false;
+                }
+                return true;
+            }
+        }
+        return true;
+    };
+    _plugin.onMutateConfig = (newValue) => {
+        ;
+        ['isEnabled'].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.CommentListOuter;
+                if (dom) {
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
+                }
+            }
+        });
+    };
+    return _plugin;
+};
+exports.default = BHGV2_QuickInput;
 
 
 /***/ }),
@@ -1494,21 +1950,21 @@ exports.default = BHGV2_NotifyOnTitle;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-var BHGV2_Rainbow = function (core) {
-    var _plugin = {
+const BHGV2_Rainbow = (core) => {
+    const _plugin = {
         pluginName: 'BHGV2_Rainbow',
         prefix: 'BHGV2_Rainbow',
     };
     _plugin.configs = [
         {
-            key: _plugin.prefix + ":isEnable",
+            key: `${_plugin.prefix}:isEnable`,
             suffixLabel: '改變留言的底色',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
     ];
-    var _colors = [
+    const _colors = [
         '#bacff5',
         '#f5badb',
         '#f5f2ba',
@@ -1521,41 +1977,43 @@ var BHGV2_Rainbow = function (core) {
         '#dbd48a',
         '#8bdb8a',
     ];
-    _plugin.css = _colors.map(function (color, index) {
-        return "\n\t\t\t.bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-" + index + " {\n\t\t\t\tbackground-color: " + color + ";\n\t\t\t}\n\t\t";
-    });
-    _plugin.onMutateConfig = function (newValue) {
-        if (newValue[_plugin.prefix + ":isEnable"] !== undefined) {
-            var dom = core.DOM.CommentList;
+    _plugin.css = _colors.map((color, index) => `
+			.bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-${index} {
+				background-color: ${color};
+			}
+		`);
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
+            const dom = core.DOM.CommentList;
             if (dom) {
-                dom.classList.toggle('bhgv2-color-comment-enabled', newValue[_plugin.prefix + ":isEnable"]);
+                dom.classList.toggle('bhgv2-color-comment-enabled', newValue[`${_plugin.prefix}:isEnable`]);
             }
         }
     };
-    var _cachedUserId = {};
-    _plugin.onMutateState = function (newValue) {
+    const _cachedUserId = {};
+    _plugin.onMutateState = (newValue) => {
         if (newValue.latestComments !== undefined) {
             // 高亮其他人的訊息
-            var userInfo = core.getState().userInfo;
-            var myId_1 = userInfo === null || userInfo === void 0 ? void 0 : userInfo.id;
-            newValue.latestComments.forEach(function (comment) {
-                var commentElement = comment.element;
+            const { userInfo } = core.getState();
+            const myId = userInfo?.id;
+            newValue.latestComments.forEach((comment) => {
+                const commentElement = comment.element;
                 if (!commentElement) {
                     return;
                 }
-                var commentUserId = commentElement === null || commentElement === void 0 ? void 0 : commentElement.getAttribute('data-userid');
+                const commentUserId = commentElement?.getAttribute('data-userid');
                 if (!commentUserId) {
                     return;
                 }
-                if (commentUserId === myId_1) {
+                if (commentUserId === myId) {
                     return;
                 }
-                var colorIndex = _cachedUserId[commentUserId];
+                let colorIndex = _cachedUserId[commentUserId];
                 if (colorIndex === undefined) {
                     colorIndex = Object.keys(_cachedUserId).length % _colors.length;
                     _cachedUserId[commentUserId] = colorIndex;
                 }
-                commentElement.classList.add("bhgv2-color-comment-" + colorIndex);
+                commentElement.classList.add(`bhgv2-color-comment-${colorIndex}`);
             });
         }
     };

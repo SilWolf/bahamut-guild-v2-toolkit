@@ -24,6 +24,7 @@ import BHGV2_Dense from './plugins/bhgv2-dense'
 import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
 import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
+import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
 
 declare var jQuery: any
 declare var $: any
@@ -82,8 +83,12 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			_library[name] = defaultLibraryIfNotFound
 			return _library[name]
 		},
-		emit: (eventName, payload) => {
-			_plugins.forEach((plugin) => plugin.onEvent?.(eventName, payload))
+		emit: (eventName, payload): boolean => {
+			return (
+				_plugins
+					.map((plugin) => plugin.onEvent?.(eventName, payload))
+					.findIndex((result) => result === false) === -1
+			)
 		},
 		log: LOG,
 		DOM: {},
@@ -625,8 +630,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			const key = event.key
 			const textarea = event.currentTarget as HTMLTextAreaElement
 
+			const canContinue = CORE.emit('textarea-keydown', {
+				event,
+			})
+
+			if (!canContinue) {
+				return
+			}
+
 			if (key === 'Enter' && !event.shiftKey) {
-				console.log('Enter')
 				event.preventDefault()
 
 				const content = textarea.value || ''
@@ -672,6 +684,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 									payload: json.data.commentData,
 								},
 							],
+							isUserAction: true,
 						})
 					})
 					.finally(() => {
@@ -679,19 +692,24 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 						textarea.removeAttribute('disabled')
 						textarea.focus()
 					})
+
+				return
 			}
 		}
 	)
 
 	CORE.DOM.EditorTextarea.addEventListener('input', (event) => {
 		const CarbonText = CORE.DOM.EditorTextareaCarbonText
-		if (!CarbonText) {
-			return
-		}
-		const textarea = event.currentTarget as HTMLTextAreaElement
-		const content = textarea.value
+		if (CarbonText) {
+			const textarea = event.currentTarget as HTMLTextAreaElement
+			const content = textarea.value
 
-		CarbonText.innerHTML = content.replace(/\n/g, '<br />')
+			CarbonText.innerHTML = content.replace(/\n/g, '<br />')
+		}
+
+		CORE.emit('textarea-input', {
+			event,
+		})
 	})
 
 	// 觸發一次所有插件的 onMutateConfig
@@ -786,6 +804,7 @@ const _waitForElm = (selector: string) => {
 					BHGV2_MasterLayout,
 					BHGV2_NotifyOnTitle,
 					BHGV2_HighlightMe,
+					BHGV2_QuickInput,
 				],
 				library: {
 					jQuery,
