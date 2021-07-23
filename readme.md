@@ -2,7 +2,7 @@
 
 ### 版本號
 
-0.3.0 (發行日期未定)
+0.5.0 (2021-07-23)
 
 ### 安裝說明 (適用於 Chrome/Firefox)
 
@@ -13,7 +13,7 @@
 
 #### 自動安裝
 
-2. 點擊以下連結，Tampermonkey 將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js)
+2. 點擊以下連結，Tampermonkey 將開啟安裝畫面： [安裝連結](https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/dist/index.js)
 3. 點擊安裝即可安裝完畢，進入 Tampermonkey 的控制台，如果見到了 Bahamut Guild V2 Toolkits 就代表安裝成功。
 
 #### 手動安裝
@@ -24,7 +24,7 @@
 4. 完成安裝步驟後，點擊上方的分頁「已安裝的使用者腳本」，如果見到了 `Bahamut Guild V2 Toolkits` 就代表安裝成功。沒有見到的話，重新載入一下此頁面。
    ![](https://i.imgur.com/LP5dQid.png)
 
-### 功能 (目前版本 v0.3.0)
+### 功能 (目前版本 v0.5.0)
 
 絕大部分可開關的功能和設置，均在輸入框下的「插件設定」中。
 
@@ -72,6 +72,10 @@
 
 於公會導覽列新增一個 Debug 按鈕，目前功能為顯示全域變數(GLOBLE_CONFIG)狀態
 
+#### 快速輸入 (v0.5.0+)
+
+以類似 @Mention 的方式快速輸入預設內容
+
 ### 開發用指令
 
 ```
@@ -87,7 +91,7 @@ yarn build
 - [x] 標題顯示通知數目
 - [x] 標題顯示串有新訊息
 - [x] 哈拉串顛倒
-- [ ] 快速輸入內容
+- [x] 快速輸入內容
 - [ ] 預先回覆
 - [x] 提及我高亮
 - [x] 新訊息高亮
