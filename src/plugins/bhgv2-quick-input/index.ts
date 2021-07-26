@@ -300,60 +300,22 @@ const BHGV2_QuickInput: TPluginConstructor = (core) => {
 		return key ? { key, word: _WORD_MAP[key] } : undefined
 	}
 
-	_plugin.onEvent = (eventName: string, payload: any) => {
-		const config = core.getConfig()
-		if (!config[`${_plugin.prefix}-isEnabled`]) {
-			return true
-		}
-
-		if (eventName === 'textarea-input') {
-			const event = payload?.event as KeyboardEvent
-			if (!event) {
-				return true
-			}
-
-			const textarea = event.currentTarget as HTMLTextAreaElement
-			if (!textarea) {
-				return true
-			}
-
-			const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing
-			if (!CarbonTrailing) {
-				return true
-			}
-
-			CarbonTrailing.innerHTML = ''
-
-			const content = textarea.value
-			const match = content.match(/\@([^\s\@]+)$/)
-			if (match && match[1]) {
-				const inputText = match[1]
-				const pair = _findKeyWordPair(inputText)
-				if (pair && pair.word) {
-					CarbonTrailing.innerHTML = _formatCarbonTrailingHTML(pair.word)
+	_plugin.events = [
+		{
+			eventName: "textarea-input",
+			onEvent: (eventName: string, payload: any) => {
+				const config = core.getConfig()
+				if (!config[`${_plugin.prefix}-isEnabled`]) {
+					return true
 				}
-			}
-		}
 
-		if (eventName === 'textarea-keydown') {
-			const event = payload?.event as KeyboardEvent
-			if (!event) {
-				return true
-			}
+				const event = payload?.event as KeyboardEvent
+				if (!event) {
+					return true
+				}
 
-			const textarea = event.currentTarget as HTMLTextAreaElement
-			if (!textarea) {
-				return true
-			}
-
-			const key = event.key
-
-			if (key === 'Tab' || key === 'Enter') {
-				let value = textarea.value
-				let isValueChanged = false
-
-				const CarbonText = core.DOM.EditorTextareaCarbonText
-				if (!CarbonText) {
+				const textarea = event.currentTarget as HTMLTextAreaElement
+				if (!textarea) {
 					return true
 				}
 
@@ -362,45 +324,95 @@ const BHGV2_QuickInput: TPluginConstructor = (core) => {
 					return true
 				}
 
-				const match = value.match(/\@([^\s\@]+)$/)
+				CarbonTrailing.innerHTML = ''
+
+				const content = textarea.value
+				const match = content.match(/\@([^\s\@]+)$/)
 				if (match && match[1]) {
-					const pair = _findKeyWordPair(match[1])
+					const inputText = match[1]
+					const pair = _findKeyWordPair(inputText)
 					if (pair && pair.word) {
-						value = value.replace(/\@([^\s\@]+)$/, pair.word + ' ')
-						CarbonTrailing.innerHTML = ''
-						isValueChanged = true
+						CarbonTrailing.innerHTML = _formatCarbonTrailingHTML(pair.word)
 					}
 				}
 
-				const matches = [...textarea.value.matchAll(/\@([^\s\@]+)/g)]
-				if (matches) {
-					for (let match of matches) {
-						const pair = _findKeyWordPair(match[1], { exactMatch: true })
+				return true
+			}
+		},
+		{
+			eventName: "textarea-keydown",
+			onEvent: (eventName: string, payload: any) => {
+				const config = core.getConfig()
+				if (!config[`${_plugin.prefix}-isEnabled`]) {
+					return true
+				}
+
+				const event = payload?.event as KeyboardEvent
+				if (!event) {
+					return true
+				}
+
+				const textarea = event.currentTarget as HTMLTextAreaElement
+				if (!textarea) {
+					return true
+				}
+
+				const key = event.key
+
+				if (key === 'Tab' || key === 'Enter') {
+					let value = textarea.value
+					let isValueChanged = false
+
+					const CarbonText = core.DOM.EditorTextareaCarbonText
+					if (!CarbonText) {
+						return true
+					}
+
+					const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing
+					if (!CarbonTrailing) {
+						return true
+					}
+
+					const match = value.match(/\@([^\s\@]+)$/)
+					if (match && match[1]) {
+						const pair = _findKeyWordPair(match[1])
 						if (pair && pair.word) {
-							value = value.replace(`@${pair.key}`, pair.word + ' ')
+							value = value.replace(/\@([^\s\@]+)$/, pair.word + ' ')
+							CarbonTrailing.innerHTML = ''
 							isValueChanged = true
 						}
 					}
-				}
 
-				if (isValueChanged) {
-					event.preventDefault()
-					textarea.selectionStart = 0
-					textarea.selectionEnd = textarea.value.length
-					document.execCommand('insertText', false, value)
+					const matches = [...textarea.value.matchAll(/\@([^\s\@]+)/g)]
+					if (matches) {
+						for (let match of matches) {
+							const pair = _findKeyWordPair(match[1], { exactMatch: true })
+							if (pair && pair.word) {
+								value = value.replace(`@${pair.key}`, pair.word + ' ')
+								isValueChanged = true
+							}
+						}
+					}
 
-					textarea.style.height = 'auto'
-					textarea.style.height = textarea.scrollHeight + 'px'
+					if (isValueChanged) {
+						event.preventDefault()
+						textarea.selectionStart = 0
+						textarea.selectionEnd = textarea.value.length
+						document.execCommand('insertText', false, value)
 
-					return false
+						textarea.style.height = 'auto'
+						textarea.style.height = textarea.scrollHeight + 'px'
+
+						return false
+					}
+
+					return true
 				}
 
 				return true
 			}
 		}
-
-		return true
-	}
+	]
 
 	_plugin.onMutateConfig = (newValue) => {
 		;['isEnabled'].forEach((key) => {

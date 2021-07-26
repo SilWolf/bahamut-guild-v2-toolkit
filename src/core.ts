@@ -84,7 +84,14 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		emit: (eventName, payload): boolean => {
 			return (
 				_plugins
-					.map((plugin) => plugin.onEvent?.(eventName, payload))
+					.map((plugin) =>
+						plugin
+							?.events
+							?.filter(pluginEvent => pluginEvent.eventName === eventName)
+							.map(pluginEvent => pluginEvent.onEvent(eventName, payload))
+							.reduce((x, y) => x && y)
+
+					)
 					.findIndex((result) => result === false) === -1
 			)
 		},
