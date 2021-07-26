@@ -136,6 +136,7 @@ const BHGV2Core = ({ plugins, library }) => {
                             user: guildPost.loginUser,
                         }))[0];
                         newElement.classList.add('bhgv2-comment');
+                        newElement.setAttribute('data-position', payload.position.toString());
                         const _replyContentUser = newElement.querySelector('.reply-content__user');
                         if (_replyContentUser) {
                             newElement.setAttribute('data-user', _replyContentUser.textContent);
@@ -852,6 +853,8 @@ exports.createNotification = void 0;
 const createNotification = (options) => {
     const _options = {
         silent: false,
+        highlight: false,
+        timeout: 5,
         ...options,
     };
     GM_notification(_options);
@@ -995,12 +998,28 @@ const BHGV2_AutoRefresh = (core) => {
             return;
         }
         if (newValue.latestComments !== undefined) {
+            const _comment = newValue.latestComments[0];
+            let text = '[如果你看到這句請聯絡月月……]';
+            if (_comment.payload) {
+                const _payload = _comment.payload;
+                text = `(#${_payload.position}) ${_payload.name}：${_payload.text.substr(0, 50)}`;
+            }
+            else if (_comment.element) {
+                const _element = _comment.element;
+                const _name = _element.getAttribute('data-user');
+                const _position = _element.getAttribute('data-position');
+                const _text = _comment.element.querySelector('.reply-content__cont')?.textContent ||
+                    '';
+                text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`;
+            }
             const config = core.getConfig();
             if (config[`${_plugin.prefix}:notification`]) {
                 // 發送桌面通知
                 notification_helper_1.createNotification({
-                    title: '測試用通知',
-                    text: '測試用通知',
+                    title: '有新的通知',
+                    text: text,
+                    silent: !`${_plugin.prefix}:notificationSound`,
+                    timeout: 5000,
                 });
             }
         }
