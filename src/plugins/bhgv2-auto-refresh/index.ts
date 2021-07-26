@@ -174,13 +174,33 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		}
 
 		if (newValue.latestComments !== undefined) {
+			const _comment = newValue.latestComments[0]
+
+			let text = '[如果你看到這句請聯絡月月……]'
+			if (_comment.payload) {
+				const _payload = _comment.payload
+				text = `(#${_payload.position}) ${
+					_payload.name
+				}：${_payload.text.substr(0, 50)}`
+			} else if (_comment.element) {
+				const _element = _comment.element
+				const _name = _element.getAttribute('data-user')
+				const _position = _element.getAttribute('data-position')
+				const _text =
+					_comment.element.querySelector('.reply-content__cont')?.textContent ||
+					''
+				text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`
+			}
+
 			const config = core.getConfig()
 
 			if (config[`${_plugin.prefix}:notification`]) {
 				// 發送桌面通知
 				createNotification({
-					title: '測試用通知',
-					text: '測試用通知',
+					title: '有新的通知',
+					text: text,
+					silent: !`${_plugin.prefix}:notificationSound`,
+					timeout: 5000,
 				})
 			}
 		}
