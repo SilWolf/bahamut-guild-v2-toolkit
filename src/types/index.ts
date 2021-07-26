@@ -50,7 +50,7 @@ export type TCoreStateComment = {
 export type TCoreStateUserInfo = {
 	avatar: string
 	id: string
-	login: string
+	login: boolean
 	nickname: string
 }
 
