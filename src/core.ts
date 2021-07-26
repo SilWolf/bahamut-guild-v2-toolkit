@@ -154,6 +154,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							})
 						)[0]
 						newElement.classList.add('bhgv2-comment')
+						newElement.setAttribute(
+							'data-position',
+							payload.position.toString()
+						)
 						const _replyContentUser = newElement.querySelector<HTMLLinkElement>(
 							'.reply-content__user'
 						)
