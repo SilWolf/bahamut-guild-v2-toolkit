@@ -213,6 +213,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 									'data-userid',
 									_replyContentUser.href.split('/').pop() as string
 								)
+								newComment.element.setAttribute(
+									'data-position',
+									(newCommentIndex + 1).toString()
+								)
 							}
 
 							core.commentsMap[newComment.id] = newComment
@@ -471,7 +475,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			})
 
 			_plugins.push(_plugin)
-		} catch (e) {
+		} catch (e: any) {
 			LOG(`載入插件失敗, ${e.toString()}`, 'error')
 		}
 	})

@@ -173,28 +173,27 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 			return
 		}
 
-		if (newValue.latestComments !== undefined) {
-			const _comment = newValue.latestComments[0]
+		const config = core.getConfig()
+		if (config[`${_plugin.prefix}:notification`]) {
+			if (newValue.latestComments !== undefined) {
+				const _comment = newValue.latestComments[0]
 
-			let text = '[如果你看到這句請聯絡月月……]'
-			if (_comment.payload) {
-				const _payload = _comment.payload
-				text = `(#${_payload.position}) ${
-					_payload.name
-				}：${_payload.text.substr(0, 50)}`
-			} else if (_comment.element) {
-				const _element = _comment.element
-				const _name = _element.getAttribute('data-user')
-				const _position = _element.getAttribute('data-position')
-				const _text =
-					_comment.element.querySelector('.reply-content__cont')?.textContent ||
-					''
-				text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`
-			}
+				let text = '[如果你看到這句話，代表有東西爆炸了，請聯絡月月處理……]'
+				if (_comment.payload) {
+					const _payload = _comment.payload
+					text = `(#${_payload.position}) ${
+						_payload.name
+					}：${_payload.text.substr(0, 50)}`
+				} else if (_comment.element) {
+					const _element = _comment.element
+					const _name = _element.getAttribute('data-user')
+					const _position = _element.getAttribute('data-position')
+					const _text =
+						_comment.element.querySelector('.reply-content__cont')
+							?.textContent || ''
+					text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`
+				}
 
-			const config = core.getConfig()
-
-			if (config[`${_plugin.prefix}:notification`]) {
 				// 發送桌面通知
 				createNotification({
 					title: '有新的通知',
