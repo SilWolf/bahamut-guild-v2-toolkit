@@ -90,7 +90,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		},
 		log: LOG,
 		DOM: {},
-		commentsMap: {},
+		comments: [],
 	}
 
 	const _CorePlugin: TPluginConstructor = (core) => {
@@ -172,99 +172,135 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							)
 						}
 
+						const [positionSpan, ctimeSpan] =
+							newElement.querySelectorAll<HTMLDivElement>(
+								'.reply_right span.reply_time'
+							)
+						if (positionSpan) {
+							positionSpan.classList.add('bhgv2-comment-position')
+						}
+						if (ctimeSpan) {
+							ctimeSpan.classList.add('bhgv2-comment-ctime')
+						}
+
 						return newElement
 					}
 
-					const oldestLatestComment = newValue.latestComments[0]
-					const oldestLatestCommentId = parseInt(oldestLatestComment.id)
-					let oldCommentIndex = Array.from(CommentList.children).findIndex(
-						(e) =>
-							parseInt(e.getAttribute('data-csn') as string) >=
-							oldestLatestCommentId
-					)
-
-					if (oldCommentIndex === -1) {
-						oldCommentIndex = CommentList.children.length
-					}
-
-					for (
-						let newCommentIndex = 0;
-						newCommentIndex < newValue.latestComments.length;
-						newCommentIndex++
+					let _newCommentIndex = 0
+					let loopCount = 0
+					while (
+						_newCommentIndex < newValue.latestComments.length &&
+						loopCount < 2000
 					) {
-						const newComment = newValue.latestComments[newCommentIndex]
-						const newCommentId = parseInt(newComment.id)
+						const _newComment = newValue.latestComments[_newCommentIndex]
+						const _commentIndex = _newComment.position - 1
+						const _storedComment = core.comments[_commentIndex]
 
-						if (
-							newComment.element &&
-							core.commentsMap[newComment.id] === undefined
-						) {
-							newComment.element.classList.add('bhgv2-comment')
+						loopCount++
+						if (loopCount >= 2000) {
+							console.error(
+								`infinite loop detected. _newCommentIndex=${_newCommentIndex}, _commentIndex=${_commentIndex}`,
+								_newComment,
+								_storedComment
+							)
+							break
+						}
+
+						if (_storedComment) {
+							// comment which is already created
+							if (_newComment.id === _storedComment.id) {
+								// refresh content in case there is any update
+								if (_storedComment.element && _newComment.payload) {
+									const _oldElement = _storedComment.element
+									const _newElement = _createCommentElement(_newComment.payload)
+
+									;[
+										'.reply-content__cont',
+										'.bhgv2-comment-position',
+										'.bhgv2-comment-ctime',
+									].forEach((query: string) => {
+										const _oldEle = _oldElement.querySelector(query)
+										const _newEle = _newElement.querySelector(query)
+										if (
+											_oldEle &&
+											_newEle &&
+											_oldEle.innerHTML !== _newEle.innerHTML
+										) {
+											_oldEle.innerHTML = _newEle.innerHTML
+										}
+									})
+								}
+
+								_newCommentIndex++
+							} else {
+								let _foundIndex = core.comments.findIndex(
+									(c) => c.id === _newComment.id
+								)
+								if (_foundIndex === -1) {
+									_foundIndex = core.comments.length
+								}
+
+								for (let i = _foundIndex - 1; i >= _commentIndex; i--) {
+									const c = core.comments[i]
+									c.element?.parentNode?.removeChild(c.element)
+									c.element = undefined
+									core.comments.splice(i, 1)
+								}
+							}
+						} else if (_newComment.element) {
+							// comment which is created on first loading
+							_newComment.element.classList.add('bhgv2-comment')
 							const _replyContentUser =
-								newComment.element.querySelector<HTMLLinkElement>(
+								_newComment.element.querySelector<HTMLLinkElement>(
 									'.reply-content__user'
 								)
+
 							if (_replyContentUser) {
-								newComment.element.setAttribute(
+								_newComment.element.setAttribute(
 									'data-user',
 									_replyContentUser.textContent as string
 								)
-								newComment.element.setAttribute(
+								_newComment.element.setAttribute(
 									'data-userid',
 									_replyContentUser.href.split('/').pop() as string
 								)
-								newComment.element.setAttribute(
+								_newComment.element.setAttribute(
 									'data-position',
-									(newCommentIndex + 1).toString()
+									_newComment.position.toString()
 								)
 							}
 
-							core.commentsMap[newComment.id] = newComment
-							revisedLatestComments.push(newComment)
-							continue
-						}
-
-						const _payload = newComment.payload
-
-						if (!_payload) {
-							continue
-						}
-
-						while (oldCommentIndex < 9999) {
-							if (oldCommentIndex >= CommentList.children.length) {
-								newComment.element = _createCommentElement(_payload)
-								CommentList.append(newComment.element)
-								oldCommentIndex++
-								revisedLatestComments.push(newComment)
-								core.commentsMap[newComment.id] = newComment
-								break
-							}
-
-							const oldCommentElement = CommentList.children[oldCommentIndex]
-							const oldCommentId = parseInt(
-								oldCommentElement.getAttribute('data-csn') as string
-							)
-
-							if (oldCommentId === newCommentId) {
-								oldCommentIndex++
-								break
-							} else if (newCommentId < oldCommentId) {
-								newComment.element = _createCommentElement(_payload)
-								oldCommentElement.insertAdjacentElement(
-									'beforebegin',
-									newComment.element
+							const [positionSpan, ctimeSpan] =
+								_newComment.element.querySelectorAll<HTMLDivElement>(
+									'.reply_right span.reply_time'
 								)
-								oldCommentIndex++
-								revisedLatestComments.push(newComment)
-								core.commentsMap[newComment.id] = newComment
-								break
+							if (positionSpan) {
+								positionSpan.classList.add('bhgv2-comment-position')
+							}
+							if (ctimeSpan) {
+								ctimeSpan.classList.add('bhgv2-comment-ctime')
 							}
 
-							oldCommentIndex++
+							core.comments[_commentIndex] = _newComment
+							revisedLatestComments.push(_newComment)
+
+							_newCommentIndex++
+						} else if (_newComment.payload) {
+							// new comment with payload
+							_newComment.element = _createCommentElement(_newComment.payload)
+							CommentList.append(_newComment.element)
+
+							core.comments[_commentIndex] = _newComment
+							revisedLatestComments.push(_newComment)
+
+							_newCommentIndex++
+						} else {
+							console.warn('something wrong with a new comment', _newComment)
+							_newCommentIndex++
 						}
 					}
 
-					newValue.commentsCount = Object.keys(core.commentsMap).length
+					newValue.commentsCount = core.comments.length
 					newValue.latestComments =
 						revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 				}
@@ -690,6 +726,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							latestComments: [
 								{
 									id: json.data.commentId,
+									position: (CORE.DOM.CommentList.children.length || 0) + 1,
 									payload: json.data.commentData,
 								},
 							],
@@ -761,8 +798,9 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 				const _newComments = Array.from(
 					_CommentList.children
-				).map<TCoreStateComment>((element) => ({
+				).map<TCoreStateComment>((element, index) => ({
 					id: element.getAttribute('data-csn') as string,
+					position: index + 1,
 					element,
 				}))
 

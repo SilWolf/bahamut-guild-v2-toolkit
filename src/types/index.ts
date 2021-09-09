@@ -10,7 +10,7 @@ export type TCore = {
 	getState: () => TCoreState
 	getStateByNames: (...names: TCoreStateKey[]) => TCoreState
 	mutateState: (newValue: TCoreState) => void
-	commentsMap: Record<string, TCoreStateComment>
+	comments: TCoreStateComment[]
 	useLibrary: (name: string, defaultLibraryIfNotFound?: unknown) => unknown
 	emit: (eventName: string, payload: unknown) => boolean
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
@@ -44,6 +44,7 @@ export type TCoreState = {
 export type TCoreStateKey = keyof TCoreState
 export type TCoreStateComment = {
 	id: string
+	position: number
 	payload?: TComment
 	element?: Element | undefined
 }

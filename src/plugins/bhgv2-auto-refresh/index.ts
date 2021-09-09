@@ -111,6 +111,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 					const latestComments: TCoreStateComment[] = [
 						...comments.map((_comment) => ({
 							id: _comment.id,
+							position: _comment.position,
 							payload: _comment,
 						})),
 					]
@@ -136,6 +137,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						latestComments.push(
 							...anotherComments.map((_comment) => ({
 								id: _comment.id,
+								position: _comment.position,
 								payload: _comment,
 							}))
 						)
