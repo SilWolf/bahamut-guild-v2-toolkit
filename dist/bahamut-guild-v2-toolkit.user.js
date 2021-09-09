@@ -88,7 +88,7 @@ const BHGV2Core = ({ plugins, library }) => {
         },
         log: LOG,
         DOM: {},
-        commentsMap: {},
+        comments: [],
     };
     const _CorePlugin = (core) => {
         const _plugin = {
@@ -142,61 +142,97 @@ const BHGV2Core = ({ plugins, library }) => {
                             newElement.setAttribute('data-user', _replyContentUser.textContent);
                             newElement.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
                         }
+                        const [positionSpan, ctimeSpan] = newElement.querySelectorAll('.reply_right span.reply_time');
+                        if (positionSpan) {
+                            positionSpan.classList.add('bhgv2-comment-position');
+                        }
+                        if (ctimeSpan) {
+                            ctimeSpan.classList.add('bhgv2-comment-ctime');
+                        }
                         return newElement;
                     };
-                    const oldestLatestComment = newValue.latestComments[0];
-                    const oldestLatestCommentId = parseInt(oldestLatestComment.id);
-                    let oldCommentIndex = Array.from(CommentList.children).findIndex((e) => parseInt(e.getAttribute('data-csn')) >=
-                        oldestLatestCommentId);
-                    if (oldCommentIndex === -1) {
-                        oldCommentIndex = CommentList.children.length;
-                    }
-                    for (let newCommentIndex = 0; newCommentIndex < newValue.latestComments.length; newCommentIndex++) {
-                        const newComment = newValue.latestComments[newCommentIndex];
-                        const newCommentId = parseInt(newComment.id);
-                        if (newComment.element &&
-                            core.commentsMap[newComment.id] === undefined) {
-                            newComment.element.classList.add('bhgv2-comment');
-                            const _replyContentUser = newComment.element.querySelector('.reply-content__user');
+                    let _newCommentIndex = 0;
+                    let loopCount = 0;
+                    while (_newCommentIndex < newValue.latestComments.length &&
+                        loopCount < 2000) {
+                        const _newComment = newValue.latestComments[_newCommentIndex];
+                        const _commentIndex = _newComment.position - 1;
+                        const _storedComment = core.comments[_commentIndex];
+                        loopCount++;
+                        if (loopCount >= 2000) {
+                            console.error(`infinite loop detected. _newCommentIndex=${_newCommentIndex}, _commentIndex=${_commentIndex}`, _newComment, _storedComment);
+                            break;
+                        }
+                        if (_storedComment) {
+                            // comment which is already created
+                            if (_newComment.id === _storedComment.id) {
+                                // refresh content in case there is any update
+                                if (_storedComment.element && _newComment.payload) {
+                                    const _oldElement = _storedComment.element;
+                                    const _newElement = _createCommentElement(_newComment.payload);
+                                    [
+                                        '.reply-content__cont',
+                                        '.bhgv2-comment-position',
+                                        '.bhgv2-comment-ctime',
+                                    ].forEach((query) => {
+                                        const _oldEle = _oldElement.querySelector(query);
+                                        const _newEle = _newElement.querySelector(query);
+                                        if (_oldEle &&
+                                            _newEle &&
+                                            _oldEle.innerHTML !== _newEle.innerHTML) {
+                                            _oldEle.innerHTML = _newEle.innerHTML;
+                                        }
+                                    });
+                                }
+                                _newCommentIndex++;
+                            }
+                            else {
+                                let _foundIndex = core.comments.findIndex((c) => c.id === _newComment.id);
+                                if (_foundIndex === -1) {
+                                    _foundIndex = core.comments.length;
+                                }
+                                for (let i = _foundIndex - 1; i >= _commentIndex; i--) {
+                                    const c = core.comments[i];
+                                    c.element?.parentNode?.removeChild(c.element);
+                                    c.element = undefined;
+                                    core.comments.splice(i, 1);
+                                }
+                            }
+                        }
+                        else if (_newComment.element) {
+                            // comment which is created on first loading
+                            _newComment.element.classList.add('bhgv2-comment');
+                            const _replyContentUser = _newComment.element.querySelector('.reply-content__user');
                             if (_replyContentUser) {
-                                newComment.element.setAttribute('data-user', _replyContentUser.textContent);
-                                newComment.element.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
+                                _newComment.element.setAttribute('data-user', _replyContentUser.textContent);
+                                _newComment.element.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
+                                _newComment.element.setAttribute('data-position', _newComment.position.toString());
                             }
-                            core.commentsMap[newComment.id] = newComment;
-                            revisedLatestComments.push(newComment);
-                            continue;
+                            const [positionSpan, ctimeSpan] = _newComment.element.querySelectorAll('.reply_right span.reply_time');
+                            if (positionSpan) {
+                                positionSpan.classList.add('bhgv2-comment-position');
+                            }
+                            if (ctimeSpan) {
+                                ctimeSpan.classList.add('bhgv2-comment-ctime');
+                            }
+                            core.comments[_commentIndex] = _newComment;
+                            revisedLatestComments.push(_newComment);
+                            _newCommentIndex++;
                         }
-                        const _payload = newComment.payload;
-                        if (!_payload) {
-                            continue;
+                        else if (_newComment.payload) {
+                            // new comment with payload
+                            _newComment.element = _createCommentElement(_newComment.payload);
+                            CommentList.append(_newComment.element);
+                            core.comments[_commentIndex] = _newComment;
+                            revisedLatestComments.push(_newComment);
+                            _newCommentIndex++;
                         }
-                        while (oldCommentIndex < 9999) {
-                            if (oldCommentIndex >= CommentList.children.length) {
-                                newComment.element = _createCommentElement(_payload);
-                                CommentList.append(newComment.element);
-                                oldCommentIndex++;
-                                revisedLatestComments.push(newComment);
-                                core.commentsMap[newComment.id] = newComment;
-                                break;
-                            }
-                            const oldCommentElement = CommentList.children[oldCommentIndex];
-                            const oldCommentId = parseInt(oldCommentElement.getAttribute('data-csn'));
-                            if (oldCommentId === newCommentId) {
-                                oldCommentIndex++;
-                                break;
-                            }
-                            else if (newCommentId < oldCommentId) {
-                                newComment.element = _createCommentElement(_payload);
-                                oldCommentElement.insertAdjacentElement('beforebegin', newComment.element);
-                                oldCommentIndex++;
-                                revisedLatestComments.push(newComment);
-                                core.commentsMap[newComment.id] = newComment;
-                                break;
-                            }
-                            oldCommentIndex++;
+                        else {
+                            console.warn('something wrong with a new comment', _newComment);
+                            _newCommentIndex++;
                         }
                     }
-                    newValue.commentsCount = Object.keys(core.commentsMap).length;
+                    newValue.commentsCount = core.comments.length;
                     newValue.latestComments =
                         revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
                 }
@@ -487,6 +523,7 @@ const BHGV2Core = ({ plugins, library }) => {
                     latestComments: [
                         {
                             id: json.data.commentId,
+                            position: (CORE.DOM.CommentList.children.length || 0) + 1,
                             payload: json.data.commentData,
                         },
                     ],
@@ -539,8 +576,9 @@ const BHGV2Core = ({ plugins, library }) => {
                 if (_CommentList.children.length === 0) {
                     return;
                 }
-                const _newComments = Array.from(_CommentList.children).map((element) => ({
+                const _newComments = Array.from(_CommentList.children).map((element, index) => ({
                     id: element.getAttribute('data-csn'),
+                    position: index + 1,
                     element,
                 }));
                 CORE.mutateState({
@@ -853,8 +891,6 @@ exports.createNotification = void 0;
 const createNotification = (options) => {
     const _options = {
         silent: false,
-        highlight: false,
-        timeout: 5,
         ...options,
     };
     GM_notification(_options);
@@ -955,6 +991,7 @@ const BHGV2_AutoRefresh = (core) => {
                     const latestComments = [
                         ...comments.map((_comment) => ({
                             id: _comment.id,
+                            position: _comment.position,
                             payload: _comment,
                         })),
                     ];
@@ -970,6 +1007,7 @@ const BHGV2_AutoRefresh = (core) => {
                             .then((res) => res.data);
                         latestComments.push(...anotherComments.map((_comment) => ({
                             id: _comment.id,
+                            position: _comment.position,
                             payload: _comment,
                         })));
                     }
@@ -997,23 +1035,23 @@ const BHGV2_AutoRefresh = (core) => {
         if (newValue.isInit || newValue.isUserAction) {
             return;
         }
-        if (newValue.latestComments !== undefined) {
-            const _comment = newValue.latestComments[0];
-            let text = '[如果你看到這句請聯絡月月……]';
-            if (_comment.payload) {
-                const _payload = _comment.payload;
-                text = `(#${_payload.position}) ${_payload.name}：${_payload.text.substr(0, 50)}`;
-            }
-            else if (_comment.element) {
-                const _element = _comment.element;
-                const _name = _element.getAttribute('data-user');
-                const _position = _element.getAttribute('data-position');
-                const _text = _comment.element.querySelector('.reply-content__cont')?.textContent ||
-                    '';
-                text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`;
-            }
-            const config = core.getConfig();
-            if (config[`${_plugin.prefix}:notification`]) {
+        const config = core.getConfig();
+        if (config[`${_plugin.prefix}:notification`]) {
+            if (newValue.latestComments !== undefined) {
+                const _comment = newValue.latestComments[0];
+                let text = '[如果你看到這句話，代表有東西爆炸了，請聯絡月月處理……]';
+                if (_comment.payload) {
+                    const _payload = _comment.payload;
+                    text = `(#${_payload.position}) ${_payload.name}：${_payload.text.substr(0, 50)}`;
+                }
+                else if (_comment.element) {
+                    const _element = _comment.element;
+                    const _name = _element.getAttribute('data-user');
+                    const _position = _element.getAttribute('data-position');
+                    const _text = _comment.element.querySelector('.reply-content__cont')
+                        ?.textContent || '';
+                    text = `(#${_position}) ${_name}：${_text.substr(0, 50)}`;
+                }
                 // 發送桌面通知
                 notification_helper_1.createNotification({
                     title: '有新的通知',
