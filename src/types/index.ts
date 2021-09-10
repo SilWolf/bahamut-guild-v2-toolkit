@@ -24,7 +24,7 @@ export type TPlugin = {
 	prefix: string
 	configs?: TPluginConfig[]
 	configLayout?: string[][]
-	onEvent?: (eventName: string, payload: unknown) => boolean
+	events?: TPluginEvent[]
 	onMutateState?: (newValue: TCoreState) => void
 	onMutateConfig?: (newValue: TCoreConfig) => void
 	css?: string[]
@@ -68,6 +68,10 @@ export type TPluginConfig = {
 export type TPluginConfigDataType = 'boolean' | 'number' | 'text'
 export type TPluginConfigInputType = 'switch' | 'checkbox' | 'number' | 'text'
 export type TPluginConfigValue = boolean | number | string | undefined
+export type TPluginEvent = {
+	eventName: string
+	onEvent: (eventName: string, payload: unknown) => boolean
+}
 
 export type TLibrary = unknown
 
