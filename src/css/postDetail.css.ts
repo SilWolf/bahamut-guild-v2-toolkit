@@ -1,9 +1,20 @@
 export default `
-.bhgv2-editor .bhgv2-editor-textarea {
-	min-height: 66px;
-}
+	.main-container_wall-post_header {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
 
-.bhgv2-comment.editing .reply-content__cont {
-	display: none;
-}
+	.main-container_wall-post_header .main-container_wall-post_header_main {
+		flex: 1;
+		width: auto;
+	}
+
+	.bhgv2-editor .bhgv2-editor-textarea {
+		min-height: 66px;
+	}
+
+	.bhgv2-comment.editing .reply-content__cont {
+		display: none;
+	}
 `

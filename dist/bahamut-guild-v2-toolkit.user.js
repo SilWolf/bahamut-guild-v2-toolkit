@@ -304,6 +304,11 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.Body.classList.add('bhgv2-body');
     _dom.BHBackground = document.getElementById('BH-background');
     _dom.BHWrapper = document.getElementById('BH-wrapper');
+    _dom.MainContainer = document.getElementsByClassName('main-container_wall-post')[0];
+    _dom.MainContainerHeader = document.getElementsByClassName('main-container_wall-post_header')[0];
+    _dom.MainContainerHeaderMain = document.getElementsByClassName('main-container_wall-post_header_main')[0];
+    _dom.MainContainerHeaderSecond = document.createElement('div');
+    _dom.MainContainerHeaderMain.insertAdjacentElement('afterend', _dom.MainContainerHeaderSecond);
     _dom.CommentListOuter = document.getElementsByClassName('webview_commendlist')[0];
     _dom.CommentListOuter.classList.add('bhgv2-comment-list-outer');
     _dom.CommentList = _dom.CommentListOuter.firstElementChild;
@@ -336,20 +341,19 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
     _dom.EditorContainerReplyContentFooter.innerHTML = `Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入`;
     _dom.EditorContainerReplyContent.append(_dom.EditorContainerReplyContentFooter);
-    _dom.EditorContainerFooter = document.createElement('div');
-    _dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer');
-    _dom.EditorContainer.appendChild(_dom.EditorContainerFooter);
     _dom.ConfigPanelStatus = document.createElement('div');
     _dom.ConfigPanelStatus.classList.add('bhgv2-config-status');
     _dom.ConfigPanelSwitch = document.createElement('a');
     _dom.ConfigPanelSwitch.classList.add('bhgv2-config-switch');
-    _dom.ConfigPanelSwitch.innerHTML = '插件設定';
+    _dom.ConfigPanelSwitch.innerHTML =
+        '<span class="material-icons">settings</span> <span>插件設定</span>';
     _dom.ConfigPanelSwitch.setAttribute('href', '#');
-    _dom.EditorContainerFooter.appendChild(_dom.ConfigPanelStatus);
-    _dom.EditorContainerFooter.appendChild(_dom.ConfigPanelSwitch);
+    _dom.MainContainerHeaderSecond.insertAdjacentElement('beforebegin', _dom.ConfigPanelStatus);
+    _dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch);
     _dom.ConfigPanel = document.createElement('div');
     _dom.ConfigPanel.classList.add('bhgv2-config-panel');
-    _dom.EditorContainer.append(_dom.ConfigPanel);
+    // _dom.EditorContainer.append(_dom.ConfigPanel)
+    _dom.MainContainerHeader.insertAdjacentElement('afterend', _dom.ConfigPanel);
     _dom.ConfigForm = document.createElement('form');
     _dom.ConfigForm.classList.add('bhgv2-config-form');
     _dom.ConfigPanel.append(_dom.ConfigForm);
@@ -873,6 +877,28 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-editor.bhgv2-editor.bhgv2-editor {
+	border-color: #000;
+	border-radius: 0;
+}
+
+.bhgv2-config-status {
+	color: #B3B3B3;
+	font-size: 12px;
+}
+
+.bhgv2-config-switch {
+	display: inline-block;
+	padding: 4px 8px;
+	background-color: rgba(0, 0 ,0 ,0.08);
+	border-radius: 4px;
+}
+
+.bhgv2-config-switch span {
+	vertical-align: middle;
+	font-size: 14px;
+}
+
 .bhgv2-editor-textarea-wrapper {
 	position: relative;
 }
@@ -916,7 +942,7 @@ div[data-google-query-id] {
 .bhgv2-editor-container-reply-content-footer {
 	font-size: 12px;
 	color: #777;
-	padding: 2px 8px;
+	padding: 2px 0;
 }
 
 .bhgv2-editor-container-footer .bhgv2-config-status {
@@ -927,6 +953,11 @@ div[data-google-query-id] {
 	background: #ffffff;
 	padding: 8px;
 	border-radius: 4px;
+	margin-left: 12px;
+	margin-right: 12px;
+	margin-top: 12px;
+	border: 1px solid #bbb;
+
 	display: none;
 }
 
@@ -1030,13 +1061,24 @@ div[data-google-query-id] {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.default = `
-.bhgv2-editor .bhgv2-editor-textarea {
-	min-height: 66px;
-}
+	.main-container_wall-post_header {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
 
-.bhgv2-comment.editing .reply-content__cont {
-	display: none;
-}
+	.main-container_wall-post_header .main-container_wall-post_header_main {
+		flex: 1;
+		width: auto;
+	}
+
+	.bhgv2-editor .bhgv2-editor-textarea {
+		min-height: 66px;
+	}
+
+	.bhgv2-comment.editing .reply-content__cont {
+		display: none;
+	}
 `;
 
 
@@ -1511,6 +1553,7 @@ const BHGV2_Dense = (core) => {
 			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				padding-left: 10px;
 				padding-right: 10px;
+				padding-bottom: 0;
 			}
 
 			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {

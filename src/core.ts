@@ -411,6 +411,22 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.BHBackground = document.getElementById('BH-background') as HTMLElement
 	_dom.BHWrapper = document.getElementById('BH-wrapper') as HTMLElement
 
+	_dom.MainContainer = document.getElementsByClassName(
+		'main-container_wall-post'
+	)[0] as HTMLElement
+	_dom.MainContainerHeader = document.getElementsByClassName(
+		'main-container_wall-post_header'
+	)[0] as HTMLElement
+	_dom.MainContainerHeaderMain = document.getElementsByClassName(
+		'main-container_wall-post_header_main'
+	)[0] as HTMLElement
+
+	_dom.MainContainerHeaderSecond = document.createElement('div')
+	_dom.MainContainerHeaderMain.insertAdjacentElement(
+		'afterend',
+		_dom.MainContainerHeaderSecond
+	)
+
 	_dom.CommentListOuter = document.getElementsByClassName(
 		'webview_commendlist'
 	)[0] as HTMLElement
@@ -487,24 +503,25 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		_dom.EditorContainerReplyContentFooter
 	)
 
-	_dom.EditorContainerFooter = document.createElement('div')
-	_dom.EditorContainerFooter.classList.add('bhgv2-editor-container-footer')
-	_dom.EditorContainer.appendChild(_dom.EditorContainerFooter)
-
 	_dom.ConfigPanelStatus = document.createElement('div')
 	_dom.ConfigPanelStatus.classList.add('bhgv2-config-status')
 
 	_dom.ConfigPanelSwitch = document.createElement('a')
 	_dom.ConfigPanelSwitch.classList.add('bhgv2-config-switch')
-	_dom.ConfigPanelSwitch.innerHTML = '插件設定'
+	_dom.ConfigPanelSwitch.innerHTML =
+		'<span class="material-icons">settings</span> <span>插件設定</span>'
 	_dom.ConfigPanelSwitch.setAttribute('href', '#')
 
-	_dom.EditorContainerFooter.appendChild(_dom.ConfigPanelStatus)
-	_dom.EditorContainerFooter.appendChild(_dom.ConfigPanelSwitch)
+	_dom.MainContainerHeaderSecond.insertAdjacentElement(
+		'beforebegin',
+		_dom.ConfigPanelStatus
+	)
+	_dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch)
 
 	_dom.ConfigPanel = document.createElement('div')
 	_dom.ConfigPanel.classList.add('bhgv2-config-panel')
-	_dom.EditorContainer.append(_dom.ConfigPanel)
+	// _dom.EditorContainer.append(_dom.ConfigPanel)
+	_dom.MainContainerHeader.insertAdjacentElement('afterend', _dom.ConfigPanel)
 
 	_dom.ConfigForm = document.createElement('form')
 	_dom.ConfigForm.classList.add('bhgv2-config-form')

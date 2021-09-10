@@ -101,6 +101,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				padding-left: 10px;
 				padding-right: 10px;
+				padding-bottom: 0;
 			}
 
 			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
