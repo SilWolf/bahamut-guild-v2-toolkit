@@ -149,7 +149,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 										payload.tags,
 										payload.mentions
 									),
-									time: payload.ctime,
 								},
 								marked: GuildTextUtil.markedInstance,
 								youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,

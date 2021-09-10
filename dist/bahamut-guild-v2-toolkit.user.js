@@ -129,7 +129,6 @@ const BHGV2Core = ({ plugins, library }) => {
                             comment: {
                                 ...payload,
                                 text: GuildTextUtil.mentionTagToMarkdown(gsn, payload.text, payload.tags, payload.mentions),
-                                time: payload.ctime,
                             },
                             marked: GuildTextUtil.markedInstance,
                             youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
