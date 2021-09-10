@@ -58,8 +58,8 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	const _statusDom = document.createElement('span')
 	core.DOM.ConfigPanelStatus?.append(_statusDom)
 
-	const audio = new Audio(
-		'https://github.com/SilWolf/bahamut-guild-v2-toolkit/blob/main/notification.mp3?raw=true'
+	const notifyAudio = new Audio(
+		'https://github.com/SilWolf/bahamut-guild-v2-toolkit/blob/main/src/plugins/bhgv2-auto-refresh/notify_2.mp3?raw=true'
 	)
 
 	let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
@@ -175,7 +175,6 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateState = (newValue) => {
-		// audio.play()
 		if (newValue.isInit || newValue.isUserAction) {
 			return
 		}
@@ -205,9 +204,14 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 				createNotification({
 					title: '有新的通知',
 					text: text,
-					silent: !`${_plugin.prefix}:notificationSound`,
+					silent: !config[`${_plugin.prefix}:notificationSound`],
 					timeout: 5000,
 				})
+
+				// 播放通知音
+				if (config[`${_plugin.prefix}:notification`]) {
+					notifyAudio.play()
+				}
 			}
 		}
 	}
