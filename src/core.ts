@@ -27,6 +27,9 @@ import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
 import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
 
 declare var nunjucks: any
+declare var Guild: any
+declare var GuildComment: any
+declare var tippy: any
 
 /** 等待DOM準備完成 */
 
@@ -183,6 +186,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							ctimeSpan.classList.add('bhgv2-comment-ctime')
 						}
 
+						const _replyContentContent =
+							newElement.querySelector<HTMLDivElement>('.reply-content__cont')
+						if (_replyContentContent) {
+							const _replayContentExtra = document.createElement('div')
+							_replayContentExtra.classList.add('reply-content__override')
+							_replyContentContent.insertAdjacentElement(
+								'afterend',
+								_replayContentExtra
+							)
+						}
+
 						return newElement
 					}
 
@@ -214,21 +228,38 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 									const _oldElement = _storedComment.element
 									const _newElement = _createCommentElement(_newComment.payload)
 
-									;[
-										'.reply-content__cont',
-										'.bhgv2-comment-position',
-										'.bhgv2-comment-ctime',
-									].forEach((query: string) => {
-										const _oldEle = _oldElement.querySelector(query)
-										const _newEle = _newElement.querySelector(query)
-										if (
-											_oldEle &&
-											_newEle &&
-											_oldEle.innerHTML !== _newEle.innerHTML
-										) {
+									if (!_storedComment.payload) {
+										_storedComment.payload = _newComment.payload
+									}
+
+									// check if content is changed
+									if (
+										_storedComment.payload.text !== _newComment.payload.text
+									) {
+										const _oldEle = _oldElement.querySelector(
+											'.reply-content__cont'
+										)
+										const _newEle = _newElement.querySelector(
+											'.reply-content__cont'
+										)
+										if (_oldEle && _newEle) {
 											_oldEle.innerHTML = _newEle.innerHTML
 										}
-									})
+									}
+
+									;['.bhgv2-comment-position', '.bhgv2-comment-ctime'].forEach(
+										(query: string) => {
+											const _oldEle = _oldElement.querySelector(query)
+											const _newEle = _newElement.querySelector(query)
+											if (
+												_oldEle &&
+												_newEle &&
+												_oldEle.innerHTML !== _newEle.innerHTML
+											) {
+												_oldEle.innerHTML = _newEle.innerHTML
+											}
+										}
+									)
 								}
 
 								_newCommentIndex++
@@ -279,6 +310,19 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							}
 							if (ctimeSpan) {
 								ctimeSpan.classList.add('bhgv2-comment-ctime')
+							}
+
+							const _replyContentContent =
+								_newComment.element.querySelector<HTMLDivElement>(
+									'.reply-content__cont'
+								)
+							if (_replyContentContent) {
+								const _replayContentExtra = document.createElement('div')
+								_replayContentExtra.classList.add('reply-content__override')
+								_replyContentContent.insertAdjacentElement(
+									'afterend',
+									_replayContentExtra
+								)
 							}
 
 							core.comments[_commentIndex] = _newComment
@@ -757,6 +801,200 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			event,
 		})
 	})
+
+	// Override GuildComment.commentEdit
+	GuildComment.commentEdit = (
+		gsn: string,
+		postSn: string,
+		commentSn: string
+	) => {
+		tippy.hideAll()
+
+		const stringCommentSn = commentSn.toString()
+		const _commentIndex = CORE.comments.findIndex(
+			(c) => c.id === stringCommentSn
+		)
+		if (_commentIndex === -1) {
+			return
+		}
+
+		const _comment = CORE.comments[_commentIndex]
+		const _element = _comment.element
+		if (!_element) {
+			return
+		}
+
+		const _overrideArea = _element.querySelector('.reply-content__override')
+		if (!_overrideArea) {
+			return
+		}
+
+		fetch(
+			`https://api.gamer.com.tw/guild/v1/comment_list.php?gsn=${gsn}&messageId=${postSn}&commentId=${commentSn}`,
+			{ credentials: 'include' }
+		)
+			.then((resp) => {
+				return resp.json()
+			})
+			.then((json) => {
+				if (json.error) {
+					Dialogify.alert(json.error.message)
+					return
+				}
+				let commentData = json.data.comments[0]
+				let commentText = GuildTextUtil.prepareEditContent(
+					commentData.text,
+					commentData.mentions
+				)
+				nunjucks.configure({ autoescape: false })
+				let editHtml = nunjucks.render('comment_form_edit.njk.html', {
+					gsn: gsn,
+					postSn: postSn,
+					commentSn: commentSn,
+					commentText: commentText,
+				})
+
+				_element.classList.toggle('editing', true)
+				_overrideArea.innerHTML = editHtml
+				_overrideArea.querySelector('textarea')?.focus()
+
+				// new GuildEmoticon(commentSelector + ' .reply-content', gsn)
+			})
+			.catch((reason) => {
+				Dialogify.alert(reason)
+			})
+	}
+
+	// Override GuildComment.commentEditCancel
+	GuildComment.commentEditCancel = (postSn: string, commentSn: string) => {
+		tippy.hideAll()
+
+		const stringCommentSn = commentSn.toString()
+		const _commentIndex = CORE.comments.findIndex(
+			(c) => c.id === stringCommentSn
+		)
+		if (_commentIndex === -1) {
+			return
+		}
+
+		const _comment = CORE.comments[_commentIndex]
+		const _element = _comment.element
+		if (!_element) {
+			return
+		}
+
+		const _overrideArea = _element.querySelector('.reply-content__override')
+		if (!_overrideArea) {
+			return
+		}
+
+		_element.classList.toggle('editing', false)
+		_overrideArea.innerHTML = ''
+	}
+
+	// Override GuildComment.commentEditConfirm
+	GuildComment.commentEditConfirm = (
+		gsn: string,
+		postSn: string,
+		commentSn: string
+	) => {
+		tippy.hideAll()
+
+		const stringCommentSn = commentSn.toString()
+		const _commentIndex = CORE.comments.findIndex(
+			(c) => c.id === stringCommentSn
+		)
+		if (_commentIndex === -1) {
+			return
+		}
+
+		const _comment = CORE.comments[_commentIndex]
+		const _element = _comment.element
+		if (!_element) {
+			return
+		}
+
+		const _overrideArea = _element.querySelector('.reply-content__override')
+		if (!_overrideArea) {
+			return
+		}
+
+		const _content = _element.querySelector(
+			'.reply-content__cont'
+		) as HTMLDivElement
+		if (!_content) {
+			return
+		}
+
+		const _editor = _element.querySelector(
+			'textarea.reply-content__edit'
+		) as HTMLTextAreaElement
+		if (!_editor) {
+			return
+		}
+
+		let content = _editor.value || ''
+		if (content.match(/^\s*$/)) {
+			Dialogify.alert('請輸入內容')
+			_editor.focus()
+			return
+		}
+		if (GuildTextUtil.countLimit(_editor, 300)) {
+			return
+		}
+
+		let csrf = new Bahamut.Csrf()
+		csrf.setCookie()
+		let formData = new FormData()
+		formData.append('gsn', gsn)
+		formData.append('messageId', postSn)
+		formData.append('commentId', commentSn)
+		formData.append('content', content)
+		formData.append('legacy', '1')
+		fetch('https://api.gamer.com.tw/guild/v1/comment_edit.php', {
+			method: 'post',
+			body: formData,
+			headers: csrf.getFetchHeaders(),
+			credentials: 'include',
+		}).then((resp) => {
+			resp.json().then((json) => {
+				console.log
+				if (json.error) {
+					Dialogify.alert(json.error.message)
+					return
+				}
+				let commentData = json.data.commentData
+				commentData.position = _comment.position
+				commentData.text = GuildTextUtil.mentionTagToMarkdown(
+					gsn,
+					commentData.text,
+					commentData.tags,
+					commentData.mentions
+				)
+				let post = { id: postSn, to: { gsn: gsn } }
+
+				nunjucks.configure({ autoescape: false })
+				const _newElement: HTMLElement = $(
+					nunjucks.render('comment.njk.html', {
+						post: post,
+						comment: commentData,
+						marked: GuildTextUtil.markedInstance,
+						youtubeParameterMatcher: GuildTextUtil.youtubeParameterMatcher,
+						user: guildPost.loginUser,
+					})
+				)[0]
+
+				const _newContent = _newElement.querySelector(
+					'.reply-content__cont'
+				) as HTMLDivElement
+
+				_content.innerHTML = _newContent.innerHTML
+
+				_element.classList.toggle('editing', false)
+				_overrideArea.innerHTML = ''
+			})
+		})
+	}
 
 	// 觸發一次所有插件的 onMutateConfig
 	CORE.mutateConfig(_config)

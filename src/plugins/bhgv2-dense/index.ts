@@ -81,6 +81,10 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				display: none;
 			}
 
+			.${_plugin.prefix}-hideFooter .reply-content__footer.reply-content__footer__edit.reply-content__footer__edit.reply-content__footer__edit {
+				display: flex;
+			}
+
 			.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: #e9f5f4;
 				border: 1px solid #daebe9;
