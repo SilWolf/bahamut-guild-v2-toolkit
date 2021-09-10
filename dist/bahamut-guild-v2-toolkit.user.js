@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.5.0
+// @version         0.5.1
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -953,6 +953,7 @@ const BHGV2_AutoRefresh = (core) => {
     ];
     const _statusDom = document.createElement('span');
     core.DOM.ConfigPanelStatus?.append(_statusDom);
+    const audio = new Audio('https://github.com/SilWolf/bahamut-guild-v2-toolkit/blob/main/notification.mp3?raw=true');
     let _refreshIntervalObj = undefined;
     _plugin.onMutateConfig = (newValue) => {
         if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
@@ -1032,6 +1033,7 @@ const BHGV2_AutoRefresh = (core) => {
         }
     };
     _plugin.onMutateState = (newValue) => {
+        // audio.play()
         if (newValue.isInit || newValue.isUserAction) {
             return;
         }

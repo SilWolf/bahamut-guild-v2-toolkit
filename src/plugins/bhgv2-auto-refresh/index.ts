@@ -58,6 +58,10 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	const _statusDom = document.createElement('span')
 	core.DOM.ConfigPanelStatus?.append(_statusDom)
 
+	const audio = new Audio(
+		'https://github.com/SilWolf/bahamut-guild-v2-toolkit/blob/main/notification.mp3?raw=true'
+	)
+
 	let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
 
 	_plugin.onMutateConfig = (newValue) => {
@@ -171,6 +175,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateState = (newValue) => {
+		// audio.play()
 		if (newValue.isInit || newValue.isUserAction) {
 			return
 		}
