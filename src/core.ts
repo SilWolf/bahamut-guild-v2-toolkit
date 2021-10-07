@@ -494,13 +494,34 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	)
 	oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea)
 
+	_dom.EditorTips = document.createElement('div')
+	_dom.EditorTips.classList.add('bhgv2-editor-tips')
+	_dom.EditorTips.innerHTML =
+		'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
+
+	_dom.Editor.append(_dom.EditorTips)
+
 	_dom.EditorContainerReplyContentFooter = document.createElement('div')
 	_dom.EditorContainerReplyContentFooter.classList.add(
 		'bhgv2-editor-container-reply-content-footer'
 	)
-	_dom.EditorContainerReplyContentFooter.innerHTML = `Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入`
 	_dom.EditorContainerReplyContent.append(
 		_dom.EditorContainerReplyContentFooter
+	)
+
+	_dom.EditorContainerReplyContentFooterLeft = document.createElement('div')
+	_dom.EditorContainerReplyContentFooterLeft.classList.add(
+		'bhgv2-editor-container-reply-content-footer-left'
+	)
+
+	_dom.EditorContainerReplyContentFooterRight = document.createElement('div')
+	_dom.EditorContainerReplyContentFooterRight.classList.add(
+		'bhgv2-editor-container-reply-content-footer-right'
+	)
+
+	_dom.EditorContainerReplyContentFooter.append(
+		_dom.EditorContainerReplyContentFooterLeft,
+		_dom.EditorContainerReplyContentFooterRight
 	)
 
 	_dom.ConfigPanelStatus = document.createElement('div')
@@ -512,16 +533,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		'<span class="material-icons">settings</span> <span>插件設定</span>'
 	_dom.ConfigPanelSwitch.setAttribute('href', '#')
 
-	_dom.MainContainerHeaderSecond.insertAdjacentElement(
-		'beforebegin',
-		_dom.ConfigPanelStatus
-	)
-	_dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch)
+	// _dom.MainContainerHeaderSecond.insertAdjacentElement(
+	// 	'beforebegin',
+	// 	_dom.ConfigPanelStatus
+	// )
+	// _dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch)
+	_dom.EditorContainerReplyContentFooterLeft.append(_dom.ConfigPanelStatus)
+	_dom.EditorContainerReplyContentFooterRight.append(_dom.ConfigPanelSwitch)
 
 	_dom.ConfigPanel = document.createElement('div')
 	_dom.ConfigPanel.classList.add('bhgv2-config-panel')
-	// _dom.EditorContainer.append(_dom.ConfigPanel)
-	_dom.MainContainerHeader.insertAdjacentElement('afterend', _dom.ConfigPanel)
+	_dom.EditorContainerReplyContent.append(_dom.ConfigPanel)
 
 	_dom.ConfigForm = document.createElement('form')
 	_dom.ConfigForm.classList.add('bhgv2-config-form')

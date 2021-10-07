@@ -337,10 +337,19 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorTextareaWrapper.append(_dom.EditorTextareaCarbon, _dom.EditorTextarea);
     oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextareaWrapper);
     oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea);
+    _dom.EditorTips = document.createElement('div');
+    _dom.EditorTips.classList.add('bhgv2-editor-tips');
+    _dom.EditorTips.innerHTML =
+        'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入';
+    _dom.Editor.append(_dom.EditorTips);
     _dom.EditorContainerReplyContentFooter = document.createElement('div');
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
-    _dom.EditorContainerReplyContentFooter.innerHTML = `Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入`;
     _dom.EditorContainerReplyContent.append(_dom.EditorContainerReplyContentFooter);
+    _dom.EditorContainerReplyContentFooterLeft = document.createElement('div');
+    _dom.EditorContainerReplyContentFooterLeft.classList.add('bhgv2-editor-container-reply-content-footer-left');
+    _dom.EditorContainerReplyContentFooterRight = document.createElement('div');
+    _dom.EditorContainerReplyContentFooterRight.classList.add('bhgv2-editor-container-reply-content-footer-right');
+    _dom.EditorContainerReplyContentFooter.append(_dom.EditorContainerReplyContentFooterLeft, _dom.EditorContainerReplyContentFooterRight);
     _dom.ConfigPanelStatus = document.createElement('div');
     _dom.ConfigPanelStatus.classList.add('bhgv2-config-status');
     _dom.ConfigPanelSwitch = document.createElement('a');
@@ -348,12 +357,16 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigPanelSwitch.innerHTML =
         '<span class="material-icons">settings</span> <span>插件設定</span>';
     _dom.ConfigPanelSwitch.setAttribute('href', '#');
-    _dom.MainContainerHeaderSecond.insertAdjacentElement('beforebegin', _dom.ConfigPanelStatus);
-    _dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch);
+    // _dom.MainContainerHeaderSecond.insertAdjacentElement(
+    // 	'beforebegin',
+    // 	_dom.ConfigPanelStatus
+    // )
+    // _dom.MainContainerHeaderSecond.appendChild(_dom.ConfigPanelSwitch)
+    _dom.EditorContainerReplyContentFooterLeft.append(_dom.ConfigPanelStatus);
+    _dom.EditorContainerReplyContentFooterRight.append(_dom.ConfigPanelSwitch);
     _dom.ConfigPanel = document.createElement('div');
     _dom.ConfigPanel.classList.add('bhgv2-config-panel');
-    // _dom.EditorContainer.append(_dom.ConfigPanel)
-    _dom.MainContainerHeader.insertAdjacentElement('afterend', _dom.ConfigPanel);
+    _dom.EditorContainerReplyContent.append(_dom.ConfigPanel);
     _dom.ConfigForm = document.createElement('form');
     _dom.ConfigForm.classList.add('bhgv2-config-form');
     _dom.ConfigPanel.append(_dom.ConfigForm);
@@ -880,23 +893,15 @@ div[data-google-query-id] {
 .bhgv2-editor.bhgv2-editor.bhgv2-editor {
 	border-color: #000;
 	border-radius: 0;
-}
-
-.bhgv2-config-status {
-	color: #B3B3B3;
-	font-size: 12px;
+	padding-bottom: 0;
 }
 
 .bhgv2-config-switch {
-	display: inline-block;
-	padding: 4px 8px;
-	background-color: rgba(0, 0 ,0 ,0.08);
-	border-radius: 4px;
 }
 
 .bhgv2-config-switch span {
 	vertical-align: middle;
-	font-size: 14px;
+	font-size: 12px;
 }
 
 .bhgv2-editor-textarea-wrapper {
@@ -939,10 +944,21 @@ div[data-google-query-id] {
 	font-size: 12px;
 }
 
-.bhgv2-editor-container-reply-content-footer {
+.bhgv2-editor-tips {
+	border-top: 1px dashed #aaa;
+	color: #aaa;
 	font-size: 12px;
-	color: #777;
-	padding: 2px 0;
+}
+
+.bhgv2-editor-container-reply-content-footer {
+	display: flex;
+}
+
+.bhgv2-editor-container-reply-content-footer-left {
+	flex: 1;
+	font-size: 12px;
+	color: #444;
+	padding: 2px 0 0 8px;
 }
 
 .bhgv2-editor-container-footer .bhgv2-config-status {
@@ -953,9 +969,7 @@ div[data-google-query-id] {
 	background: #ffffff;
 	padding: 8px;
 	border-radius: 4px;
-	margin-left: 12px;
-	margin-right: 12px;
-	margin-top: 12px;
+	margin-top: 6px;
 	border: 1px solid #bbb;
 
 	display: none;
