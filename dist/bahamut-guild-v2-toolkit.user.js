@@ -698,7 +698,6 @@ const BHGV2Core = ({ plugins, library }) => {
             credentials: 'include',
         }).then((resp) => {
             resp.json().then((json) => {
-                console.log;
                 if (json.error) {
                     Dialogify.alert(json.error.message);
                     return;
@@ -1195,22 +1194,6 @@ const BHGV2_AutoRefresh = (core) => {
                     _refreshIntervalObj = undefined;
                 }
                 _statusDom.style.display = 'inline-block';
-                const _config = core.getConfig();
-                let _interval = 30;
-                if (_config[`${_plugin.prefix}:slowMode`] === 2) {
-                    _interval = 60 * 60;
-                }
-                else if (_config[`${_plugin.prefix}:slowMode`] === 1) {
-                    _interval = 5 * 60;
-                }
-                else {
-                    _interval = parseInt(newValue[`${_plugin.prefix}:interval`] ||
-                        _config[`${_plugin.prefix}:interval`]);
-                }
-                if (!_interval || _interval <= 0) {
-                    _interval = 30;
-                }
-                const _intervalMs = _interval * 1000;
                 const timeoutFn = async () => {
                     const { commentListApi } = core.getState();
                     if (!commentListApi) {
@@ -1245,18 +1228,50 @@ const BHGV2_AutoRefresh = (core) => {
                             payload: _comment,
                         })));
                     }
-                    core.mutateState({ latestComments });
+                    const lastCommentCTime = latestComments?.[latestComments.length - 1]?.payload?.ctime;
+                    const _config = core.getConfig();
+                    let _interval = parseInt(newValue[`${_plugin.prefix}:interval`] ||
+                        _config[`${_plugin.prefix}:interval`]) || 30;
+                    let isSlowMode = false;
+                    if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
+                        const commentCTime = new Date(lastCommentCTime).getTime();
+                        const nowTime = Date.now();
+                        if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
+                            // over 12 hours
+                            _interval = 3600;
+                            isSlowMode = true;
+                        }
+                        else if (nowTime - commentCTime > 15 * 60 * 1000) {
+                            // over 15 minutes
+                            _interval = 300;
+                            isSlowMode = true;
+                        }
+                    }
+                    const _intervalMs = _interval * 1000;
+                    _statusDom.innerHTML = `${_config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
+                        ? '慢速更新'
+                        : '自動更新中'}(${[
+                        `${_interval}s`,
+                        _notification ? '通知' : undefined,
+                        _notification && _notificationSound ? '聲音' : undefined,
+                    ]
+                        .filter((item) => !!item)
+                        .join(',')})`;
                     _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
+                    core.mutateState({
+                        latestComments,
+                        lastCommentCTime,
+                    });
                 };
-                _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
+                _refreshIntervalObj = setTimeout(timeoutFn, 2000);
+                const _config = core.getConfig();
                 const _notification = newValue[`${_plugin.prefix}:notification`] !== undefined
                     ? newValue[`${_plugin.prefix}:notification`]
                     : _config[`${_plugin.prefix}:notification`];
                 const _notificationSound = newValue[`${_plugin.prefix}:notificationSound`] !== undefined
                     ? newValue[`${_plugin.prefix}:notificationSound`]
                     : _config[`${_plugin.prefix}:notificationSound`];
-                _statusDom.innerHTML = `自動更新中(${[
-                    `${_interval}s`,
+                _statusDom.innerHTML = `自動更新中(計算中...${[
                     _notification ? '通知' : undefined,
                     _notification && _notificationSound ? '聲音' : undefined,
                 ]
@@ -1269,34 +1284,9 @@ const BHGV2_AutoRefresh = (core) => {
         if (newValue.isInit || newValue.isUserAction) {
             return;
         }
-        if (!newValue.latestComments) {
-            return;
-        }
-        const _comment = newValue.latestComments[0];
-        // Check if enter Slow-down mode
-        if (_comment.payload?.ctime) {
-            const commentCTime = new Date(_comment.payload?.ctime).getTime();
-            const nowTime = Date.now();
-            if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
-                // over 12 hours
-                core.mutateConfig({
-                    [`${_plugin.prefix}:slowMode`]: 2,
-                });
-            }
-            else if (nowTime - commentCTime > 15 * 60 * 1000) {
-                // over 15 minutes
-                core.mutateConfig({
-                    [`${_plugin.prefix}:slowMode`]: 1,
-                });
-            }
-            else {
-                core.mutateConfig({
-                    [`${_plugin.prefix}:slowMode`]: undefined,
-                });
-            }
-        }
         const config = core.getConfig();
-        if (config[`${_plugin.prefix}:notification`]) {
+        if (config[`${_plugin.prefix}:notification`] && newValue.latestComments) {
+            const _comment = newValue.latestComments[0];
             let text = '[如果你看到這句話，代表有東西爆炸了，請聯絡月月處理……]';
             if (_comment.payload) {
                 const _payload = _comment.payload;

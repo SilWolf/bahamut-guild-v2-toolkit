@@ -996,7 +996,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			credentials: 'include',
 		}).then((resp) => {
 			resp.json().then((json) => {
-				console.log
 				if (json.error) {
 					Dialogify.alert(json.error.message)
 					return
