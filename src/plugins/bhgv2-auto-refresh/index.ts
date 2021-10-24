@@ -108,6 +108,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						.then((res: TCommentsListApiResponse) => res.data)
 
 					const { commentsCount: currentCommentsCount } = core.getState()
+					console.log('commentsCount', currentCommentsCount)
 					const latestComments: TCoreStateComment[] = [
 						...comments.map((_comment) => ({
 							id: _comment.id,

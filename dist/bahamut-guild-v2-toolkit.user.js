@@ -251,7 +251,10 @@ const BHGV2Core = ({ plugins, library }) => {
                             _newCommentIndex++;
                         }
                     }
-                    newValue.commentsCount = core.comments.length;
+                    const { commentsCount: oldCommentsCount } = CORE.getState();
+                    newValue.commentsCount =
+                        (oldCommentsCount || 0) +
+                            (newValue.isUserAction ? 0 : revisedLatestComments.length);
                     newValue.latestComments =
                         revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
                 }
@@ -1205,6 +1208,7 @@ const BHGV2_AutoRefresh = (core) => {
                         .then((res) => res.json())
                         .then((res) => res.data);
                     const { commentsCount: currentCommentsCount } = core.getState();
+                    console.log('commentsCount', currentCommentsCount);
                     const latestComments = [
                         ...comments.map((_comment) => ({
                             id: _comment.id,

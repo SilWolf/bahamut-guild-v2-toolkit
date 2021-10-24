@@ -343,7 +343,11 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 						}
 					}
 
-					newValue.commentsCount = core.comments.length
+					const { commentsCount: oldCommentsCount } = CORE.getState()
+
+					newValue.commentsCount =
+						(oldCommentsCount || 0) +
+						(newValue.isUserAction ? 0 : revisedLatestComments.length)
 					newValue.latestComments =
 						revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 				}
