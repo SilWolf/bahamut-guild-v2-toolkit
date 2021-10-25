@@ -248,7 +248,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 			})
 
 			// 播放通知音
-			if (config[`${_plugin.prefix}:notification`]) {
+			if (config[`${_plugin.prefix}:notificationSound`]) {
 				notifyAudio.play()
 			}
 		}

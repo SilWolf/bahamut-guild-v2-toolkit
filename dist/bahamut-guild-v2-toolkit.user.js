@@ -1312,7 +1312,7 @@ const BHGV2_AutoRefresh = (core) => {
                 timeout: 5000,
             });
             // 播放通知音
-            if (config[`${_plugin.prefix}:notification`]) {
+            if (config[`${_plugin.prefix}:notificationSound`]) {
                 notifyAudio.play();
             }
         }
