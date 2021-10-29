@@ -71,7 +71,7 @@ const BHGV2_MasterLayout: TPluginConstructor = (core) => {
 	]
 
 	_plugin.css = [
-		`
+		`	
 			.${_plugin.prefix}-hideLeftMenu .main-sidebar_left {
 				width: 0;
 				display: none;

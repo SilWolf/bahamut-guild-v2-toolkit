@@ -310,8 +310,11 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.MainContainer = document.getElementsByClassName('main-container_wall-post')[0];
     _dom.MainContainerHeader = document.getElementsByClassName('main-container_wall-post_header')[0];
     _dom.MainContainerHeaderMain = document.getElementsByClassName('main-container_wall-post_header_main')[0];
-    _dom.MainContainerHeaderSecond = document.createElement('div');
-    _dom.MainContainerHeaderMain.insertAdjacentElement('afterend', _dom.MainContainerHeaderSecond);
+    // _dom.MainContainerHeaderSecond = document.createElement('div')
+    // _dom.MainContainerHeaderMain.insertAdjacentElement(
+    // 	'afterend',
+    // 	_dom.MainContainerHeaderSecond
+    // )
     _dom.CommentListOuter = document.getElementsByClassName('webview_commendlist')[0];
     _dom.CommentListOuter.classList.add('bhgv2-comment-list-outer');
     _dom.CommentList = _dom.CommentListOuter.firstElementChild;
@@ -895,7 +898,7 @@ div[data-google-query-id] {
 .bhgv2-editor.bhgv2-editor.bhgv2-editor {
 	border-color: #000;
 	border-radius: 0;
-	padding-bottom: 0;
+	padding-bottom: 18px;
 }
 
 .bhgv2-config-switch {
@@ -922,7 +925,7 @@ div[data-google-query-id] {
 	right: 0;
 
 	color: transparent;
-	font-size: 15px;
+	font-size: 14px;
 	line-height: 1.5;
 	pointer-events: none;
 }
@@ -947,9 +950,13 @@ div[data-google-query-id] {
 }
 
 .bhgv2-editor-tips {
-	border-top: 1px dashed #aaa;
-	color: #aaa;
+	border-top: 1px dashed #bbb;
+	color: #bbb;
 	font-size: 12px;
+	position: absolute;
+	bottom: 0;
+	left: 8px;
+	right: 8px;
 }
 
 .bhgv2-editor-container-reply-content-footer {
@@ -1066,6 +1073,10 @@ div[data-google-query-id] {
 .bhgv2-comment-list {
 	min-height: calc(100vh - 300px);
 }
+
+.reply-content__cont.reply-content__cont p br:nth-child(1) {
+	display: none;
+}
 `;
 
 
@@ -1089,7 +1100,7 @@ exports.default = `
 	}
 
 	.bhgv2-editor .bhgv2-editor-textarea {
-		min-height: 66px;
+		min-height: 22px;
 	}
 
 	.bhgv2-comment.editing .reply-content__cont {
@@ -1208,7 +1219,6 @@ const BHGV2_AutoRefresh = (core) => {
                         .then((res) => res.json())
                         .then((res) => res.data);
                     const { commentsCount: currentCommentsCount } = core.getState();
-                    console.log('commentsCount', currentCommentsCount);
                     const latestComments = [
                         ...comments.map((_comment) => ({
                             id: _comment.id,
@@ -1245,11 +1255,12 @@ const BHGV2_AutoRefresh = (core) => {
                             _interval = 3600;
                             isSlowMode = true;
                         }
-                        else if (nowTime - commentCTime > 15 * 60 * 1000) {
-                            // over 15 minutes
+                        else if (nowTime - commentCTime > 30 * 60 * 1000) {
+                            // over 30 minutes
                             _interval = 300;
                             isSlowMode = true;
                         }
+                        console.log(nowTime, commentCTime, nowTime - commentCTime, 12 * 60 * 60 * 1000, 30 * 60 * 1000, _interval, isSlowMode);
                     }
                     const _intervalMs = _interval * 1000;
                     _statusDom.innerHTML = `${_config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
@@ -1518,7 +1529,7 @@ const BHGV2_Dense = (core) => {
     _plugin.configs = [
         {
             key: `${_plugin.prefix}-tradUI`,
-            suffixLabel: '仿舊版的配色',
+            suffixLabel: '仿舊版的介面',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
@@ -1544,6 +1555,27 @@ const BHGV2_Dense = (core) => {
             inputType: 'switch',
             defaultValue: false,
         },
+        {
+            key: `${_plugin.prefix}-smallerImage`,
+            suffixLabel: '圖片縮小',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: `${_plugin.prefix}-squareAvatar`,
+            suffixLabel: '方型的頭像',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+        {
+            key: `${_plugin.prefix}-perfectLayout`,
+            suffixLabel: '飛鳥的完美排版',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
     ];
     _plugin.configLayout = [
         [
@@ -1552,6 +1584,8 @@ const BHGV2_Dense = (core) => {
             `${_plugin.prefix}-narrowerGutter`,
         ],
         [`${_plugin.prefix}-hideFooter`],
+        [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
+        [`${_plugin.prefix}-perfectLayout`],
     ];
     _plugin.css = [
         `
@@ -1568,6 +1602,19 @@ const BHGV2_Dense = (core) => {
 			.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				margin-left: 0;
 				margin-right: 0;
+			}
+
+			.webview_commendlist .c-reply__item .reply-avatar-img.reply-avatar-img {
+				width: 40px;
+				height: 40px;
+			}
+
+			.reply-content__user.reply-content__user.reply-content__user {
+				color: #0055aa;
+			}
+
+			.reply-content__user.reply-content__user.reply-content__user:hover {
+				text-decoration: underline;
 			}
 			
 			.${_plugin.prefix}-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,
@@ -1587,15 +1634,14 @@ const BHGV2_Dense = (core) => {
 
 			.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: #e9f5f4;
-				border: 1px solid #daebe9;
-				margin-top: 3px;
+				border-bottom: 1px solid #999999;
 			}
 
 			.${_plugin.prefix}-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {
-				padding-top: 6px;
-				padding-bottom: 6px;
+				padding-top: 5px;
 				padding-left: 10px;
 				padding-right: 10px;
+				padding-bottom: 0;
 			}
 
 			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
@@ -1604,13 +1650,42 @@ const BHGV2_Dense = (core) => {
 				padding-bottom: 0;
 			}
 
+			.${_plugin.prefix}-narrowerGutter .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
+				margin-top: 0;
+			}
+
 			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
-				margin-left: 20px;
+				margin-left: 14px;
+				line-height: 14px;
 				display: none;
 			}
 
 			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
 				display: inline-block;
+				vertical-align: text-top;
+			}
+
+			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {
+				margin-bottom: 4px;
+				max-width: 100px;
+				max-height: 150px;
+				width: auto;
+				border-radius: 8px;
+				vertical-align: middle;
+				transition: max-width 0.3s, max-height 0.3s;
+			}
+
+			.${_plugin.prefix}-squareAvatar .reply-avatar-img.reply-avatar-img.reply-avatar-img,
+			.${_plugin.prefix}-squareAvatar .reply-avatar-img.reply-avatar-img.reply-avatar-img img {
+				border-radius: 0;
+			}
+
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed {
+				max-width: 615px;
+			}
+
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed {
+				max-width: 515px;
 			}
 		`,
     ];
@@ -1636,9 +1711,23 @@ const BHGV2_Dense = (core) => {
     };
     _plugin.onMutateConfig = (newValue) => {
         ;
-        ['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach((key) => {
+        [
+            'tradUI',
+            'hideFooter',
+            'narrowerGutter',
+            'smallerImage',
+            'squareAvatar',
+        ].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.CommentListOuter;
+                if (dom) {
+                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
+                }
+            }
+        });
+        ['sizeSmaller', 'perfectLayout'].forEach((key) => {
+            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+                const dom = core.DOM.Body;
                 if (dom) {
                     dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
                 }
@@ -1921,7 +2010,7 @@ const BHGV2_MasterLayout = (core) => {
         [`${_plugin.prefix}-hideGuildControlPanel`],
     ];
     _plugin.css = [
-        `
+        `	
 			.${_plugin.prefix}-hideLeftMenu .main-sidebar_left {
 				width: 0;
 				display: none;

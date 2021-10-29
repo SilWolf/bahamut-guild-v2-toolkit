@@ -16,7 +16,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 	_plugin.configs = [
 		{
 			key: `${_plugin.prefix}-tradUI`,
-			suffixLabel: '仿舊版的配色',
+			suffixLabel: '仿舊版的介面',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
@@ -42,6 +42,27 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			inputType: 'switch',
 			defaultValue: false,
 		},
+		{
+			key: `${_plugin.prefix}-smallerImage`,
+			suffixLabel: '圖片縮小',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: false,
+		},
+		{
+			key: `${_plugin.prefix}-squareAvatar`,
+			suffixLabel: '方型的頭像',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: false,
+		},
+		{
+			key: `${_plugin.prefix}-perfectLayout`,
+			suffixLabel: '飛鳥的完美排版',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: true,
+		},
 	]
 
 	_plugin.configLayout = [
@@ -51,6 +72,8 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			`${_plugin.prefix}-narrowerGutter`,
 		],
 		[`${_plugin.prefix}-hideFooter`],
+		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
+		[`${_plugin.prefix}-perfectLayout`],
 	]
 
 	_plugin.css = [
@@ -68,6 +91,19 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			.bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				margin-left: 0;
 				margin-right: 0;
+			}
+
+			.webview_commendlist .c-reply__item .reply-avatar-img.reply-avatar-img {
+				width: 40px;
+				height: 40px;
+			}
+
+			.reply-content__user.reply-content__user.reply-content__user {
+				color: #0055aa;
+			}
+
+			.reply-content__user.reply-content__user.reply-content__user:hover {
+				text-decoration: underline;
 			}
 			
 			.${_plugin.prefix}-sizeSmaller .reply-content__user.reply-content__user.reply-content__user,
@@ -87,15 +123,14 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 
 			.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: #e9f5f4;
-				border: 1px solid #daebe9;
-				margin-top: 3px;
+				border-bottom: 1px solid #999999;
 			}
 
 			.${_plugin.prefix}-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {
-				padding-top: 6px;
-				padding-bottom: 6px;
+				padding-top: 5px;
 				padding-left: 10px;
 				padding-right: 10px;
+				padding-bottom: 0;
 			}
 
 			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
@@ -104,13 +139,42 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				padding-bottom: 0;
 			}
 
+			.${_plugin.prefix}-narrowerGutter .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
+				margin-top: 0;
+			}
+
 			.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
-				margin-left: 20px;
+				margin-left: 14px;
+				line-height: 14px;
 				display: none;
 			}
 
 			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
 				display: inline-block;
+				vertical-align: text-top;
+			}
+
+			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {
+				margin-bottom: 4px;
+				max-width: 100px;
+				max-height: 150px;
+				width: auto;
+				border-radius: 8px;
+				vertical-align: middle;
+				transition: max-width 0.3s, max-height 0.3s;
+			}
+
+			.${_plugin.prefix}-squareAvatar .reply-avatar-img.reply-avatar-img.reply-avatar-img,
+			.${_plugin.prefix}-squareAvatar .reply-avatar-img.reply-avatar-img.reply-avatar-img img {
+				border-radius: 0;
+			}
+
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed {
+				max-width: 615px;
+			}
+
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed {
+				max-width: 515px;
 			}
 		`,
 	]
@@ -139,19 +203,34 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateConfig = (newValue) => {
-		;['tradUI', 'sizeSmaller', 'hideFooter', 'narrowerGutter'].forEach(
-			(key) => {
-				if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-					const dom = core.DOM.CommentListOuter
-					if (dom) {
-						dom.classList.toggle(
-							`${_plugin.prefix}-${key}`,
-							newValue[`${_plugin.prefix}-${key}`] as boolean
-						)
-					}
+		;[
+			'tradUI',
+			'hideFooter',
+			'narrowerGutter',
+			'smallerImage',
+			'squareAvatar',
+		].forEach((key) => {
+			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+				const dom = core.DOM.CommentListOuter
+				if (dom) {
+					dom.classList.toggle(
+						`${_plugin.prefix}-${key}`,
+						newValue[`${_plugin.prefix}-${key}`] as boolean
+					)
 				}
 			}
-		)
+		})
+		;['sizeSmaller', 'perfectLayout'].forEach((key) => {
+			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+				const dom = core.DOM.Body
+				if (dom) {
+					dom.classList.toggle(
+						`${_plugin.prefix}-${key}`,
+						newValue[`${_plugin.prefix}-${key}`] as boolean
+					)
+				}
+			}
+		})
 	}
 
 	return _plugin

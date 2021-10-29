@@ -425,11 +425,11 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		'main-container_wall-post_header_main'
 	)[0] as HTMLElement
 
-	_dom.MainContainerHeaderSecond = document.createElement('div')
-	_dom.MainContainerHeaderMain.insertAdjacentElement(
-		'afterend',
-		_dom.MainContainerHeaderSecond
-	)
+	// _dom.MainContainerHeaderSecond = document.createElement('div')
+	// _dom.MainContainerHeaderMain.insertAdjacentElement(
+	// 	'afterend',
+	// 	_dom.MainContainerHeaderSecond
+	// )
 
 	_dom.CommentListOuter = document.getElementsByClassName(
 		'webview_commendlist'

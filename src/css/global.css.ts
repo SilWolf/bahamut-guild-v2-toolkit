@@ -74,7 +74,7 @@ div[data-google-query-id] {
 .bhgv2-editor.bhgv2-editor.bhgv2-editor {
 	border-color: #000;
 	border-radius: 0;
-	padding-bottom: 0;
+	padding-bottom: 18px;
 }
 
 .bhgv2-config-switch {
@@ -101,7 +101,7 @@ div[data-google-query-id] {
 	right: 0;
 
 	color: transparent;
-	font-size: 15px;
+	font-size: 14px;
 	line-height: 1.5;
 	pointer-events: none;
 }
@@ -126,9 +126,13 @@ div[data-google-query-id] {
 }
 
 .bhgv2-editor-tips {
-	border-top: 1px dashed #aaa;
-	color: #aaa;
+	border-top: 1px dashed #bbb;
+	color: #bbb;
 	font-size: 12px;
+	position: absolute;
+	bottom: 0;
+	left: 8px;
+	right: 8px;
 }
 
 .bhgv2-editor-container-reply-content-footer {
@@ -244,5 +248,9 @@ div[data-google-query-id] {
 
 .bhgv2-comment-list {
 	min-height: calc(100vh - 300px);
+}
+
+.reply-content__cont.reply-content__cont p br:nth-child(1) {
+	display: none;
 }
 `

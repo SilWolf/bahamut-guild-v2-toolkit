@@ -1184,7 +1184,7 @@
 		}
 
 		.reply-input textarea {
-			min-height: 66px;
+			min-height: 22px;
 		}
 	`
 
