@@ -93,11 +93,6 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				margin-right: 0;
 			}
 
-			.webview_commendlist .c-reply__item .reply-avatar-img.reply-avatar-img {
-				width: 40px;
-				height: 40px;
-			}
-
 			.reply-content__user.reply-content__user.reply-content__user {
 				color: #0055aa;
 			}
@@ -151,7 +146,21 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 
 			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
 				display: inline-block;
-				vertical-align: text-top;
+			}
+
+			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {
+				margin-bottom: 4px;
+				max-width: 100px;
+				max-height: 150px;
+				width: auto;
+				border-radius: 8px;
+				vertical-align: middle;
+				transition: max-width 0.3s, max-height 0.3s;
+			}
+
+			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img:hover {
+				max-width: calc(100% - 20px);
+				max-height: 500px;
 			}
 
 			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {

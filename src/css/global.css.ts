@@ -72,9 +72,11 @@ div[data-google-query-id] {
 }
 
 .bhgv2-editor.bhgv2-editor.bhgv2-editor {
-	border-color: #000;
+	border-color: #666;
 	border-radius: 0;
 	padding-bottom: 18px;
+	padding-right: 4px !important;
+	padding-top: 4px;
 }
 
 .bhgv2-config-switch {
@@ -250,7 +252,27 @@ div[data-google-query-id] {
 	min-height: calc(100vh - 300px);
 }
 
+.webview_commendlist .c-reply__item .reply-content.reply-content {
+	padding-left: 44px;
+}
+
 .reply-content__cont.reply-content__cont p br:nth-child(1) {
 	display: none;
+}
+
+.c-reply__editor .reply-input .comment_icon.comment_icon {
+	top: initial;
+	bottom: 3px;
+	z-index: 2;
+}
+
+.c-reply__editor .reply-input .comment_icon.comment_icon a {
+	width: 12px;
+	height: 12px;
+}
+
+.c-reply__editor .reply-input .comment_icon.comment_icon a img {
+	width: 16px;
+	height: 16px;
 }
 `
