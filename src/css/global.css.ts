@@ -178,12 +178,20 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-dark .bhgv2-config-panel {
+	background: #222;
+}
+
 .bhgv2-config-panel.active {
 	display: block;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
 	border: 1px solid #999;
+}
+
+.bhgv2-dark .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
+	color: #C7C6CB;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {
@@ -291,7 +299,7 @@ div[data-google-query-id] {
 .webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
 	height: auto;
 	overflow: auto;
-	resize: both;
+	resize: vertical;
 }
 
 .globalcontainer .main-container_wall-post {

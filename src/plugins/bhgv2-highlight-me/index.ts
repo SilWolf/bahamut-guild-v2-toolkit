@@ -43,6 +43,11 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 				color: #fff;
 				font-size: 115%;
 			}
+
+			.bhgv2-dark .${_plugin.prefix}-isEnabled .bhgv2-comment.${_plugin.prefix}-comment.${_plugin.prefix}-on {
+				background: #484027;
+			}
+
 			.${_plugin.prefix}-onlyShowHighlighted .bhgv2-comment:not(.${_plugin.prefix}-on) {
 				display: none;
 			}

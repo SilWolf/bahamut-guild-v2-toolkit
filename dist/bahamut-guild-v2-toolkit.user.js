@@ -1004,12 +1004,20 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-dark .bhgv2-config-panel {
+	background: #222;
+}
+
 .bhgv2-config-panel.active {
 	display: block;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
 	border: 1px solid #999;
+}
+
+.bhgv2-dark .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
+	color: #C7C6CB;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {
@@ -1117,7 +1125,7 @@ div[data-google-query-id] {
 .webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
 	height: auto;
 	overflow: auto;
-	resize: both;
+	resize: vertical;
 }
 
 .globalcontainer .main-container_wall-post {
@@ -1443,6 +1451,10 @@ const BHGV2_CommentsReverse = (core) => {
 				background-color: rgba(180, 180, 180, 0.9);
 				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 			}
+
+			.bhgv2-dark .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				background-color: #272728;
+			}
 			
 			.bhgv2-comment-list > div.bhgv2-editor-container {
 				flex-direction: column;
@@ -1493,39 +1505,6 @@ const BHGV2_DarkMode = (core) => {
         pluginName: 'BHGV2_DarkMode',
         prefix: 'BHGV2_DarkMode',
     };
-    _plugin.configs = [
-        {
-            key: `${_plugin.prefix}:isEnable`,
-            suffixLabel: '巴哈開啟黑闇模式時切換介面顏色',
-            dataType: 'boolean',
-            inputType: 'switch',
-            defaultValue: true,
-        },
-    ];
-    _plugin.css = [
-        `
-			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark {
-				background-color: rgba(0, 0, 0, 0.9) !important;
-				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) !important;
-			}
-
-			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel {
-				background: #222222;
-			}
-
-			.bhgv2-editor-container.bhgv2-dark-mode-enabled.dark .bhgv2-config-panel input {
-				color: #c7c6cb;
-			}
-		`,
-    ];
-    _plugin.onMutateConfig = (newValue) => {
-        if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
-            const dom = core.DOM.EditorContainer;
-            if (dom) {
-                dom.classList.toggle('bhgv2-dark-mode-enabled', newValue[`${_plugin.prefix}:isEnable`]);
-            }
-        }
-    };
     const _getCookie = (name) => {
         const value = '; ' + document.cookie;
         const parts = value.split('; ' + name + '=');
@@ -1535,12 +1514,11 @@ const BHGV2_DarkMode = (core) => {
     };
     const darkModeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(() => {
-            //檢查c-reply__editor是否存在，避免不必要的error觸發
-            const editorContainer = core.DOM.EditorContainer;
-            if (!editorContainer) {
+            const body = core.DOM.Body;
+            if (!body) {
                 return;
             }
-            editorContainer.classList.toggle('dark', _getCookie('ckForumDarkTheme') == 'yes');
+            body.classList.toggle('bhgv2-dark', _getCookie('ckForumDarkTheme') == 'yes');
         });
     });
     var target = core.DOM.Head;
@@ -1662,6 +1640,10 @@ const BHGV2_Dense = (core) => {
 				color: #0055aa;
 			}
 
+			.bhgv2-dark .reply-content__user.reply-content__user.reply-content__user {
+				color: #f5f5f5;
+			}
+
 			.reply-content__user.reply-content__user.reply-content__user:hover {
 				text-decoration: underline;
 			}
@@ -1683,6 +1665,11 @@ const BHGV2_Dense = (core) => {
 
 			.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: #e9f5f4;
+				border-bottom: 1px solid #999999;
+			}
+			
+			.bhgv2-dark .${_plugin.prefix}-tradUI .bhgv2-comment {
+				background-color: transparent;
 				border-bottom: 1px solid #999999;
 			}
 
@@ -1869,6 +1856,11 @@ const BHGV2_HighlightMe = (core) => {
 				color: #fff;
 				font-size: 115%;
 			}
+
+			.bhgv2-dark .${_plugin.prefix}-isEnabled .bhgv2-comment.${_plugin.prefix}-comment.${_plugin.prefix}-on {
+				background: #484027;
+			}
+
 			.${_plugin.prefix}-onlyShowHighlighted .bhgv2-comment:not(.${_plugin.prefix}-on) {
 				display: none;
 			}
@@ -2628,21 +2620,62 @@ const BHGV2_Rainbow = (core) => {
         },
     ];
     const _colors = [
-        '#bacff5',
-        '#f5badb',
-        '#f5f2ba',
-        '#c6f5ba',
-        '#f5e3ba',
-        '#bcbaf5',
-        '#d8baf5',
-        '#8accdb',
-        '#db8ab3',
-        '#dbd48a',
-        '#8bdb8a',
+        {
+            light: '#bacff5',
+            dark: '#2b3c5a',
+        },
+        {
+            light: '#f5badb',
+            dark: '#4c273c',
+        },
+        {
+            light: '#f5f2ba',
+            dark: '#44410b',
+        },
+        {
+            light: '#c6f5ba',
+            dark: '#103a05',
+        },
+        {
+            light: '#f5e3ba',
+            dark: '#423a28',
+        },
+        {
+            light: '#bcbaf5',
+            dark: '#272632',
+        },
+        {
+            light: '#bacff5',
+            dark: '#061530',
+        },
+        {
+            light: '#d8baf5',
+            dark: '#3c2010',
+        },
+        {
+            light: '#8accdb',
+            dark: '#073c48',
+        },
+        {
+            light: '#db8ab3',
+            dark: '#34081e',
+        },
+        {
+            light: '#dbd48a',
+            dark: '#403c0e',
+        },
+        {
+            light: '#8bdb8a',
+            dark: '#052805',
+        },
     ];
     _plugin.css = _colors.map((color, index) => `
 			.bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-${index} {
-				background-color: ${color};
+				background-color: ${color.light};
+			}
+
+			.bhgv2-dark .bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-${index} {
+				background-color: ${color.dark};
 			}
 		`);
     _plugin.onMutateConfig = (newValue) => {

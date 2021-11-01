@@ -105,6 +105,10 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				color: #0055aa;
 			}
 
+			.bhgv2-dark .reply-content__user.reply-content__user.reply-content__user {
+				color: #f5f5f5;
+			}
+
 			.reply-content__user.reply-content__user.reply-content__user:hover {
 				text-decoration: underline;
 			}
@@ -126,6 +130,11 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 
 			.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: #e9f5f4;
+				border-bottom: 1px solid #999999;
+			}
+			
+			.bhgv2-dark .${_plugin.prefix}-tradUI .bhgv2-comment {
+				background-color: transparent;
 				border-bottom: 1px solid #999999;
 			}
 
