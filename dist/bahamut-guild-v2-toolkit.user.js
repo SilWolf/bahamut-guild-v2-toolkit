@@ -1098,10 +1098,6 @@ div[data-google-query-id] {
 	padding-left: 44px;
 }
 
-.reply-content__cont.reply-content__cont p br:nth-child(1) {
-	display: none;
-}
-
 .c-reply__editor .reply-input .comment_icon.comment_icon {
 	top: initial;
 	bottom: 3px;
