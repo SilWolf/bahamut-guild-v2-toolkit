@@ -93,6 +93,8 @@ div[data-google-query-id] {
 	padding-bottom: 18px;
 	padding-right: 4px !important;
 	padding-top: 4px;
+	padding-left: 7px;
+	margin-top: 0;
 }
 
 .bhgv2-config-switch {
@@ -178,12 +180,20 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.bhgv2-dark .bhgv2-config-panel {
+	background: #222;
+}
+
 .bhgv2-config-panel.active {
 	display: block;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
 	border: 1px solid #999;
+}
+
+.bhgv2-dark .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
+	color: #C7C6CB;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel button {
@@ -272,6 +282,10 @@ div[data-google-query-id] {
 	padding-left: 44px;
 }
 
+.webview_commendlist .c-reply__item .reply-content.reply-content.bhgv2-editor-container-reply-content {
+	padding-left: 35px;
+}
+
 .c-reply__editor .reply-input .comment_icon.comment_icon {
 	top: initial;
 	bottom: 3px;
@@ -291,7 +305,7 @@ div[data-google-query-id] {
 .webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
 	height: auto;
 	overflow: auto;
-	resize: both;
+	resize: vertical;
 }
 
 .globalcontainer .main-container_wall-post {

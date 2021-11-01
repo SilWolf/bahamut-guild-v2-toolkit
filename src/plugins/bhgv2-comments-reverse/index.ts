@@ -60,6 +60,10 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 				background-color: rgba(180, 180, 180, 0.9);
 				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 			}
+
+			.bhgv2-dark .bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
+				background-color: #272728;
+			}
 			
 			.bhgv2-comment-list > div.bhgv2-editor-container {
 				flex-direction: column;

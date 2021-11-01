@@ -24,24 +24,65 @@ const BHGV2_Rainbow: TPluginConstructor = (core) => {
 	]
 
 	const _colors = [
-		'#bacff5',
-		'#f5badb',
-		'#f5f2ba',
-		'#c6f5ba',
-		'#f5e3ba',
-		'#bcbaf5',
-		'#d8baf5',
-		'#8accdb',
-		'#db8ab3',
-		'#dbd48a',
-		'#8bdb8a',
+		{
+			light: '#bacff5',
+			dark: '#2b3c5a',
+		},
+		{
+			light: '#f5badb',
+			dark: '#4c273c',
+		},
+		{
+			light: '#f5f2ba',
+			dark: '#44410b',
+		},
+		{
+			light: '#c6f5ba',
+			dark: '#103a05',
+		},
+		{
+			light: '#f5e3ba',
+			dark: '#423a28',
+		},
+		{
+			light: '#bcbaf5',
+			dark: '#272632',
+		},
+		{
+			light: '#bacff5',
+			dark: '#061530',
+		},
+		{
+			light: '#d8baf5',
+			dark: '#3c2010',
+		},
+		{
+			light: '#8accdb',
+			dark: '#073c48',
+		},
+		{
+			light: '#db8ab3',
+			dark: '#34081e',
+		},
+		{
+			light: '#dbd48a',
+			dark: '#403c0e',
+		},
+		{
+			light: '#8bdb8a',
+			dark: '#052805',
+		},
 	]
 
 	_plugin.css = _colors.map(
 		(color, index) =>
 			`
 			.bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-${index} {
-				background-color: ${color};
+				background-color: ${color.light};
+			}
+
+			.bhgv2-dark .bhgv2-comment-list.bhgv2-color-comment-enabled .bhgv2-comment.bhgv2-color-comment-${index} {
+				background-color: ${color.dark};
 			}
 		`
 	)
