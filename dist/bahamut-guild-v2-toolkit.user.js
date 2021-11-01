@@ -919,6 +919,8 @@ div[data-google-query-id] {
 	padding-bottom: 18px;
 	padding-right: 4px !important;
 	padding-top: 4px;
+	padding-left: 7px;
+	margin-top: 0;
 }
 
 .bhgv2-config-switch {
@@ -1104,6 +1106,10 @@ div[data-google-query-id] {
 
 .webview_commendlist .c-reply__item .reply-content.reply-content {
 	padding-left: 44px;
+}
+
+.webview_commendlist .c-reply__item .reply-content.reply-content.bhgv2-editor-container-reply-content {
+	padding-left: 35px;
 }
 
 .c-reply__editor .reply-input .comment_icon.comment_icon {
@@ -1653,6 +1659,10 @@ const BHGV2_Dense = (core) => {
 				font-size: 12px;
 				line-height: 1;
 				margin-top: 0;
+			}
+			
+			.${_plugin.prefix}-sizeSmaller .c-reply__editor .reply-input .content-edit {
+				font-size: 12px;
 			}
 
 			.${_plugin.prefix}-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {

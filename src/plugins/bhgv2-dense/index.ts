@@ -119,6 +119,10 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				line-height: 1;
 				margin-top: 0;
 			}
+			
+			.${_plugin.prefix}-sizeSmaller .c-reply__editor .reply-input .content-edit {
+				font-size: 12px;
+			}
 
 			.${_plugin.prefix}-hideFooter .reply-content__footer.reply-content__footer.reply-content__footer {
 				display: none;

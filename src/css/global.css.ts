@@ -93,6 +93,8 @@ div[data-google-query-id] {
 	padding-bottom: 18px;
 	padding-right: 4px !important;
 	padding-top: 4px;
+	padding-left: 7px;
+	margin-top: 0;
 }
 
 .bhgv2-config-switch {
@@ -278,6 +280,10 @@ div[data-google-query-id] {
 
 .webview_commendlist .c-reply__item .reply-content.reply-content {
 	padding-left: 44px;
+}
+
+.webview_commendlist .c-reply__item .reply-content.reply-content.bhgv2-editor-container-reply-content {
+	padding-left: 35px;
 }
 
 .c-reply__editor .reply-input .comment_icon.comment_icon {
