@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.7.0
+// @version         0.7.1
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -310,6 +310,7 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.MainContainer = document.getElementsByClassName('main-container_wall-post')[0];
     _dom.MainContainerHeader = document.getElementsByClassName('main-container_wall-post_header')[0];
     _dom.MainContainerHeaderMain = document.getElementsByClassName('main-container_wall-post_header_main')[0];
+    _dom.Container = document.getElementsByClassName('inboxfeed')[0];
     // _dom.MainContainerHeaderSecond = document.createElement('div')
     // _dom.MainContainerHeaderMain.insertAdjacentElement(
     // 	'afterend',
@@ -473,6 +474,7 @@ const BHGV2Core = ({ plugins, library }) => {
     }
     _state.userInfo = guildPost.loginUser;
     // 添加動作給 DOM
+    $(_dom.Container).off('input focus', 'textarea');
     _dom.ConfigPanelSwitch.addEventListener('click', (event) => {
         event.preventDefault();
         _dom.ConfigPanel.classList.toggle('active');
@@ -895,6 +897,22 @@ div[data-google-query-id] {
 	display: none;
 }
 
+.inboxfeed.inboxfeed {
+	width: auto;
+	max-width: none;
+	min-width: 560px;
+}
+
+.inboxfeed.inboxfeed .main-container_wall-post_header,
+.inboxfeed.inboxfeed .main-container_wall-post_body,
+.inboxfeed.inboxfeed .main-container_wall-post_footer,
+.inboxfeed.inboxfeed .bhgv2-comment-list {
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+	max-width: 560px;
+}
+
 .bhgv2-editor.bhgv2-editor.bhgv2-editor {
 	border-color: #666;
 	border-radius: 0;
@@ -1080,10 +1098,6 @@ div[data-google-query-id] {
 	padding-left: 44px;
 }
 
-.reply-content__cont.reply-content__cont p br:nth-child(1) {
-	display: none;
-}
-
 .c-reply__editor .reply-input .comment_icon.comment_icon {
 	top: initial;
 	bottom: 3px;
@@ -1098,6 +1112,16 @@ div[data-google-query-id] {
 .c-reply__editor .reply-input .comment_icon.comment_icon a img {
 	width: 16px;
 	height: 16px;
+}
+
+.webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
+	height: auto;
+	overflow: auto;
+	resize: both;
+}
+
+.globalcontainer .main-container_wall-post {
+	box-shadow: none;
 }
 `;
 
@@ -1598,6 +1622,13 @@ const BHGV2_Dense = (core) => {
             inputType: 'switch',
             defaultValue: true,
         },
+        {
+            key: `${_plugin.prefix}-hidePreview`,
+            suffixLabel: '隱藏串首的連結預覽',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
     ];
     _plugin.configLayout = [
         [
@@ -1608,6 +1639,7 @@ const BHGV2_Dense = (core) => {
         [`${_plugin.prefix}-hideFooter`],
         [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
         [`${_plugin.prefix}-perfectLayout`],
+        [`${_plugin.prefix}-hidePreview`],
     ];
     _plugin.css = [
         `
@@ -1712,11 +1744,31 @@ const BHGV2_Dense = (core) => {
 			}
 
 			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed {
+				width: auto;
+				max-width: none;
+				min-width: 615px;
+			}
+
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_header,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_body,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_footer,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .bhgv2-comment-list {
 				max-width: 615px;
 			}
 
 			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed {
+				min-width: 515px;
+			}
+
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_header,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_body,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_footer,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .bhgv2-comment-list {
 				max-width: 515px;
+			}
+
+			.${_plugin.prefix}-hidePreview .main-container_wall-post_body .linkbox {
+				display: none;
 			}
 		`,
     ];
@@ -1756,7 +1808,7 @@ const BHGV2_Dense = (core) => {
                 }
             }
         });
-        ['sizeSmaller', 'perfectLayout'].forEach((key) => {
+        ['sizeSmaller', 'perfectLayout', 'hidePreview'].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.Body;
                 if (dom) {

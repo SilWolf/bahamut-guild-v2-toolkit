@@ -425,6 +425,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		'main-container_wall-post_header_main'
 	)[0] as HTMLElement
 
+	_dom.Container = document.getElementsByClassName(
+		'inboxfeed'
+	)[0] as HTMLElement
+
 	// _dom.MainContainerHeaderSecond = document.createElement('div')
 	// _dom.MainContainerHeaderMain.insertAdjacentElement(
 	// 	'afterend',
@@ -690,6 +694,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_state.userInfo = guildPost.loginUser
 
 	// 添加動作給 DOM
+	$(_dom.Container).off('input focus', 'textarea')
 	_dom.ConfigPanelSwitch.addEventListener('click', (event) => {
 		event.preventDefault()
 		_dom.ConfigPanel.classList.toggle('active')

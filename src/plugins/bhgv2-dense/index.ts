@@ -63,6 +63,13 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			inputType: 'switch',
 			defaultValue: true,
 		},
+		{
+			key: `${_plugin.prefix}-hidePreview`,
+			suffixLabel: '隱藏串首的連結預覽',
+			dataType: 'boolean',
+			inputType: 'switch',
+			defaultValue: true,
+		},
 	]
 
 	_plugin.configLayout = [
@@ -74,6 +81,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 		[`${_plugin.prefix}-hideFooter`],
 		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
 		[`${_plugin.prefix}-perfectLayout`],
+		[`${_plugin.prefix}-hidePreview`],
 	]
 
 	_plugin.css = [
@@ -179,11 +187,31 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			}
 
 			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed {
+				width: auto;
+				max-width: none;
+				min-width: 615px;
+			}
+
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_header,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_body,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_footer,
+			.${_plugin.prefix}-perfectLayout .inboxfeed.inboxfeed.inboxfeed .bhgv2-comment-list {
 				max-width: 615px;
 			}
 
 			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed {
+				min-width: 515px;
+			}
+
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_header,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_body,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .main-container_wall-post_footer,
+			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .bhgv2-comment-list {
 				max-width: 515px;
+			}
+
+			.${_plugin.prefix}-hidePreview .main-container_wall-post_body .linkbox {
+				display: none;
 			}
 		`,
 	]
@@ -229,7 +257,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				}
 			}
 		})
-		;['sizeSmaller', 'perfectLayout'].forEach((key) => {
+		;['sizeSmaller', 'perfectLayout', 'hidePreview'].forEach((key) => {
 			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
 				const dom = core.DOM.Body
 				if (dom) {
