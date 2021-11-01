@@ -1626,6 +1626,13 @@ const BHGV2_Dense = (core) => {
             inputType: 'switch',
             defaultValue: true,
         },
+        {
+            key: `${_plugin.prefix}-hidePreview`,
+            suffixLabel: '隱藏串首的連結預覽',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
     ];
     _plugin.configLayout = [
         [
@@ -1636,6 +1643,7 @@ const BHGV2_Dense = (core) => {
         [`${_plugin.prefix}-hideFooter`],
         [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
         [`${_plugin.prefix}-perfectLayout`],
+        [`${_plugin.prefix}-hidePreview`],
     ];
     _plugin.css = [
         `
@@ -1762,6 +1770,10 @@ const BHGV2_Dense = (core) => {
 			.${_plugin.prefix}-perfectLayout.${_plugin.prefix}-sizeSmaller .inboxfeed.inboxfeed.inboxfeed .bhgv2-comment-list {
 				max-width: 515px;
 			}
+
+			.${_plugin.prefix}-hidePreview .main-container_wall-post_body .linkbox {
+				display: none;
+			}
 		`,
     ];
     _plugin.onMutateState = ({ latestComments }) => {
@@ -1800,7 +1812,7 @@ const BHGV2_Dense = (core) => {
                 }
             }
         });
-        ['sizeSmaller', 'perfectLayout'].forEach((key) => {
+        ['sizeSmaller', 'perfectLayout', 'hidePreview'].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.Body;
                 if (dom) {
