@@ -310,6 +310,7 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.MainContainer = document.getElementsByClassName('main-container_wall-post')[0];
     _dom.MainContainerHeader = document.getElementsByClassName('main-container_wall-post_header')[0];
     _dom.MainContainerHeaderMain = document.getElementsByClassName('main-container_wall-post_header_main')[0];
+    _dom.Container = document.getElementsByClassName('inboxfeed')[0];
     // _dom.MainContainerHeaderSecond = document.createElement('div')
     // _dom.MainContainerHeaderMain.insertAdjacentElement(
     // 	'afterend',
@@ -473,6 +474,7 @@ const BHGV2Core = ({ plugins, library }) => {
     }
     _state.userInfo = guildPost.loginUser;
     // 添加動作給 DOM
+    $(_dom.Container).off('input focus', 'textarea');
     _dom.ConfigPanelSwitch.addEventListener('click', (event) => {
         event.preventDefault();
         _dom.ConfigPanel.classList.toggle('active');
@@ -1098,6 +1100,12 @@ div[data-google-query-id] {
 .c-reply__editor .reply-input .comment_icon.comment_icon a img {
 	width: 16px;
 	height: 16px;
+}
+
+.webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
+	height: auto;
+	overflow: auto;
+	resize: both;
 }
 `;
 

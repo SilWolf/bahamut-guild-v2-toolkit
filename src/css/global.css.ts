@@ -275,4 +275,10 @@ div[data-google-query-id] {
 	width: 16px;
 	height: 16px;
 }
+
+.webview_commendlist .c-reply__editor .reply-input .content-edit.content-edit {
+	height: auto;
+	overflow: auto;
+	resize: both;
+}
 `
