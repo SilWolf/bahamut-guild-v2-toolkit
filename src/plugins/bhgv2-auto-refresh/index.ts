@@ -44,7 +44,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		},
 		{
 			key: `${_plugin.prefix}:notification`,
-			suffixLabel: '自動更新時發送桌面通知',
+			suffixLabel: '桌面通知',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: true,

@@ -31,7 +31,6 @@ const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
-const bhgv2_quick_input_1 = __importDefault(__webpack_require__(353));
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
@@ -348,7 +347,8 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorTips = document.createElement('div');
     _dom.EditorTips.classList.add('bhgv2-editor-tips');
     _dom.EditorTips.innerHTML =
-        'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入';
+        // 'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
+        'Enter: 發送　Shift+Enter: 換行';
     _dom.Editor.append(_dom.EditorTips);
     _dom.EditorContainerReplyContentFooter = document.createElement('div');
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
@@ -387,6 +387,7 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigPanelLeftPluginListingWrapper.append(_dom.ConfigPanelLeftPluginListing);
     _dom.ConfigPanelLeftPluginFooter = document.createElement('div');
     _dom.ConfigPanelLeftPluginFooter.classList.add('bhgv2-config-panel-left-plugin-footer');
+    // _dom.ConfigPanelLeftPluginFooter.innerHTML = 'v0.8.0 (檢查更新)'
     _dom.ConfigPanelLeft.append(_dom.ConfigPanelLeftPluginListingWrapper, _dom.ConfigPanelLeftPluginFooter);
     _dom.ConfigForm = document.createElement('form');
     _dom.ConfigForm.classList.add('bhgv2-config-form');
@@ -852,7 +853,7 @@ const _waitForElm = (selector) => {
                     bhgv2_highlight_me_1.default,
                     bhgv2_notify_on_title_1.default,
                     bhgv2_rainbow_1.default,
-                    bhgv2_quick_input_1.default,
+                    // BHGV2_QuickInput,
                     bhgv2_dark_mode_1.default,
                 ],
                 library: {
@@ -1043,6 +1044,10 @@ div[data-google-query-id] {
 	padding: 2px 0 0 8px;
 }
 
+.bhgv2-dark .bhgv2-editor-container-reply-content-footer-left {
+	color: #bbb;
+}
+
 .bhgv2-editor-container-footer .bhgv2-config-status {
 	flex: 1;
 }
@@ -1094,8 +1099,8 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left-plugin-footer {
-	height: 40px;
 	margin-top: 8px;
+	font-size: 12px;
 }
 
 .bhgv2-config-panel-right {
@@ -1338,7 +1343,7 @@ const BHGV2_AutoRefresh = (core) => {
         },
         {
             key: `${_plugin.prefix}:notification`,
-            suffixLabel: '自動更新時發送桌面通知',
+            suffixLabel: '桌面通知',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: true,
@@ -2174,7 +2179,7 @@ const BHGV2_MasterLayout = (core) => {
         },
         {
             key: `${_plugin.prefix}-hideRightMenu`,
-            suffixLabel: '隱藏右側欄',
+            suffixLabel: '隱藏右側資訊欄',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
@@ -2392,341 +2397,6 @@ const BHGV2_NotifyOnTitle = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_NotifyOnTitle;
-
-
-/***/ }),
-
-/***/ 353:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*******************************************************************************************
- *
- *  BHGV2_QuickInput - 快速輸入
- *  以類似 @Mention 的方式快速輸入預設內容
- *
- *******************************************************************************************/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const BHGV2_QuickInput = (core) => {
-    const _plugin = {
-        pluginName: 'BHGV2_QuickInput',
-        prefix: 'BHGV2_QuickInput',
-        label: '快速輸入',
-    };
-    _plugin.configs = [
-        {
-            key: `${_plugin.prefix}-isEnabled`,
-            suffixLabel: '啟用快速輸入',
-            dataType: 'boolean',
-            inputType: 'switch',
-            defaultValue: false,
-        },
-    ];
-    _plugin.css = [
-        `
-			.${_plugin.prefix}-backdrop {
-				position: fixed;
-				top: 0;
-				bottom: 0;
-				left: 0;
-				right: 0;
-				background-color: rgba(0, 0, 0, 0.75);
-				padding: 60px;
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: stretch;
-				z-index: 120;
-
-				display: none;
-			}
-
-			.${_plugin.prefix}-backdrop.active {
-				display: block;
-			}
-
-			#${_plugin.prefix}-container {
-				flex: 1;
-				min-height: 0;
-				width: 100%;
-				max-width: 960px;
-				margin-left: auto;
-				margin-right: auto;
-				background: #fff;
-
-				display: flex;
-				flex-direction: column;
-			}
-
-			#${_plugin.prefix}-container > * {
-				padding: 15px;
-			}
-
-			#${_plugin.prefix}-header {
-				font-size: 1.5rem;
-				font-weight: bold;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-			}
-
-			#${_plugin.prefix}-content {
-				flex: 1;
-				min-height: 0;
-				overflow-y: auto;
-			}
-
-			#${_plugin.prefix}-content table {
-				width: 100%;
-			}
-
-			#${_plugin.prefix}-content table td {
-				border-bottom: 1px solid #ccc;
-				padding-top: 8px;
-				padding-bottom: 8px;
-			}
-
-			#${_plugin.prefix}-content table td + td {
-				padding-left: 8px;
-			}
-
-			.${_plugin.prefix}-tbody-row .${_plugin.prefix}-tbody-row-key,
-			.${_plugin.prefix}-tbody-row .${_plugin.prefix}-tbody-row-content {
-				border: 1px solid #ccc;
-				padding: 5px;
-				width: 100%;
-				resize: none;
-				box-sizing: border-box;
-			}
-			
-			#${_plugin.prefix}-footer {
-				text-align: center;
-			}
-			
-			#${_plugin.prefix}-footer td {
-				border-bottom: 0
-			}
-		`,
-    ];
-    let _WORD_MAP = {};
-    const _saveWordMap = (_newValue) => {
-        localStorage.setItem(`${_plugin.prefix}-WordMap`, JSON.stringify(_newValue));
-        _WORD_MAP = _newValue;
-    };
-    const Body = core.DOM.Body;
-    // 自製的設置視窗
-    const QuickInputConfigBackdrop = document.createElement('div');
-    QuickInputConfigBackdrop.classList.add(`${_plugin.prefix}-backdrop`);
-    Body.append(QuickInputConfigBackdrop);
-    const QuickInputConfigContainer = $(`
-		<div id="${_plugin.prefix}-container">
-			<div id="${_plugin.prefix}-header">
-				<h4>設置快速輸入</h4>
-				<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-close">關閉</button>
-			</div>
-			<div id="${_plugin.prefix}-content">
-				<table>
-					<thead>
-						<tr>
-							<td>@</td>
-							<td style="width: 75%">內容</td>
-							<td></td>
-						</tr>
-					</thead>
-					<tbody></tbody>
-					<tfoot>
-						<tr>
-							<td colspan="3">
-								<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-add">&plus; 新增</button>
-							</td>
-						</tr>
-					</tfoot>
-				</table>
-			</div>
-			<div id="${_plugin.prefix}-footer">
-				<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-save">儲存</button>
-			</div>
-		</div>
-	`)[0];
-    QuickInputConfigBackdrop.append(QuickInputConfigContainer);
-    const _createRow = ({ key, content, } = {}) => {
-        const _Row = $(`
-			<tr class="${_plugin.prefix}-tbody-row">
-				<td valign="top">
-					<input type="text" class="${_plugin.prefix}-tbody-row-key" value="${key || ''}" />
-				</td>
-				<td valign="top">
-					<textarea class="${_plugin.prefix}-tbody-row-content">${content || ''}</textarea>
-				</td>
-				<td>
-					<button class="${_plugin.prefix}-button" id="${_plugin.prefix}-remove">刪除</button>
-				</td>
-			</tr>
-		`)[0];
-        const _RemoveButton = _Row.querySelector(`#${_plugin.prefix}-remove`);
-        _RemoveButton.addEventListener('click', () => {
-            confirm('確定要刪除嗎？') && _Row.parentNode.removeChild(_Row);
-        });
-        return _Row;
-    };
-    const QuickInputConfigTBody = QuickInputConfigContainer.getElementsByTagName('tbody')[0];
-    const QuickInputConfigAddButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-add`);
-    QuickInputConfigAddButton.addEventListener('click', () => QuickInputConfigTBody.append(_createRow()));
-    const QuickInputConfigCloseButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-close`);
-    QuickInputConfigCloseButton.addEventListener('click', () => QuickInputConfigBackdrop.classList.toggle('active', false));
-    const QuickInputConfigSaveButton = QuickInputConfigContainer.querySelector(`#${_plugin.prefix}-save`);
-    QuickInputConfigSaveButton.addEventListener('click', () => {
-        const _newValue = {};
-        for (let row of Array.from(QuickInputConfigTBody.children)) {
-            const key = row.querySelector(`.${_plugin.prefix}-tbody-row-key`)?.value;
-            const content = row.querySelector(`.${_plugin.prefix}-tbody-row-content`)?.value;
-            if (key.match(/^\s*$/) || content.match(/^\s*$/)) {
-                alert('必須填寫所有項目');
-                return;
-            }
-            if (key.match(/^\d+$/)) {
-                alert('不能用數字作為＠詞');
-                return;
-            }
-            if (!!_newValue[key]) {
-                alert('＠詞不能重覆');
-                return;
-            }
-            _newValue[key] = content;
-        }
-        _saveWordMap(_newValue);
-        alert('已儲存');
-    });
-    const _loadWordMap = () => {
-        _WORD_MAP = JSON.parse(localStorage.getItem(`${_plugin.prefix}-WordMap`) || '{}');
-    };
-    const _refreshConfigTable = () => {
-        QuickInputConfigTBody.innerHTML = '';
-        Object.entries(_WORD_MAP).forEach(([key, content]) => QuickInputConfigTBody.append(_createRow({ key, content })));
-    };
-    _loadWordMap();
-    _refreshConfigTable();
-    const ConfigFormActions = core.DOM.ConfigFormActions;
-    const _buttonShowConfigPanel = document.createElement('a');
-    _buttonShowConfigPanel.setAttribute('href', '#');
-    _buttonShowConfigPanel.classList.add(`${_plugin.prefix}-action`);
-    _buttonShowConfigPanel.innerHTML = '打開快速輸入設置';
-    _buttonShowConfigPanel.addEventListener('click', (e) => {
-        e.preventDefault();
-        QuickInputConfigBackdrop.classList.toggle('active', true);
-    });
-    ConfigFormActions.append(_buttonShowConfigPanel);
-    const _formatCarbonTrailingHTML = (content) => `<code>TAB</code> ${content}`;
-    const _findKeyWordPair = (text, { exactMatch } = {}) => {
-        if (!exactMatch) {
-            const key = Object.keys(_WORD_MAP).find((_key) => _key.startsWith(text));
-            return key ? { key, word: _WORD_MAP[key] } : undefined;
-        }
-        let key = undefined;
-        Object.keys(_WORD_MAP).forEach((_key) => {
-            if (text.startsWith(_key)) {
-                key = _key;
-            }
-        });
-        return key ? { key, word: _WORD_MAP[key] } : undefined;
-    };
-    _plugin.onEvent = (eventName, payload) => {
-        const config = core.getConfig();
-        if (!config[`${_plugin.prefix}-isEnabled`]) {
-            return true;
-        }
-        if (eventName === 'textarea-input') {
-            const event = payload?.event;
-            if (!event) {
-                return true;
-            }
-            const textarea = event.currentTarget;
-            if (!textarea) {
-                return true;
-            }
-            const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing;
-            if (!CarbonTrailing) {
-                return true;
-            }
-            CarbonTrailing.innerHTML = '';
-            const content = textarea.value;
-            const match = content.match(/\@([^\s\@]+)$/);
-            if (match && match[1]) {
-                const inputText = match[1];
-                const pair = _findKeyWordPair(inputText);
-                if (pair && pair.word) {
-                    CarbonTrailing.innerHTML = _formatCarbonTrailingHTML(pair.word);
-                }
-            }
-        }
-        if (eventName === 'textarea-keydown') {
-            const event = payload?.event;
-            if (!event) {
-                return true;
-            }
-            const textarea = event.currentTarget;
-            if (!textarea) {
-                return true;
-            }
-            const key = event.key;
-            if (key === 'Tab' || key === 'Enter') {
-                let value = textarea.value;
-                let isValueChanged = false;
-                const CarbonText = core.DOM.EditorTextareaCarbonText;
-                if (!CarbonText) {
-                    return true;
-                }
-                const CarbonTrailing = core.DOM.EditorTextareaCarbonTrailing;
-                if (!CarbonTrailing) {
-                    return true;
-                }
-                const match = value.match(/\@([^\s\@]+)$/);
-                if (match && match[1]) {
-                    const pair = _findKeyWordPair(match[1]);
-                    if (pair && pair.word) {
-                        value = value.replace(/\@([^\s\@]+)$/, pair.word + ' ');
-                        CarbonTrailing.innerHTML = '';
-                        isValueChanged = true;
-                    }
-                }
-                const matches = [...textarea.value.matchAll(/\@([^\s\@]+)/g)];
-                if (matches) {
-                    for (let match of matches) {
-                        const pair = _findKeyWordPair(match[1], { exactMatch: true });
-                        if (pair && pair.word) {
-                            value = value.replace(`@${pair.key}`, pair.word + ' ');
-                            isValueChanged = true;
-                        }
-                    }
-                }
-                if (isValueChanged) {
-                    event.preventDefault();
-                    textarea.selectionStart = 0;
-                    textarea.selectionEnd = textarea.value.length;
-                    document.execCommand('insertText', false, value);
-                    textarea.style.height = 'auto';
-                    textarea.style.height = textarea.scrollHeight + 'px';
-                    return false;
-                }
-                return true;
-            }
-        }
-        return true;
-    };
-    _plugin.onMutateConfig = (newValue) => {
-        ;
-        ['isEnabled'].forEach((key) => {
-            if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-                const dom = core.DOM.CommentListOuter;
-                if (dom) {
-                    dom.classList.toggle(`${_plugin.prefix}-${key}`, newValue[`${_plugin.prefix}-${key}`]);
-                }
-            }
-        });
-    };
-    return _plugin;
-};
-exports.default = BHGV2_QuickInput;
 
 
 /***/ }),

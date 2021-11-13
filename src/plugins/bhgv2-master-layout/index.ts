@@ -24,7 +24,7 @@ const BHGV2_MasterLayout: TPluginConstructor = (core) => {
 		},
 		{
 			key: `${_plugin.prefix}-hideRightMenu`,
-			suffixLabel: '隱藏右側欄',
+			suffixLabel: '隱藏右側資訊欄',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,

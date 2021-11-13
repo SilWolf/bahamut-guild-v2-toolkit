@@ -506,7 +506,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.EditorTips = document.createElement('div')
 	_dom.EditorTips.classList.add('bhgv2-editor-tips')
 	_dom.EditorTips.innerHTML =
-		'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
+		// 'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
+		'Enter: 發送　Shift+Enter: 換行'
 
 	_dom.Editor.append(_dom.EditorTips)
 
@@ -579,6 +580,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.ConfigPanelLeftPluginFooter.classList.add(
 		'bhgv2-config-panel-left-plugin-footer'
 	)
+	// _dom.ConfigPanelLeftPluginFooter.innerHTML = 'v0.8.0 (檢查更新)'
 
 	_dom.ConfigPanelLeft.append(
 		_dom.ConfigPanelLeftPluginListingWrapper,
@@ -1217,7 +1219,7 @@ const _waitForElm = (selector: string) => {
 					BHGV2_HighlightMe,
 					BHGV2_NotifyOnTitle,
 					BHGV2_Rainbow,
-					BHGV2_QuickInput,
+					// BHGV2_QuickInput,
 					BHGV2_DarkMode,
 				],
 				library: {

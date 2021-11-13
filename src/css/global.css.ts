@@ -166,6 +166,10 @@ div[data-google-query-id] {
 	padding: 2px 0 0 8px;
 }
 
+.bhgv2-dark .bhgv2-editor-container-reply-content-footer-left {
+	color: #bbb;
+}
+
 .bhgv2-editor-container-footer .bhgv2-config-status {
 	flex: 1;
 }
@@ -217,8 +221,8 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left-plugin-footer {
-	height: 40px;
 	margin-top: 8px;
+	font-size: 12px;
 }
 
 .bhgv2-config-panel-right {
