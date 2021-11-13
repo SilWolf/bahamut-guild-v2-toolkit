@@ -66,10 +66,20 @@ export type TPluginConfig = {
 	dataType: TPluginConfigDataType
 	inputType: TPluginConfigInputType
 	defaultValue: TPluginConfigValue
+	options?: TPluginConfigOption[]
 }
 export type TPluginConfigDataType = 'boolean' | 'number' | 'text'
-export type TPluginConfigInputType = 'switch' | 'checkbox' | 'number' | 'text'
+export type TPluginConfigInputType =
+	| 'switch'
+	| 'checkbox'
+	| 'number'
+	| 'text'
+	| 'select'
 export type TPluginConfigValue = boolean | number | string | undefined
+export type TPluginConfigOption = {
+	label: string
+	value: string
+}
 
 export type TLibrary = unknown
 

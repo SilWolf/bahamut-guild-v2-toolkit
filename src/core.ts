@@ -362,13 +362,14 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 			Object.keys(newValue).forEach((key: string) => {
 				const input = form.querySelector(
-					`input[data-config-key='${key}']`
+					`[data-config-key='${key}']`
 				) as HTMLInputElement
 				if (input) {
 					switch (input.getAttribute('data-type')) {
 						case 'number':
 						case 'text':
 							input.value = (newValue[key] as string) || ''
+							console.log(newValue[key])
 							break
 						case 'boolean':
 							input.checked = (newValue[key] as boolean) || false
@@ -602,7 +603,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	_dom.ConfigForm.append(
 		_dom.ConfigFormContent,
-		_dom.ConfigFormMessage,
 		_dom.ConfigFormFooter,
 		_dom.ConfigFormActions
 	)
@@ -613,7 +613,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	_dom.ConfigFormFooterSave.innerHTML = '儲存'
 	_dom.ConfigFormFooter.append(
 		_dom.ConfigFormFooterSaveAsDefault,
-		_dom.ConfigFormFooterSave
+		_dom.ConfigFormFooterSave,
+		_dom.ConfigFormMessage
 	)
 
 	// 初始化每個插件
@@ -728,6 +729,18 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 						inputWrapperElement.append(_slider)
 						break
+					case 'select':
+						inputElement = document.createElement('select')
+
+						for (let option of configItem.options || []) {
+							const _optionEle = document.createElement('option')
+							_optionEle.setAttribute('value', option.value)
+							_optionEle.innerHTML = option.label
+							inputElement.append(_optionEle)
+						}
+
+						inputWrapperElement.append(inputElement)
+						break
 				}
 
 				inputWrapperElement.setAttribute('for', configItem.key)
@@ -784,7 +797,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		event.preventDefault()
 		const form = CORE.DOM.ConfigForm
 		const newConfig = Array.from(
-			form.querySelectorAll<HTMLInputElement>('input[data-config-key]')
+			form.querySelectorAll<HTMLInputElement>('[data-config-key]')
 		).reduce<TCoreConfig>((prev, element) => {
 			const key = element.getAttribute('data-config-key')
 			if (!key) {

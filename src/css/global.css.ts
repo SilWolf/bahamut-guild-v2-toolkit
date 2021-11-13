@@ -190,7 +190,7 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left {
-	width: 150px;
+	width: 130px;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -203,6 +203,17 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left-plugin-listing {
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.1);
+}
+
+.bhgv2-config-panel-left-plugin-listing li {
+
+}
+
+.bhgv2-config-panel-left-plugin-listing li a {
+	display: block;
+	padding: 4px;
 }
 
 .bhgv2-config-panel-left-plugin-footer {
@@ -228,6 +239,8 @@ div[data-google-query-id] {
 
 .bhgv2-config-form-section {
 	margin-bottom: 1rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid #666;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
@@ -245,7 +258,6 @@ div[data-google-query-id] {
 	border-radius: 5px;
 	background-color: #eee;
 	padding: 3px;
-	margin-left: 2px;
 	margin-right: 2px;
 	border: 1px solid #333;
 	color: #000;
@@ -257,22 +269,17 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-form-message {
-	text-align: center;
+	display: inline-block;
+	text-align: left;
 	color: #4a934a;
 	font-size: 12px;
-	min-height: 24px;
 	line-height: 16px;
 	padding: 4px;
-	margin-top: 0.5rem;
 }
 
 .bhgv2-config-form-footer {
-	text-align: center;
-	margin-top: 0.5rem;
-}
-
-.bhgv2-config-form-footer > * + * {
-	margin-left: 1rem;
+	text-align: left;
+	margin-top: 4px;
 }
 
 .bhgv2-config-form-content {

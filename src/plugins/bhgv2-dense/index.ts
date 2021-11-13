@@ -38,14 +38,14 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 		},
 		{
 			key: `${_plugin.prefix}-smallerImage`,
-			suffixLabel: '圖片縮小',
+			suffixLabel: '縮小圖片',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
 		},
 		{
 			key: `${_plugin.prefix}-squareAvatar`,
-			suffixLabel: '方型的頭像',
+			suffixLabel: '正方型頭像',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
@@ -64,14 +64,28 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			inputType: 'switch',
 			defaultValue: true,
 		},
+		{
+			key: `${_plugin.prefix}-font`,
+			prefixLabel: '使用字體: ',
+			dataType: 'text',
+			inputType: 'select',
+			defaultValue: 'default',
+			options: [
+				{ label: '默認', value: 'default' },
+				{ label: '新細明體', value: 'PMingLiU' },
+				{ label: '標楷體', value: 'DFKai-SB' },
+				{ label: 'Arial', value: 'Arial' },
+			],
+		},
 	]
 
 	_plugin.configLayout = [
-		[`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-sizeSmaller`],
+		[`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-perfectLayout`],
+		[`${_plugin.prefix}-squareAvatar`],
+		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-sizeSmaller`],
 		[`${_plugin.prefix}-hideFooter`],
-		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
-		[`${_plugin.prefix}-perfectLayout`],
 		[`${_plugin.prefix}-hidePreview`],
+		[`${_plugin.prefix}-font`],
 	]
 
 	_plugin.css = [
@@ -216,6 +230,16 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 			.${_plugin.prefix}-hidePreview .main-container_wall-post_body .linkbox {
 				display: none;
 			}
+
+			.${_plugin.prefix}-font[data-bhgv2-font=PMingLiU] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: '新細明體';
+			}
+			.${_plugin.prefix}-font[data-bhgv2-font=DFKai-SB] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: '標楷體';
+			}
+			.${_plugin.prefix}-font[data-bhgv2-font=Arial] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: 'Arial';
+			}
 		`,
 	]
 
@@ -265,6 +289,16 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				}
 			}
 		})
+		if (newValue[`${_plugin.prefix}-font`] != undefined) {
+			const dom = core.DOM.Body
+			if (dom) {
+				dom.classList.toggle(`${_plugin.prefix}-font`, true)
+				dom.setAttribute(
+					`data-bhgv2-font`,
+					newValue[`${_plugin.prefix}-font`] as string
+				)
+			}
+		}
 	}
 
 	return _plugin

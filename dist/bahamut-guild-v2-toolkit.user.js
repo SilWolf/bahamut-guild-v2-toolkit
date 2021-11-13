@@ -266,12 +266,13 @@ const BHGV2Core = ({ plugins, library }) => {
                 return;
             }
             Object.keys(newValue).forEach((key) => {
-                const input = form.querySelector(`input[data-config-key='${key}']`);
+                const input = form.querySelector(`[data-config-key='${key}']`);
                 if (input) {
                     switch (input.getAttribute('data-type')) {
                         case 'number':
                         case 'text':
                             input.value = newValue[key] || '';
+                            console.log(newValue[key]);
                             break;
                         case 'boolean':
                             input.checked = newValue[key] || false;
@@ -398,12 +399,12 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigFormFooter.classList.add('bhgv2-config-form-footer');
     _dom.ConfigFormActions = document.createElement('div');
     _dom.ConfigFormActions.classList.add('bhgv2-config-form-actions');
-    _dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormMessage, _dom.ConfigFormFooter, _dom.ConfigFormActions);
+    _dom.ConfigForm.append(_dom.ConfigFormContent, _dom.ConfigFormFooter, _dom.ConfigFormActions);
     _dom.ConfigFormFooterSaveAsDefault = document.createElement('button');
     _dom.ConfigFormFooterSaveAsDefault.innerHTML = '設為預設值';
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
-    _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave);
+    _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave, _dom.ConfigFormMessage);
     [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
             const _plugin = plugin(CORE);
@@ -489,6 +490,16 @@ const BHGV2Core = ({ plugins, library }) => {
                         _slider.classList.add('slider');
                         inputWrapperElement.append(_slider);
                         break;
+                    case 'select':
+                        inputElement = document.createElement('select');
+                        for (let option of configItem.options || []) {
+                            const _optionEle = document.createElement('option');
+                            _optionEle.setAttribute('value', option.value);
+                            _optionEle.innerHTML = option.label;
+                            inputElement.append(_optionEle);
+                        }
+                        inputWrapperElement.append(inputElement);
+                        break;
                 }
                 inputWrapperElement.setAttribute('for', configItem.key);
                 inputElement.setAttribute('id', configItem.key);
@@ -528,7 +539,7 @@ const BHGV2Core = ({ plugins, library }) => {
     const _handleSubmitConfigForm = (event, options) => {
         event.preventDefault();
         const form = CORE.DOM.ConfigForm;
-        const newConfig = Array.from(form.querySelectorAll('input[data-config-key]')).reduce((prev, element) => {
+        const newConfig = Array.from(form.querySelectorAll('[data-config-key]')).reduce((prev, element) => {
             const key = element.getAttribute('data-config-key');
             if (!key) {
                 return prev;
@@ -1056,7 +1067,7 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left {
-	width: 150px;
+	width: 130px;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -1069,6 +1080,17 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel-left-plugin-listing {
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.1);
+}
+
+.bhgv2-config-panel-left-plugin-listing li {
+
+}
+
+.bhgv2-config-panel-left-plugin-listing li a {
+	display: block;
+	padding: 4px;
 }
 
 .bhgv2-config-panel-left-plugin-footer {
@@ -1094,6 +1116,8 @@ div[data-google-query-id] {
 
 .bhgv2-config-form-section {
 	margin-bottom: 1rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid #666;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
@@ -1111,7 +1135,6 @@ div[data-google-query-id] {
 	border-radius: 5px;
 	background-color: #eee;
 	padding: 3px;
-	margin-left: 2px;
 	margin-right: 2px;
 	border: 1px solid #333;
 	color: #000;
@@ -1123,22 +1146,17 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-form-message {
-	text-align: center;
+	display: inline-block;
+	text-align: left;
 	color: #4a934a;
 	font-size: 12px;
-	min-height: 24px;
 	line-height: 16px;
 	padding: 4px;
-	margin-top: 0.5rem;
 }
 
 .bhgv2-config-form-footer {
-	text-align: center;
-	margin-top: 0.5rem;
-}
-
-.bhgv2-config-form-footer > * + * {
-	margin-left: 1rem;
+	text-align: left;
+	margin-top: 4px;
 }
 
 .bhgv2-config-form-content {
@@ -1671,14 +1689,14 @@ const BHGV2_Dense = (core) => {
         },
         {
             key: `${_plugin.prefix}-smallerImage`,
-            suffixLabel: '圖片縮小',
+            suffixLabel: '縮小圖片',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
         },
         {
             key: `${_plugin.prefix}-squareAvatar`,
-            suffixLabel: '方型的頭像',
+            suffixLabel: '正方型頭像',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
@@ -1697,13 +1715,27 @@ const BHGV2_Dense = (core) => {
             inputType: 'switch',
             defaultValue: true,
         },
+        {
+            key: `${_plugin.prefix}-font`,
+            prefixLabel: '使用字體: ',
+            dataType: 'text',
+            inputType: 'select',
+            defaultValue: 'default',
+            options: [
+                { label: '默認', value: 'default' },
+                { label: '新細明體', value: 'PMingLiU' },
+                { label: '標楷體', value: 'DFKai-SB' },
+                { label: 'Arial', value: 'Arial' },
+            ],
+        },
     ];
     _plugin.configLayout = [
-        [`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-sizeSmaller`],
+        [`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-perfectLayout`],
+        [`${_plugin.prefix}-squareAvatar`],
+        [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-sizeSmaller`],
         [`${_plugin.prefix}-hideFooter`],
-        [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
-        [`${_plugin.prefix}-perfectLayout`],
         [`${_plugin.prefix}-hidePreview`],
+        [`${_plugin.prefix}-font`],
     ];
     _plugin.css = [
         `
@@ -1847,6 +1879,16 @@ const BHGV2_Dense = (core) => {
 			.${_plugin.prefix}-hidePreview .main-container_wall-post_body .linkbox {
 				display: none;
 			}
+
+			.${_plugin.prefix}-font[data-bhgv2-font=PMingLiU] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: '新細明體';
+			}
+			.${_plugin.prefix}-font[data-bhgv2-font=DFKai-SB] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: '標楷體';
+			}
+			.${_plugin.prefix}-font[data-bhgv2-font=Arial] .inboxfeed.inboxfeed.inboxfeed {
+				font-family: 'Arial';
+			}
 		`,
     ];
     _plugin.onMutateState = ({ latestComments }) => {
@@ -1887,6 +1929,13 @@ const BHGV2_Dense = (core) => {
                 }
             }
         });
+        if (newValue[`${_plugin.prefix}-font`] != undefined) {
+            const dom = core.DOM.Body;
+            if (dom) {
+                dom.classList.toggle(`${_plugin.prefix}-font`, true);
+                dom.setAttribute(`data-bhgv2-font`, newValue[`${_plugin.prefix}-font`]);
+            }
+        }
     };
     return _plugin;
 };
