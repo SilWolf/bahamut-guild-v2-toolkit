@@ -373,10 +373,23 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorContainerReplyContentFooterRight.append(_dom.ConfigPanelSwitch);
     _dom.ConfigPanel = document.createElement('div');
     _dom.ConfigPanel.classList.add('bhgv2-config-panel');
-    _dom.EditorContainerReplyContent.append(_dom.ConfigPanel);
+    _dom.EditorContainer.append(_dom.ConfigPanel);
+    _dom.ConfigPanelLeft = document.createElement('div');
+    _dom.ConfigPanelLeft.classList.add('bhgv2-config-panel-left');
+    _dom.ConfigPanelRight = document.createElement('div');
+    _dom.ConfigPanelRight.classList.add('bhgv2-config-panel-right');
+    _dom.ConfigPanel.append(_dom.ConfigPanelLeft, _dom.ConfigPanelRight);
+    _dom.ConfigPanelLeftPluginListingWrapper = document.createElement('div');
+    _dom.ConfigPanelLeftPluginListingWrapper.classList.add('bhgv2-config-panel-left-plugin-listing-wrapper');
+    _dom.ConfigPanelLeftPluginListing = document.createElement('ul');
+    _dom.ConfigPanelLeftPluginListing.classList.add('bhgv2-config-panel-left-plugin-listing');
+    _dom.ConfigPanelLeftPluginListingWrapper.append(_dom.ConfigPanelLeftPluginListing);
+    _dom.ConfigPanelLeftPluginFooter = document.createElement('div');
+    _dom.ConfigPanelLeftPluginFooter.classList.add('bhgv2-config-panel-left-plugin-footer');
+    _dom.ConfigPanelLeft.append(_dom.ConfigPanelLeftPluginListingWrapper, _dom.ConfigPanelLeftPluginFooter);
     _dom.ConfigForm = document.createElement('form');
     _dom.ConfigForm.classList.add('bhgv2-config-form');
-    _dom.ConfigPanel.append(_dom.ConfigForm);
+    _dom.ConfigPanelRight.append(_dom.ConfigForm);
     _dom.ConfigFormContent = document.createElement('div');
     _dom.ConfigFormContent.classList.add('bhgv2-config-form-content');
     _dom.ConfigFormMessage = document.createElement('div');
@@ -412,24 +425,50 @@ const BHGV2Core = ({ plugins, library }) => {
         .reduce((prev, _plugin) => [...prev, ...(_plugin.css || [])], [])
         .join('\n\n');
     // 更新設定版面
+    _dom.ConfigPanelLeftPluginListing.innerHTML = '';
     _dom.ConfigFormContent.innerHTML = '';
-    _plugins.forEach(({ configs, configLayout }) => {
+    const scrollToSectionFn = (pluginName) => (event) => {
+        event.preventDefault();
+        const target = _dom.ConfigFormContent.querySelector(`[data-plugin-name="${pluginName}"]`);
+        if (target && target.offsetTop !== undefined) {
+            _dom.ConfigFormContent.scrollTo({
+                top: target.offsetTop,
+                behavior: 'smooth',
+            });
+        }
+        return false;
+    };
+    _plugins.forEach(({ label, pluginName, configs, configLayout }) => {
         if (!configs) {
             return;
         }
+        const _pluginLi = document.createElement('li');
+        const _pluginA = document.createElement('a');
+        _pluginA.setAttribute('href', '#');
+        _pluginA.innerHTML = label || pluginName;
+        _pluginA.addEventListener('click', scrollToSectionFn(pluginName));
+        _pluginLi.append(_pluginA);
+        _dom.ConfigPanelLeftPluginListing.append(_pluginLi);
         const _configLayout = configLayout || [
             configs.map((_config) => _config.key),
         ];
+        const _sectionDiv = document.createElement('div');
+        _sectionDiv.classList.add('bhgv2-config-form-section');
+        _sectionDiv.setAttribute('data-plugin-name', pluginName);
+        const _sectionTitle = document.createElement('h4');
+        _sectionTitle.classList.add('bhgv2-config-form-title');
+        _sectionTitle.innerHTML = `【${label || pluginName}】`;
+        _sectionDiv.append(_sectionTitle);
         for (const row of _configLayout) {
-            const rowElement = document.createElement('div');
-            rowElement.classList.add('bhgv2-config-form-row');
+            const _rowDiv = document.createElement('div');
+            _rowDiv.classList.add('bhgv2-config-form-row');
             for (const col of row) {
                 const configItem = configs.find((_config) => _config.key === col);
                 if (!configItem) {
                     return;
                 }
-                const colElement = document.createElement('div');
-                colElement.classList.add('bhgv2-config-form-col');
+                const _colDiv = document.createElement('div');
+                _colDiv.classList.add('bhgv2-config-form-col');
                 const prefixLabel = document.createElement('span');
                 prefixLabel.innerHTML = configItem.prefixLabel || '';
                 let inputWrapperElement = document.createElement('label');
@@ -458,11 +497,12 @@ const BHGV2Core = ({ plugins, library }) => {
                 inputWrapperElement.prepend(inputElement);
                 const suffixLabel = document.createElement('span');
                 suffixLabel.innerHTML = configItem.suffixLabel || '';
-                colElement.append(prefixLabel, inputWrapperElement, suffixLabel);
-                rowElement.append(colElement);
+                _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel);
+                _rowDiv.append(_colDiv);
             }
-            _dom.ConfigFormContent.append(rowElement);
+            _sectionDiv.append(_rowDiv);
         }
+        _dom.ConfigFormContent.append(_sectionDiv);
     });
     // 初始化 state (gsn, sn, comments, userInfo)
     _state.gsn = guild.gsn;
@@ -795,14 +835,14 @@ const _waitForElm = (selector) => {
             BHGV2Core({
                 plugins: [
                     bhgv2_auto_refresh_1.default,
-                    bhgv2_comments_reverse_1.default,
-                    bhgv2_dark_mode_1.default,
-                    bhgv2_rainbow_1.default,
                     bhgv2_dense_1.default,
                     bhgv2_master_layout_1.default,
-                    bhgv2_notify_on_title_1.default,
+                    bhgv2_comments_reverse_1.default,
                     bhgv2_highlight_me_1.default,
+                    bhgv2_notify_on_title_1.default,
+                    bhgv2_rainbow_1.default,
                     bhgv2_quick_input_1.default,
+                    bhgv2_dark_mode_1.default,
                 ],
                 library: {
                     jQuery,
@@ -1000,10 +1040,11 @@ div[data-google-query-id] {
 	background: #ffffff;
 	padding: 8px;
 	border-radius: 4px;
-	margin-top: 6px;
-	border: 1px solid #bbb;
+	margin-bottom: 6px;
 
 	display: none;
+	align-items: stretch;
+	height: 300px;
 }
 
 .bhgv2-dark .bhgv2-config-panel {
@@ -1011,7 +1052,48 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel.active {
-	display: block;
+	display: flex;
+}
+
+.bhgv2-config-panel-left {
+	width: 150px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-panel-left-plugin-listing-wrapper {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.bhgv2-config-panel-left-plugin-listing {
+}
+
+.bhgv2-config-panel-left-plugin-footer {
+	height: 40px;
+	margin-top: 8px;
+}
+
+.bhgv2-config-panel-right {
+	min-height: 0;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-form {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-form-section {
+	margin-bottom: 1rem;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
@@ -1059,6 +1141,13 @@ div[data-google-query-id] {
 	margin-left: 1rem;
 }
 
+.bhgv2-config-form-content {
+	flex: 1;
+	min-height: 0;
+	overflow-y: scroll;
+	position: relative;
+}
+
 .bhgv2-config-form-content .bhgv2-config-form-row {
 	display: flex;
 	align-items: center;
@@ -1087,7 +1176,7 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-form-actions {
-	display: flex;
+	display: none;
 	justify-content: flex-start;
 	flex-wrap: wrap;
 	font-size: 12px;
@@ -1205,6 +1294,7 @@ const BHGV2_AutoRefresh = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_AutoRefresh',
         prefix: 'BHGV2_AutoRefresh',
+        label: '自動更新',
     };
     _plugin.configs = [
         {
@@ -1223,7 +1313,7 @@ const BHGV2_AutoRefresh = (core) => {
         },
         {
             key: `${_plugin.prefix}:autoSlowDown`,
-            suffixLabel: '如果串最後更新時間超過15分鐘，自動進入低頻率更新模式(建議開啟)',
+            suffixLabel: '舊串慢速更新(建議開啟)',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: true,
@@ -1309,18 +1399,19 @@ const BHGV2_AutoRefresh = (core) => {
                     let isSlowMode = false;
                     if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
                         const commentCTime = new Date(lastCommentCTime).getTime();
-                        const nowTime = Date.now();
-                        if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
-                            // over 12 hours
-                            _interval = 3600;
-                            isSlowMode = true;
+                        if (commentCTime) {
+                            const nowTime = Date.now();
+                            if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
+                                // over 12 hours
+                                _interval = 3600;
+                                isSlowMode = true;
+                            }
+                            else if (nowTime - commentCTime > 30 * 60 * 1000) {
+                                // over 30 minutes
+                                _interval = 300;
+                                isSlowMode = true;
+                            }
                         }
-                        else if (nowTime - commentCTime > 30 * 60 * 1000) {
-                            // over 30 minutes
-                            _interval = 300;
-                            isSlowMode = true;
-                        }
-                        console.log(nowTime, commentCTime, nowTime - commentCTime, 12 * 60 * 60 * 1000, 30 * 60 * 1000, _interval, isSlowMode);
                     }
                     const _intervalMs = _interval * 1000;
                     _statusDom.innerHTML = `${_config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
@@ -1410,6 +1501,7 @@ const BHGV2_CommentsReverse = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_CommentsReverse',
         prefix: 'BHGV2_CommentsReverse',
+        label: '串顛倒排列',
     };
     _plugin.configs = [
         {
@@ -1450,8 +1542,6 @@ const BHGV2_CommentsReverse = (core) => {
 			.bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
 				position: sticky;
 				top: 80px;
-				margin-left: -20px;
-				margin-right: -20px;
 				padding-left: 20px;
 				padding-right: 20px;
 				background-color: rgba(180, 180, 180, 0.9);
@@ -1502,7 +1592,7 @@ exports.default = BHGV2_CommentsReverse;
 /*******************************************************************************************
  *
  *  BHGV2_DarkMode - 黑闇模式
- *  當啟動巴哈的黑闇模式時，使插件介面也跟著黑闇起來
+ *  當啟用巴哈的黑闇模式時，使插件介面也跟著黑闇起來
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -1555,6 +1645,7 @@ const BHGV2_Dense = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_Dense',
         prefix: 'BHGV2_Dense',
+        label: '串介面',
     };
     _plugin.configs = [
         {
@@ -1574,13 +1665,6 @@ const BHGV2_Dense = (core) => {
         {
             key: `${_plugin.prefix}-hideFooter`,
             suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
-            dataType: 'boolean',
-            inputType: 'switch',
-            defaultValue: false,
-        },
-        {
-            key: `${_plugin.prefix}-narrowerGutter`,
-            suffixLabel: '更窄的間距',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
@@ -1615,11 +1699,7 @@ const BHGV2_Dense = (core) => {
         },
     ];
     _plugin.configLayout = [
-        [
-            `${_plugin.prefix}-tradUI`,
-            `${_plugin.prefix}-sizeSmaller`,
-            `${_plugin.prefix}-narrowerGutter`,
-        ],
+        [`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-sizeSmaller`],
         [`${_plugin.prefix}-hideFooter`],
         [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
         [`${_plugin.prefix}-perfectLayout`],
@@ -1683,20 +1763,20 @@ const BHGV2_Dense = (core) => {
 				border-bottom: 1px solid #999999;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {
+			.${_plugin.prefix}-tradUI .bhgv2-comment.bhgv2-comment.bhgv2-comment {
 				padding-top: 5px;
 				padding-left: 10px;
 				padding-right: 10px;
 				padding-bottom: 0;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
+			.${_plugin.prefix}-tradUI .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				padding-left: 10px;
 				padding-right: 10px;
 				padding-bottom: 0;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
+			.${_plugin.prefix}-tradUI .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
 				margin-top: 0;
 			}
 
@@ -1791,13 +1871,7 @@ const BHGV2_Dense = (core) => {
     };
     _plugin.onMutateConfig = (newValue) => {
         ;
-        [
-            'tradUI',
-            'hideFooter',
-            'narrowerGutter',
-            'smallerImage',
-            'squareAvatar',
-        ].forEach((key) => {
+        ['tradUI', 'hideFooter', 'smallerImage', 'squareAvatar'].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.CommentListOuter;
                 if (dom) {
@@ -1836,6 +1910,7 @@ const BHGV2_HighlightMe = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_HighlightMe',
         prefix: 'BHGV2_HighlightMe',
+        label: '「提及我」高亮',
     };
     _plugin.configs = [
         {
@@ -2038,6 +2113,7 @@ const BHGV2_MasterLayout = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_MasterLayout',
         prefix: 'BHGV2_MasterLayout',
+        label: '公會全頁介面',
     };
     _plugin.configs = [
         {
@@ -2174,6 +2250,7 @@ const BHGV2_NotifyOnTitle = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_NotifyOnTitle',
         prefix: 'BHGV2_NotifyOnTitle',
+        label: '網頁標題通知',
     };
     _plugin.configs = [
         {
@@ -2285,11 +2362,12 @@ const BHGV2_QuickInput = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_QuickInput',
         prefix: 'BHGV2_QuickInput',
+        label: '快速輸入',
     };
     _plugin.configs = [
         {
             key: `${_plugin.prefix}-isEnabled`,
-            suffixLabel: '啟動快速輸入功能',
+            suffixLabel: '啟用快速輸入',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,
@@ -2619,11 +2697,12 @@ const BHGV2_Rainbow = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_Rainbow',
         prefix: 'BHGV2_Rainbow',
+        label: '彩虹底色',
     };
     _plugin.configs = [
         {
             key: `${_plugin.prefix}:isEnable`,
-            suffixLabel: '改變留言的底色',
+            suffixLabel: '啟用彩虹底色',
             dataType: 'boolean',
             inputType: 'switch',
             defaultValue: false,

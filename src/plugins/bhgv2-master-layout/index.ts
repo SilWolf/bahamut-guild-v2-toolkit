@@ -11,6 +11,7 @@ const BHGV2_MasterLayout: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_MasterLayout',
 		prefix: 'BHGV2_MasterLayout',
+		label: '公會全頁介面',
 	}
 
 	_plugin.configs = [

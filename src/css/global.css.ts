@@ -174,10 +174,11 @@ div[data-google-query-id] {
 	background: #ffffff;
 	padding: 8px;
 	border-radius: 4px;
-	margin-top: 6px;
-	border: 1px solid #bbb;
+	margin-bottom: 6px;
 
 	display: none;
+	align-items: stretch;
+	height: 300px;
 }
 
 .bhgv2-dark .bhgv2-config-panel {
@@ -185,7 +186,48 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-panel.active {
-	display: block;
+	display: flex;
+}
+
+.bhgv2-config-panel-left {
+	width: 150px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-panel-left-plugin-listing-wrapper {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.bhgv2-config-panel-left-plugin-listing {
+}
+
+.bhgv2-config-panel-left-plugin-footer {
+	height: 40px;
+	margin-top: 8px;
+}
+
+.bhgv2-config-panel-right {
+	min-height: 0;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-form {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.bhgv2-config-form-section {
+	margin-bottom: 1rem;
 }
 
 .bhgv2-config-panel.bhgv2-config-panel.bhgv2-config-panel input {
@@ -233,6 +275,13 @@ div[data-google-query-id] {
 	margin-left: 1rem;
 }
 
+.bhgv2-config-form-content {
+	flex: 1;
+	min-height: 0;
+	overflow-y: scroll;
+	position: relative;
+}
+
 .bhgv2-config-form-content .bhgv2-config-form-row {
 	display: flex;
 	align-items: center;
@@ -261,7 +310,7 @@ div[data-google-query-id] {
 }
 
 .bhgv2-config-form-actions {
-	display: flex;
+	display: none;
 	justify-content: flex-start;
 	flex-wrap: wrap;
 	font-size: 12px;

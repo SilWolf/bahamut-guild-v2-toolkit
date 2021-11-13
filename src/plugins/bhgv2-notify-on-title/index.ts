@@ -11,6 +11,7 @@ const BHGV2_NotifyOnTitle: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_NotifyOnTitle',
 		prefix: 'BHGV2_NotifyOnTitle',
+		label: '網頁標題通知',
 	}
 
 	_plugin.configs = [

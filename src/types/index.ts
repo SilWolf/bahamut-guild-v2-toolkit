@@ -20,6 +20,7 @@ export type TCore = {
 export type TPluginConstructor = (core: TCore) => TPlugin
 
 export type TPlugin = {
+	label?: string
 	pluginName: string
 	prefix: string
 	configs?: TPluginConfig[]

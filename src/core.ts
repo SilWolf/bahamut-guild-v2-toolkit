@@ -551,11 +551,42 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 	_dom.ConfigPanel = document.createElement('div')
 	_dom.ConfigPanel.classList.add('bhgv2-config-panel')
-	_dom.EditorContainerReplyContent.append(_dom.ConfigPanel)
+	_dom.EditorContainer.append(_dom.ConfigPanel)
+
+	_dom.ConfigPanelLeft = document.createElement('div')
+	_dom.ConfigPanelLeft.classList.add('bhgv2-config-panel-left')
+
+	_dom.ConfigPanelRight = document.createElement('div')
+	_dom.ConfigPanelRight.classList.add('bhgv2-config-panel-right')
+
+	_dom.ConfigPanel.append(_dom.ConfigPanelLeft, _dom.ConfigPanelRight)
+
+	_dom.ConfigPanelLeftPluginListingWrapper = document.createElement('div')
+	_dom.ConfigPanelLeftPluginListingWrapper.classList.add(
+		'bhgv2-config-panel-left-plugin-listing-wrapper'
+	)
+
+	_dom.ConfigPanelLeftPluginListing = document.createElement('ul')
+	_dom.ConfigPanelLeftPluginListing.classList.add(
+		'bhgv2-config-panel-left-plugin-listing'
+	)
+	_dom.ConfigPanelLeftPluginListingWrapper.append(
+		_dom.ConfigPanelLeftPluginListing
+	)
+
+	_dom.ConfigPanelLeftPluginFooter = document.createElement('div')
+	_dom.ConfigPanelLeftPluginFooter.classList.add(
+		'bhgv2-config-panel-left-plugin-footer'
+	)
+
+	_dom.ConfigPanelLeft.append(
+		_dom.ConfigPanelLeftPluginListingWrapper,
+		_dom.ConfigPanelLeftPluginFooter
+	)
 
 	_dom.ConfigForm = document.createElement('form')
 	_dom.ConfigForm.classList.add('bhgv2-config-form')
-	_dom.ConfigPanel.append(_dom.ConfigForm)
+	_dom.ConfigPanelRight.append(_dom.ConfigForm)
 
 	_dom.ConfigFormContent = document.createElement('div')
 	_dom.ConfigFormContent.classList.add('bhgv2-config-form-content')
@@ -612,18 +643,55 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		.join('\n\n')
 
 	// 更新設定版面
+	_dom.ConfigPanelLeftPluginListing.innerHTML = ''
 	_dom.ConfigFormContent.innerHTML = ''
-	_plugins.forEach(({ configs, configLayout }) => {
+
+	const scrollToSectionFn = (pluginName: string) => (event: MouseEvent) => {
+		event.preventDefault()
+
+		const target = _dom.ConfigFormContent.querySelector(
+			`[data-plugin-name="${pluginName}"]`
+		) as HTMLElement
+		if (target && target.offsetTop !== undefined) {
+			_dom.ConfigFormContent.scrollTo({
+				top: target.offsetTop,
+				behavior: 'smooth',
+			})
+		}
+
+		return false
+	}
+
+	_plugins.forEach(({ label, pluginName, configs, configLayout }) => {
 		if (!configs) {
 			return
 		}
+
+		const _pluginLi = document.createElement('li')
+		const _pluginA = document.createElement('a')
+		_pluginA.setAttribute('href', '#')
+		_pluginA.innerHTML = label || pluginName
+		_pluginA.addEventListener('click', scrollToSectionFn(pluginName))
+		_pluginLi.append(_pluginA)
+
+		_dom.ConfigPanelLeftPluginListing.append(_pluginLi)
+
 		const _configLayout = configLayout || [
 			configs.map((_config) => _config.key),
 		]
 
+		const _sectionDiv = document.createElement('div')
+		_sectionDiv.classList.add('bhgv2-config-form-section')
+		_sectionDiv.setAttribute('data-plugin-name', pluginName)
+
+		const _sectionTitle = document.createElement('h4')
+		_sectionTitle.classList.add('bhgv2-config-form-title')
+		_sectionTitle.innerHTML = `【${label || pluginName}】`
+		_sectionDiv.append(_sectionTitle)
+
 		for (const row of _configLayout) {
-			const rowElement = document.createElement('div')
-			rowElement.classList.add('bhgv2-config-form-row')
+			const _rowDiv = document.createElement('div')
+			_rowDiv.classList.add('bhgv2-config-form-row')
 
 			for (const col of row) {
 				const configItem = configs.find((_config) => _config.key === col)
@@ -631,8 +699,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 					return
 				}
 
-				const colElement = document.createElement('div')
-				colElement.classList.add('bhgv2-config-form-col')
+				const _colDiv = document.createElement('div')
+				_colDiv.classList.add('bhgv2-config-form-col')
 
 				const prefixLabel = document.createElement('span')
 				prefixLabel.innerHTML = configItem.prefixLabel || ''
@@ -672,13 +740,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				const suffixLabel = document.createElement('span')
 				suffixLabel.innerHTML = configItem.suffixLabel || ''
 
-				colElement.append(prefixLabel, inputWrapperElement, suffixLabel)
+				_colDiv.append(prefixLabel, inputWrapperElement, suffixLabel)
 
-				rowElement.append(colElement)
+				_rowDiv.append(_colDiv)
 			}
 
-			_dom.ConfigFormContent.append(rowElement)
+			_sectionDiv.append(_rowDiv)
 		}
+
+		_dom.ConfigFormContent.append(_sectionDiv)
 	})
 
 	// 初始化 state (gsn, sn, comments, userInfo)
@@ -1128,14 +1198,14 @@ const _waitForElm = (selector: string) => {
 			BHGV2Core({
 				plugins: [
 					BHGV2_AutoRefresh,
-					BHGV2_CommentsReverse,
-					BHGV2_DarkMode,
-					BHGV2_Rainbow,
 					BHGV2_Dense,
 					BHGV2_MasterLayout,
-					BHGV2_NotifyOnTitle,
+					BHGV2_CommentsReverse,
 					BHGV2_HighlightMe,
+					BHGV2_NotifyOnTitle,
+					BHGV2_Rainbow,
 					BHGV2_QuickInput,
+					BHGV2_DarkMode,
 				],
 				library: {
 					jQuery,

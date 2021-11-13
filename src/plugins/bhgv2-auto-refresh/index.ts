@@ -17,6 +17,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_AutoRefresh',
 		prefix: 'BHGV2_AutoRefresh',
+		label: '自動更新',
 	}
 
 	_plugin.configs = [
@@ -36,8 +37,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		},
 		{
 			key: `${_plugin.prefix}:autoSlowDown`,
-			suffixLabel:
-				'如果串最後更新時間超過15分鐘，自動進入低頻率更新模式(建議開啟)',
+			suffixLabel: '舊串慢速更新(建議開啟)',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: true,
@@ -155,27 +155,19 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 
 					if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
 						const commentCTime = new Date(lastCommentCTime).getTime()
-						const nowTime = Date.now()
+						if (commentCTime) {
+							const nowTime = Date.now()
 
-						if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
-							// over 12 hours
-							_interval = 3600
-							isSlowMode = true
-						} else if (nowTime - commentCTime > 30 * 60 * 1000) {
-							// over 30 minutes
-							_interval = 300
-							isSlowMode = true
+							if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
+								// over 12 hours
+								_interval = 3600
+								isSlowMode = true
+							} else if (nowTime - commentCTime > 30 * 60 * 1000) {
+								// over 30 minutes
+								_interval = 300
+								isSlowMode = true
+							}
 						}
-
-						console.log(
-							nowTime,
-							commentCTime,
-							nowTime - commentCTime,
-							12 * 60 * 60 * 1000,
-							30 * 60 * 1000,
-							_interval,
-							isSlowMode
-						)
 					}
 
 					const _intervalMs = _interval * 1000

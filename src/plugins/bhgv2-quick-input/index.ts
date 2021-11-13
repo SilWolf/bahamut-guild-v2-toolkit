@@ -11,12 +11,13 @@ const BHGV2_QuickInput: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_QuickInput',
 		prefix: 'BHGV2_QuickInput',
+		label: '快速輸入',
 	}
 
 	_plugin.configs = [
 		{
 			key: `${_plugin.prefix}-isEnabled`,
-			suffixLabel: '啟動快速輸入功能',
+			suffixLabel: '啟用快速輸入',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,

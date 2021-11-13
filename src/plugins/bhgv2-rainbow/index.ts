@@ -11,12 +11,13 @@ const BHGV2_Rainbow: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_Rainbow',
 		prefix: 'BHGV2_Rainbow',
+		label: '彩虹底色',
 	}
 
 	_plugin.configs = [
 		{
 			key: `${_plugin.prefix}:isEnable`,
-			suffixLabel: '改變留言的底色',
+			suffixLabel: '啟用彩虹底色',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,

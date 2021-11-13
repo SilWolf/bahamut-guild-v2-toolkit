@@ -11,6 +11,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_Dense',
 		prefix: 'BHGV2_Dense',
+		label: '串介面',
 	}
 
 	_plugin.configs = [
@@ -31,13 +32,6 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 		{
 			key: `${_plugin.prefix}-hideFooter`,
 			suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-narrowerGutter`,
-			suffixLabel: '更窄的間距',
 			dataType: 'boolean',
 			inputType: 'switch',
 			defaultValue: false,
@@ -73,11 +67,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 	]
 
 	_plugin.configLayout = [
-		[
-			`${_plugin.prefix}-tradUI`,
-			`${_plugin.prefix}-sizeSmaller`,
-			`${_plugin.prefix}-narrowerGutter`,
-		],
+		[`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-sizeSmaller`],
 		[`${_plugin.prefix}-hideFooter`],
 		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-squareAvatar`],
 		[`${_plugin.prefix}-perfectLayout`],
@@ -142,20 +132,20 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				border-bottom: 1px solid #999999;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .bhgv2-comment.bhgv2-comment.bhgv2-comment {
+			.${_plugin.prefix}-tradUI .bhgv2-comment.bhgv2-comment.bhgv2-comment {
 				padding-top: 5px;
 				padding-left: 10px;
 				padding-right: 10px;
 				padding-bottom: 0;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
+			.${_plugin.prefix}-tradUI .bhgv2-editor-container.bhgv2-editor-container.bhgv2-editor-container {
 				padding-left: 10px;
 				padding-right: 10px;
 				padding-bottom: 0;
 			}
 
-			.${_plugin.prefix}-narrowerGutter .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
+			.${_plugin.prefix}-tradUI .c-reply__item .reply-content__cont.reply-content__cont.reply-content__cont {
 				margin-top: 0;
 			}
 
@@ -253,13 +243,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 	}
 
 	_plugin.onMutateConfig = (newValue) => {
-		;[
-			'tradUI',
-			'hideFooter',
-			'narrowerGutter',
-			'smallerImage',
-			'squareAvatar',
-		].forEach((key) => {
+		;['tradUI', 'hideFooter', 'smallerImage', 'squareAvatar'].forEach((key) => {
 			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
 				const dom = core.DOM.CommentListOuter
 				if (dom) {

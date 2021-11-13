@@ -11,6 +11,7 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_CommentsReverse',
 		prefix: 'BHGV2_CommentsReverse',
+		label: '串顛倒排列',
 	}
 
 	_plugin.configs = [
@@ -53,8 +54,6 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 			.bhgv2-comment-list-outer.${_plugin.prefix}-editorSticky .bhgv2-editor-container {
 				position: sticky;
 				top: 80px;
-				margin-left: -20px;
-				margin-right: -20px;
 				padding-left: 20px;
 				padding-right: 20px;
 				background-color: rgba(180, 180, 180, 0.9);

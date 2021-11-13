@@ -11,6 +11,7 @@ const BHGV2_HighlightMe: TPluginConstructor = (core) => {
 	const _plugin: TPlugin = {
 		pluginName: 'BHGV2_HighlightMe',
 		prefix: 'BHGV2_HighlightMe',
+		label: '「提及我」高亮',
 	}
 
 	_plugin.configs = [
