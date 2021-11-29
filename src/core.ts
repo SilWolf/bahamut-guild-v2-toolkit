@@ -887,13 +887,13 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 				const content = textarea.value || ''
 				if (content.match(/^\s*$/)) {
-					console.log('請輸入內容')
+					Dialogify.alert('請輸入內容')
 					return false
 				}
 
 				const { gsn, sn } = CORE.getState()
 				if (!gsn || !sn) {
-					console.log('GSN或SN是空值！')
+					Dialogify.alert('GSN或SN是空值！')
 					return false
 				}
 
@@ -931,9 +931,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							],
 							isUserAction: true,
 						})
+
+						textarea.value = ''
 					})
 					.finally(() => {
-						textarea.value = ''
 						textarea.removeAttribute('disabled')
 						textarea.focus()
 					})
