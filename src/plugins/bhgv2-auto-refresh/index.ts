@@ -98,12 +98,13 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						return
 					}
 
-					const { comments, commentCount: newCommentsCount } = await fetch(
-						commentListApi,
-						{
-							credentials: 'include',
-						}
-					)
+					const {
+						comments,
+						commentCount: newCommentsCount,
+						totalPage,
+					} = await fetch(commentListApi, {
+						credentials: 'include',
+					})
 						.then((res) => res.json())
 						.then((res: TCommentsListApiResponse) => res.data)
 
@@ -118,12 +119,13 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 					const expectedNewCommentsCount =
 						newCommentsCount - (currentCommentsCount || 0)
 
-					let page = 0
+					let page = totalPage
 					while (
-						latestComments.length < expectedNewCommentsCount &&
-						page < 999
+						(latestComments.length < expectedNewCommentsCount ||
+							latestComments.length < 15) &&
+						page >= 0
 					) {
-						page++
+						page--
 
 						const { comments: anotherComments } = await fetch(
 							commentListApi + `&page=${page}`,
