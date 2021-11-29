@@ -31,6 +31,7 @@ const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
+const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
@@ -188,7 +189,7 @@ const BHGV2Core = ({ plugins, library }) => {
                                         }
                                     }
                                     ;
-                                    ['.bhgv2-comment-position', '.bhgv2-comment-ctime'].forEach((query) => {
+                                    ['.bhgv2-comment-position'].forEach((query) => {
                                         const _oldEle = _oldElement.querySelector(query);
                                         const _newEle = _newElement.querySelector(query);
                                         if (_oldEle &&
@@ -278,6 +279,21 @@ const BHGV2Core = ({ plugins, library }) => {
                     newValue.commentsCount = core.comments.length;
                     newValue.latestComments =
                         revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
+                    setTimeout(() => {
+                        const CTimes = core.DOM.CommentList.querySelectorAll('.bhgv2-comment-ctime');
+                        for (const CTime of CTimes) {
+                            const ctime = CTime.getAttribute('data-ctime');
+                            if (ctime) {
+                                const humanString = display_helper_1.convertCTimeToHumanString(ctime);
+                                if (CTime.innerHTML.indexOf('編輯') !== -1) {
+                                    CTime.innerHTML = `${humanString} 編輯`;
+                                }
+                                else {
+                                    CTime.innerHTML = humanString;
+                                }
+                            }
+                        }
+                    }, 0);
                 }
             }
         };
@@ -1054,8 +1070,6 @@ div[data-google-query-id] {
 	left: 8px;
 	right: 8px;
 	padding-right: 70px;
-	display: flex;
-	justify-content: space-between;
 }
 
 .bhgv2-editor-container-reply-content-footer {
@@ -1304,6 +1318,37 @@ exports.default = `
 		display: none;
 	}
 `;
+
+
+/***/ }),
+
+/***/ 201:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertCTimeToHumanString = void 0;
+const convertCTimeToHumanString = (ctime) => {
+    const date = new Date(ctime);
+    if (!date) {
+        return ctime;
+    }
+    const deltaSeconds = (Date.now() - date.getTime()) / 1000;
+    if (deltaSeconds < 3600) {
+        return `${Math.floor(deltaSeconds / 60)}分鐘`;
+    }
+    else if (deltaSeconds < 86400) {
+        return `${Math.floor(deltaSeconds / 3600)}小時`;
+    }
+    return `${(date.getMonth() + 1).toString().padStart(2, '0')}月${date
+        .getDate()
+        .toString()
+        .padStart(2, '0')}日 ${date.getHours().toString().padStart(2, '0')}:${date
+        .getMinutes()
+        .toString()
+        .padStart(2, '0')}`;
+};
+exports.convertCTimeToHumanString = convertCTimeToHumanString;
 
 
 /***/ }),

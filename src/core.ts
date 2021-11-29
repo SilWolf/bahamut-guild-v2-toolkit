@@ -25,6 +25,7 @@ import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
 import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
 import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
+import { convertCTimeToHumanString } from './helpers/display.helper'
 
 declare var nunjucks: any
 declare var Guild: any
@@ -250,19 +251,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 										}
 									}
 
-									;['.bhgv2-comment-position', '.bhgv2-comment-ctime'].forEach(
-										(query: string) => {
-											const _oldEle = _oldElement.querySelector(query)
-											const _newEle = _newElement.querySelector(query)
-											if (
-												_oldEle &&
-												_newEle &&
-												_oldEle.innerHTML !== _newEle.innerHTML
-											) {
-												_oldEle.innerHTML = _newEle.innerHTML
-											}
+									;['.bhgv2-comment-position'].forEach((query: string) => {
+										const _oldEle = _oldElement.querySelector(query)
+										const _newEle = _newElement.querySelector(query)
+										if (
+											_oldEle &&
+											_newEle &&
+											_oldEle.innerHTML !== _newEle.innerHTML
+										) {
+											_oldEle.innerHTML = _newEle.innerHTML
 										}
-									)
+									})
 								}
 
 								_newCommentIndex++
@@ -373,6 +372,23 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 					newValue.commentsCount = core.comments.length
 					newValue.latestComments =
 						revisedLatestComments.length > 0 ? revisedLatestComments : undefined
+
+					setTimeout(() => {
+						const CTimes = core.DOM.CommentList.querySelectorAll(
+							'.bhgv2-comment-ctime'
+						)
+						for (const CTime of CTimes) {
+							const ctime = CTime.getAttribute('data-ctime')
+							if (ctime) {
+								const humanString = convertCTimeToHumanString(ctime)
+								if (CTime.innerHTML.indexOf('編輯') !== -1) {
+									CTime.innerHTML = `${humanString} 編輯`
+								} else {
+									CTime.innerHTML = humanString
+								}
+							}
+						}
+					}, 0)
 				}
 			}
 		}
