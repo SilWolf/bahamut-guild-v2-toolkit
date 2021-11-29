@@ -42,6 +42,7 @@ export type TCoreState = {
 	isUserAction?: boolean
 	commentsCount?: number
 	userInfo?: TCoreStateUserInfo
+	avatarMap?: Record<string, string>
 }
 export type TCoreStateKey = keyof TCoreState
 export type TCoreStateComment = {

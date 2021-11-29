@@ -201,6 +201,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
 					let _newCommentIndex = 0
 					let loopCount = 0
+
+					const { avatarMap = {} } = CORE.getState()
+					let isAvatarMapChanged = false
+
 					while (
 						_newCommentIndex < newValue.latestComments.length &&
 						loopCount < 2000
@@ -284,20 +288,32 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 								_newComment.element.querySelector<HTMLLinkElement>(
 									'.reply-content__user'
 								)
+							let userId = undefined
 
 							if (_replyContentUser) {
 								_newComment.element.setAttribute(
 									'data-user',
 									_replyContentUser.textContent as string
 								)
-								_newComment.element.setAttribute(
-									'data-userid',
-									_replyContentUser.href.split('/').pop() as string
-								)
+								userId = _replyContentUser.href.split('/').pop() as string
+								_newComment.element.setAttribute('data-userid', userId)
 								_newComment.element.setAttribute(
 									'data-position',
 									_newComment.position.toString()
 								)
+							}
+
+							if (userId) {
+								const _replyAvatarImg = _newComment.element.querySelector(
+									'a.reply-avatar-img img'
+								)
+								if (_replyAvatarImg) {
+									let avatarUrl = _replyAvatarImg.getAttribute('src')
+									if (avatarUrl) {
+										avatarMap[userId] = avatarUrl
+										isAvatarMapChanged = true
+									}
+								}
 							}
 
 							const [positionSpan, ctimeSpan] =
@@ -330,7 +346,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 							_newCommentIndex++
 						} else if (_newComment.payload) {
 							// new comment with payload
-							_newComment.element = _createCommentElement(_newComment.payload)
+							const _payload = _newComment.payload
+							if (avatarMap[_payload.userid]) {
+								_payload.propic = avatarMap[_payload.userid]
+							} else {
+								avatarMap[_payload.userid] = _payload.propic
+								isAvatarMapChanged = true
+							}
+
+							_newComment.element = _createCommentElement(_payload)
 							CommentList.append(_newComment.element)
 
 							core.comments[_commentIndex] = _newComment
@@ -343,11 +367,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 						}
 					}
 
-					const { commentsCount: oldCommentsCount } = CORE.getState()
-
-					newValue.commentsCount =
-						(oldCommentsCount || 0) +
-						(newValue.isUserAction ? 0 : revisedLatestComments.length)
+					if (isAvatarMapChanged) {
+						newValue.avatarMap = avatarMap
+					}
+					newValue.commentsCount = core.comments.length
 					newValue.latestComments =
 						revisedLatestComments.length > 0 ? revisedLatestComments : undefined
 				}
