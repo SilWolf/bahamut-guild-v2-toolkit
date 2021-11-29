@@ -1771,6 +1771,13 @@ const BHGV2_Dense = (core) => {
             defaultValue: false,
         },
         {
+            key: `${_plugin.prefix}-smallerImageHover`,
+            suffixLabel: '鼠標懸浮時放大',
+            dataType: 'boolean',
+            inputType: 'checkbox',
+            defaultValue: false,
+        },
+        {
             key: `${_plugin.prefix}-squareAvatar`,
             suffixLabel: '正方型頭像',
             dataType: 'boolean',
@@ -1808,7 +1815,8 @@ const BHGV2_Dense = (core) => {
     _plugin.configLayout = [
         [`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-perfectLayout`],
         [`${_plugin.prefix}-squareAvatar`],
-        [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-sizeSmaller`],
+        [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-smallerImageHover`],
+        [`${_plugin.prefix}-sizeSmaller`],
         [`${_plugin.prefix}-hideFooter`],
         [`${_plugin.prefix}-hidePreview`],
         [`${_plugin.prefix}-font`],
@@ -1908,19 +1916,9 @@ const BHGV2_Dense = (core) => {
 				transition: max-width 0.3s, max-height 0.3s;
 			}
 
-			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img:hover {
+			.${_plugin.prefix}-smallerImage.${_plugin.prefix}-smallerImageHover .reply-content__cont.reply-content__cont.reply-content__cont img:hover {
 				max-width: calc(100% - 20px);
 				max-height: 500px;
-			}
-
-			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {
-				margin-bottom: 4px;
-				max-width: 100px;
-				max-height: 150px;
-				width: auto;
-				border-radius: 8px;
-				vertical-align: middle;
-				transition: max-width 0.3s, max-height 0.3s;
 			}
 
 			.${_plugin.prefix}-squareAvatar .reply-avatar-img.reply-avatar-img.reply-avatar-img,
@@ -1989,7 +1987,13 @@ const BHGV2_Dense = (core) => {
     };
     _plugin.onMutateConfig = (newValue) => {
         ;
-        ['tradUI', 'hideFooter', 'smallerImage', 'squareAvatar'].forEach((key) => {
+        [
+            'tradUI',
+            'hideFooter',
+            'smallerImage',
+            'smallerImageHover',
+            'squareAvatar',
+        ].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.CommentListOuter;
                 if (dom) {
