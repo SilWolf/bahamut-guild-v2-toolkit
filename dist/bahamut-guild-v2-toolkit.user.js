@@ -157,6 +157,8 @@ const BHGV2Core = ({ plugins, library }) => {
                     };
                     let _newCommentIndex = 0;
                     let loopCount = 0;
+                    const { avatarMap = {} } = CORE.getState();
+                    let isAvatarMapChanged = false;
                     while (_newCommentIndex < newValue.latestComments.length &&
                         loopCount < 2000) {
                         const _newComment = newValue.latestComments[_newCommentIndex];
@@ -215,10 +217,22 @@ const BHGV2Core = ({ plugins, library }) => {
                             // comment which is created on first loading
                             _newComment.element.classList.add('bhgv2-comment');
                             const _replyContentUser = _newComment.element.querySelector('.reply-content__user');
+                            let userId = undefined;
                             if (_replyContentUser) {
                                 _newComment.element.setAttribute('data-user', _replyContentUser.textContent);
-                                _newComment.element.setAttribute('data-userid', _replyContentUser.href.split('/').pop());
+                                userId = _replyContentUser.href.split('/').pop();
+                                _newComment.element.setAttribute('data-userid', userId);
                                 _newComment.element.setAttribute('data-position', _newComment.position.toString());
+                            }
+                            if (userId) {
+                                const _replyAvatarImg = _newComment.element.querySelector('a.reply-avatar-img img');
+                                if (_replyAvatarImg) {
+                                    let avatarUrl = _replyAvatarImg.getAttribute('src');
+                                    if (avatarUrl) {
+                                        avatarMap[userId] = avatarUrl;
+                                        isAvatarMapChanged = true;
+                                    }
+                                }
                             }
                             const [positionSpan, ctimeSpan] = _newComment.element.querySelectorAll('.reply_right span.reply_time');
                             if (positionSpan) {
@@ -239,7 +253,15 @@ const BHGV2Core = ({ plugins, library }) => {
                         }
                         else if (_newComment.payload) {
                             // new comment with payload
-                            _newComment.element = _createCommentElement(_newComment.payload);
+                            const _payload = _newComment.payload;
+                            if (avatarMap[_payload.userid]) {
+                                _payload.propic = avatarMap[_payload.userid];
+                            }
+                            else {
+                                avatarMap[_payload.userid] = _payload.propic;
+                                isAvatarMapChanged = true;
+                            }
+                            _newComment.element = _createCommentElement(_payload);
                             CommentList.append(_newComment.element);
                             core.comments[_commentIndex] = _newComment;
                             revisedLatestComments.push(_newComment);
@@ -250,10 +272,10 @@ const BHGV2Core = ({ plugins, library }) => {
                             _newCommentIndex++;
                         }
                     }
-                    const { commentsCount: oldCommentsCount } = CORE.getState();
-                    newValue.commentsCount =
-                        (oldCommentsCount || 0) +
-                            (newValue.isUserAction ? 0 : revisedLatestComments.length);
+                    if (isAvatarMapChanged) {
+                        newValue.avatarMap = avatarMap;
+                    }
+                    newValue.commentsCount = core.comments.length;
                     newValue.latestComments =
                         revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
                 }
@@ -587,12 +609,12 @@ const BHGV2Core = ({ plugins, library }) => {
             event.preventDefault();
             const content = textarea.value || '';
             if (content.match(/^\s*$/)) {
-                console.log('請輸入內容');
+                Dialogify.alert('請輸入內容');
                 return false;
             }
             const { gsn, sn } = CORE.getState();
             if (!gsn || !sn) {
-                console.log('GSN或SN是空值！');
+                Dialogify.alert('GSN或SN是空值！');
                 return false;
             }
             textarea.setAttribute('disabled', 'true');
@@ -625,9 +647,9 @@ const BHGV2Core = ({ plugins, library }) => {
                     ],
                     isUserAction: true,
                 });
+                textarea.value = '';
             })
                 .finally(() => {
-                textarea.value = '';
                 textarea.removeAttribute('disabled');
                 textarea.focus();
             });
@@ -1031,6 +1053,9 @@ div[data-google-query-id] {
 	bottom: 0;
 	left: 8px;
 	right: 8px;
+	padding-right: 70px;
+	display: flex;
+	justify-content: space-between;
 }
 
 .bhgv2-editor-container-reply-content-footer {
@@ -1386,7 +1411,7 @@ const BHGV2_AutoRefresh = (core) => {
                     if (!commentListApi) {
                         return;
                     }
-                    const { comments, commentCount: newCommentsCount } = await fetch(commentListApi, {
+                    const { comments, commentCount: newCommentsCount, totalPage, } = await fetch(commentListApi, {
                         credentials: 'include',
                     })
                         .then((res) => res.json())
@@ -1400,10 +1425,11 @@ const BHGV2_AutoRefresh = (core) => {
                         })),
                     ];
                     const expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
-                    let page = 0;
-                    while (latestComments.length < expectedNewCommentsCount &&
-                        page < 999) {
-                        page++;
+                    let page = totalPage;
+                    while ((latestComments.length < expectedNewCommentsCount ||
+                        latestComments.length < 15) &&
+                        page >= 0) {
+                        page--;
                         const { comments: anotherComments } = await fetch(commentListApi + `&page=${page}`, {
                             credentials: 'include',
                         })

@@ -153,6 +153,7 @@ div[data-google-query-id] {
 	bottom: 0;
 	left: 8px;
 	right: 8px;
+	padding-right: 70px;
 }
 
 .bhgv2-editor-container-reply-content-footer {
