@@ -149,7 +149,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				border-bottom: 1px solid #999999;
 			}
 			
-			.bhgv2-dark .${_plugin.prefix}-tradUI .bhgv2-comment {
+			.bhgv2-dark.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: transparent;
 				border-bottom: 1px solid #999999;
 			}

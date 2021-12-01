@@ -249,6 +249,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 										if (_oldEle && _newEle) {
 											_oldEle.innerHTML = _newEle.innerHTML
 										}
+
+										_storedComment.payload.text = _newComment.payload.text
 									}
 
 									;['.bhgv2-comment-position'].forEach((query: string) => {
@@ -260,6 +262,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 											_oldEle.innerHTML !== _newEle.innerHTML
 										) {
 											_oldEle.innerHTML = _newEle.innerHTML
+											_storedComment.position = _newComment.position
 										}
 									})
 								}
@@ -1160,6 +1163,9 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 				) as HTMLDivElement
 
 				_content.innerHTML = _newContent.innerHTML
+				if (_comment.payload) {
+					_comment.payload.text = commentData.text
+				}
 
 				_element.classList.toggle('editing', false)
 				_overrideArea.innerHTML = ''

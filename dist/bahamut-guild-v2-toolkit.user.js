@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.8.0
+// @version         0.8.1
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -187,6 +187,7 @@ const BHGV2Core = ({ plugins, library }) => {
                                         if (_oldEle && _newEle) {
                                             _oldEle.innerHTML = _newEle.innerHTML;
                                         }
+                                        _storedComment.payload.text = _newComment.payload.text;
                                     }
                                     ;
                                     ['.bhgv2-comment-position'].forEach((query) => {
@@ -196,6 +197,7 @@ const BHGV2Core = ({ plugins, library }) => {
                                             _newEle &&
                                             _oldEle.innerHTML !== _newEle.innerHTML) {
                                             _oldEle.innerHTML = _newEle.innerHTML;
+                                            _storedComment.position = _newComment.position;
                                         }
                                     });
                                 }
@@ -814,6 +816,9 @@ const BHGV2Core = ({ plugins, library }) => {
                 }))[0];
                 const _newContent = _newElement.querySelector('.reply-content__cont');
                 _content.innerHTML = _newContent.innerHTML;
+                if (_comment.payload) {
+                    _comment.payload.text = commentData.text;
+                }
                 _element.classList.toggle('editing', false);
                 _overrideArea.innerHTML = '';
             });
@@ -1876,7 +1881,7 @@ const BHGV2_Dense = (core) => {
 				border-bottom: 1px solid #999999;
 			}
 			
-			.bhgv2-dark .${_plugin.prefix}-tradUI .bhgv2-comment {
+			.bhgv2-dark.${_plugin.prefix}-tradUI .bhgv2-comment {
 				background-color: transparent;
 				border-bottom: 1px solid #999999;
 			}
