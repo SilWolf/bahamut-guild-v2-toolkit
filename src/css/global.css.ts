@@ -171,6 +171,19 @@ div[data-google-query-id] {
 	color: #bbb;
 }
 
+.bhgv2-comment-list-error-container {
+	padding: 4px;
+	text-align: center;
+	color: #ff9696;
+	font-size: 12px;
+	border: 2px solid #f00;
+	background: rgba(255, 0, 0, 0.3);
+	display: none;
+}
+.bhgv2-comment-list-error-container:not(:empty) {
+	display: block;
+}
+
 .bhgv2-editor-container-footer .bhgv2-config-status {
 	flex: 1;
 }

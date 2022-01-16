@@ -15,6 +15,9 @@ export type TCore = {
 	emit: (eventName: string, payload: unknown) => boolean
 	log: (message: string, type: 'log' | 'warn' | 'error') => void
 	DOM: Record<string, HTMLElement>
+	error: Record<string, string | undefined>
+	setError: (key: string, message: string | undefined) => void
+	removeError: (key: string) => void
 }
 
 export type TPluginConstructor = (core: TCore) => TPlugin

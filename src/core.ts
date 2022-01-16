@@ -43,8 +43,10 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	const _library: Record<string, TLibrary> = {
 		...library,
 	}
+	const _dom: Record<string, HTMLElement> = {}
 	const _config: TCoreConfig = {}
 	const _state: TCoreState = {}
+	const _error: Record<string, string | undefined> = {}
 
 	const CORE: TCore = {
 		getConfig: () => _config,
@@ -93,8 +95,28 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 			)
 		},
 		log: LOG,
-		DOM: {},
+		DOM: _dom,
 		comments: [],
+		error: _error,
+		setError: (key: string, message: string | undefined) => {
+			_error[key] = message
+			if (_dom.CommentListErrorContainer) {
+				_dom.CommentListErrorContainer.innerHTML = ''
+
+				Object.values(_error)
+					.filter((message) => !!message)
+					.forEach((message) => {
+						const _ele = document.createElement('div')
+						_ele.innerText = message as string
+						_dom.CommentListErrorContainer.appendChild(_ele)
+					})
+			}
+		},
+		removeError: (key: string) => {
+			if (_error[key]) {
+				_error[key] = undefined
+			}
+		},
 	}
 
 	const _CorePlugin: TPluginConstructor = (core) => {
@@ -434,8 +456,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 	// ====================================================================================================
 
 	// 初始化 DOM 元件
-	const _dom = CORE.DOM
-
 	_dom.Head = document.getElementsByTagName('head')[0]
 
 	_dom.HeadStyle = document.createElement('style')
@@ -490,6 +510,15 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 		'c-reply__editor'
 	)[0] as HTMLElement
 	_dom.EditorContainer.classList.add('bhgv2-editor-container')
+
+	_dom.CommentListErrorContainer = document.createElement('div')
+	_dom.CommentListErrorContainer.classList.add(
+		'bhgv2-comment-list-error-container'
+	)
+	_dom.EditorContainer.insertAdjacentElement(
+		'beforebegin',
+		_dom.CommentListErrorContainer
+	)
 
 	_dom.EditorContainerReplyContent =
 		_dom.EditorContainer.getElementsByClassName(

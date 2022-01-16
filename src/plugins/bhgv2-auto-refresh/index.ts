@@ -72,6 +72,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	)
 
 	let _refreshIntervalObj: NodeJS.Timer | undefined = undefined
+	let _failedCount = 0
 
 	_plugin.onMutateConfig = (newValue) => {
 		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
@@ -98,103 +99,122 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						return
 					}
 
-					const {
-						comments,
-						commentCount: newCommentsCount,
-						totalPage,
-					} = await fetch(commentListApi, {
-						credentials: 'include',
-					})
-						.then((res) => res.json())
-						.then((res: TCommentsListApiResponse) => res.data)
-
 					const { commentsCount: currentCommentsCount } = core.getState()
-					const latestComments: TCoreStateComment[] = [
-						...comments.map((_comment) => ({
-							id: _comment.id,
-							position: _comment.position,
-							payload: _comment,
-						})),
-					]
-					const expectedNewCommentsCount =
-						newCommentsCount - (currentCommentsCount || 0)
+					const latestComments: TCoreStateComment[] = []
 
-					let page = totalPage
-					while (
-						(latestComments.length < expectedNewCommentsCount ||
-							latestComments.length < 15) &&
-						page >= 0
-					) {
-						page--
-
-						const { comments: anotherComments } = await fetch(
-							commentListApi + `&page=${page}`,
-							{
-								credentials: 'include',
-							}
-						)
+					try {
+						const {
+							comments,
+							commentCount: newCommentsCount,
+							totalPage,
+						} = await fetch(commentListApi, {
+							credentials: 'include',
+						})
 							.then((res) => res.json())
 							.then((res: TCommentsListApiResponse) => res.data)
 
 						latestComments.splice(
 							0,
 							0,
-							...anotherComments.map((_comment) => ({
+							...comments.map((_comment) => ({
 								id: _comment.id,
 								position: _comment.position,
 								payload: _comment,
 							}))
 						)
-					}
-					console.log(latestComments)
-					const lastCommentCTime =
-						latestComments?.[latestComments.length - 1]?.payload?.ctime
 
-					const _config = core.getConfig()
-					let _interval =
-						parseInt(
-							(newValue[`${_plugin.prefix}:interval`] as string) ||
-								(_config[`${_plugin.prefix}:interval`] as string)
-						) || 30
-					let isSlowMode = false
+						const expectedNewCommentsCount =
+							newCommentsCount - (currentCommentsCount || 0)
 
-					if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
-						const commentCTime = new Date(lastCommentCTime).getTime()
-						if (commentCTime) {
-							const nowTime = Date.now()
+						let page = totalPage
+						while (
+							(latestComments.length < expectedNewCommentsCount ||
+								latestComments.length < 15) &&
+							page >= 0
+						) {
+							page--
 
-							if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
-								// over 12 hours
-								_interval = 3600
-								isSlowMode = true
-							} else if (nowTime - commentCTime > 30 * 60 * 1000) {
-								// over 30 minutes
-								_interval = 300
-								isSlowMode = true
+							const { comments: anotherComments } = await fetch(
+								commentListApi + `&page=${page}`,
+								{
+									credentials: 'include',
+								}
+							)
+								.then((res) => res.json())
+								.then((res: TCommentsListApiResponse) => res.data)
+
+							latestComments.splice(
+								0,
+								0,
+								...anotherComments.map((_comment) => ({
+									id: _comment.id,
+									position: _comment.position,
+									payload: _comment,
+								}))
+							)
+						}
+						const lastCommentCTime =
+							latestComments?.[latestComments.length - 1]?.payload?.ctime
+
+						const _config = core.getConfig()
+						let _interval =
+							parseInt(
+								(newValue[`${_plugin.prefix}:interval`] as string) ||
+									(_config[`${_plugin.prefix}:interval`] as string)
+							) || 30
+						let isSlowMode = false
+
+						if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
+							const commentCTime = new Date(lastCommentCTime).getTime()
+							if (commentCTime) {
+								const nowTime = Date.now()
+
+								if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
+									// over 12 hours
+									_interval = 3600
+									isSlowMode = true
+								} else if (nowTime - commentCTime > 30 * 60 * 1000) {
+									// over 30 minutes
+									_interval = 300
+									isSlowMode = true
+								}
 							}
 						}
+
+						const _intervalMs = _interval * 1000
+
+						_statusDom.innerHTML = `${
+							_config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
+								? '慢速更新'
+								: '自動更新中'
+						}(${[
+							`${_interval}s`,
+							_notification ? '通知' : undefined,
+							_notification && _notificationSound ? '聲音' : undefined,
+						]
+							.filter((item) => !!item)
+							.join(',')})`
+
+						_refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
+
+						_failedCount = 0
+						core.mutateState({
+							latestComments,
+							lastCommentCTime,
+						})
+					} catch (e) {
+						console.error(e)
+						_failedCount += 1
+
+						_refreshIntervalObj = setTimeout(timeoutFn, 5000)
+					} finally {
+						if (_failedCount > 0) {
+							core.setError(
+								_plugin.pluginName,
+								`[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`
+							)
+						} else core.setError(_plugin.pluginName, undefined)
 					}
-
-					const _intervalMs = _interval * 1000
-
-					_statusDom.innerHTML = `${
-						_config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
-							? '慢速更新'
-							: '自動更新中'
-					}(${[
-						`${_interval}s`,
-						_notification ? '通知' : undefined,
-						_notification && _notificationSound ? '聲音' : undefined,
-					]
-						.filter((item) => !!item)
-						.join(',')})`
-
-					_refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
-
-					core.mutateState({
-						latestComments,
-						lastCommentCTime,
-					})
 				}
 
 				_refreshIntervalObj = setTimeout(timeoutFn, 2000)
