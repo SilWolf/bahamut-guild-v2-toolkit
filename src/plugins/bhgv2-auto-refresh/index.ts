@@ -136,7 +136,9 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 							.then((res) => res.json())
 							.then((res: TCommentsListApiResponse) => res.data)
 
-						latestComments.push(
+						latestComments.splice(
+							0,
+							0,
 							...anotherComments.map((_comment) => ({
 								id: _comment.id,
 								position: _comment.position,
@@ -144,6 +146,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 							}))
 						)
 					}
+					console.log(latestComments)
 					const lastCommentCTime =
 						latestComments?.[latestComments.length - 1]?.payload?.ctime
 
