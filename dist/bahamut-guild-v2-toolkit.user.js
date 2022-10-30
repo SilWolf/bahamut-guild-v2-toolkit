@@ -35,7 +35,6 @@ const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
-        ;
         (console[type] || console.log)(`[巴哈插件2.0] ${message}`);
     };
     const _plugins = [];
@@ -127,9 +126,10 @@ const BHGV2Core = ({ plugins, library }) => {
                 }
             }
             if (newValue.latestComments && newValue.latestComments.length > 0) {
-                const oldValue = core.getStateByNames('gsn', 'sn');
+                const oldValue = core.getStateByNames('gsn', 'sn', 'userInfo');
                 const gsn = newValue.gsn || oldValue.gsn;
                 const sn = newValue.sn || oldValue.sn;
+                const userInfo = newValue.userInfo || oldValue.userInfo;
                 const CommentList = core.DOM.CommentList;
                 const revisedLatestComments = [];
                 // revisedLatestComments 的存在理由
@@ -210,7 +210,6 @@ const BHGV2Core = ({ plugins, library }) => {
                                         }
                                         _storedComment.payload.text = _newComment.payload.text;
                                     }
-                                    ;
                                     ['.bhgv2-comment-position'].forEach((query) => {
                                         const _oldEle = _oldElement.querySelector(query);
                                         const _newEle = _newElement.querySelector(query);
@@ -257,6 +256,9 @@ const BHGV2Core = ({ plugins, library }) => {
                                         isAvatarMapChanged = true;
                                     }
                                 }
+                                if (userId === userInfo?.id) {
+                                    newValue.isParticipated = true;
+                                }
                             }
                             const [positionSpan, ctimeSpan] = _newComment.element.querySelectorAll('.reply_right span.reply_time');
                             if (positionSpan) {
@@ -285,6 +287,9 @@ const BHGV2Core = ({ plugins, library }) => {
                                 avatarMap[_payload.userid] = _payload.propic;
                                 isAvatarMapChanged = true;
                             }
+                            if (_payload.userid === userInfo?.id) {
+                                newValue.isParticipated = true;
+                            }
                             _newComment.element = _createCommentElement(_payload);
                             CommentList.append(_newComment.element);
                             core.comments[_commentIndex] = _newComment;
@@ -301,7 +306,9 @@ const BHGV2Core = ({ plugins, library }) => {
                     }
                     newValue.commentsCount = core.comments.length;
                     newValue.latestComments =
-                        revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
+                        revisedLatestComments.length > 0
+                            ? revisedLatestComments
+                            : undefined;
                     setTimeout(() => {
                         const CTimes = core.DOM.CommentList.querySelectorAll('.bhgv2-comment-ctime');
                         for (const CTime of CTimes) {
@@ -469,6 +476,7 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave, _dom.ConfigFormMessage);
+    // 初始化每個插件
     [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
             const _plugin = plugin(CORE);
@@ -1443,7 +1451,7 @@ const BHGV2_AutoRefresh = (core) => {
         },
         {
             key: `${_plugin.prefix}:interval`,
-            suffixLabel: '秒',
+            suffixLabel: '秒 (上限:2秒/非參與者10秒)',
             dataType: 'number',
             inputType: 'number',
             defaultValue: 30,
@@ -1501,7 +1509,7 @@ const BHGV2_AutoRefresh = (core) => {
                     if (!commentListApi) {
                         return;
                     }
-                    const { commentsCount: currentCommentsCount } = core.getState();
+                    const { commentsCount: currentCommentsCount, isParticipated } = core.getState();
                     const latestComments = [];
                     try {
                         const { comments, commentCount: newCommentsCount, totalPage, } = await fetch(commentListApi, {
@@ -1533,8 +1541,8 @@ const BHGV2_AutoRefresh = (core) => {
                         }
                         const lastCommentCTime = latestComments?.[latestComments.length - 1]?.payload?.ctime;
                         const _config = core.getConfig();
-                        let _interval = parseInt(newValue[`${_plugin.prefix}:interval`] ||
-                            _config[`${_plugin.prefix}:interval`]) || 30;
+                        let _interval = Math.max(isParticipated ? 2 : 10, parseInt(newValue[`${_plugin.prefix}:interval`] ||
+                            _config[`${_plugin.prefix}:interval`]) || 30);
                         let isSlowMode = false;
                         if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
                             const commentCTime = new Date(lastCommentCTime).getTime();
@@ -1581,7 +1589,6 @@ const BHGV2_AutoRefresh = (core) => {
                         else {
                             core.setError(_plugin.pluginName, undefined);
                         }
-                        core.setError(_plugin.pluginName, `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`);
                     }
                 };
                 _refreshIntervalObj = setTimeout(timeoutFn, 2000);

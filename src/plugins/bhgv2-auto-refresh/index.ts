@@ -30,7 +30,7 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 		},
 		{
 			key: `${_plugin.prefix}:interval`,
-			suffixLabel: '秒',
+			suffixLabel: '秒 (上限:2秒/非參與者10秒)',
 			dataType: 'number',
 			inputType: 'number',
 			defaultValue: 30,
@@ -98,7 +98,8 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 						return;
 					}
 
-					const { commentsCount: currentCommentsCount } = core.getState();
+					const { commentsCount: currentCommentsCount, isParticipated } =
+						core.getState();
 					const latestComments: TCoreStateComment[] = [];
 
 					try {
@@ -156,11 +157,13 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 							latestComments?.[latestComments.length - 1]?.payload?.ctime;
 
 						const _config = core.getConfig();
-						let _interval =
+						let _interval = Math.max(
+							isParticipated ? 2 : 10,
 							parseInt(
 								(newValue[`${_plugin.prefix}:interval`] as string) ||
 									(_config[`${_plugin.prefix}:interval`] as string)
-							) || 30;
+							) || 30
+						);
 						let isSlowMode = false;
 
 						if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
