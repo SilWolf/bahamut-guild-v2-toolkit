@@ -1512,10 +1512,10 @@ const BHGV2_AutoRefresh = (core) => {
                             payload: _comment,
                         })));
                         const expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
-                        let page = totalPage;
+                        let page = totalPage - 1;
                         while ((latestComments.length < expectedNewCommentsCount ||
                             latestComments.length < 15) &&
-                            page >= 0) {
+                            page > 0) {
                             page--;
                             const { comments: anotherComments } = await fetch(commentListApi + `&page=${page}`, {
                                 credentials: 'include',

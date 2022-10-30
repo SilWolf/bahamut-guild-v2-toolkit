@@ -7,11 +7,11 @@
 // @include      /guild.gamer.com.tw/post_detail.php
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM_notification
-// @require      file:///Users/silwolf/Desktop/bahamut-guild-v2-toolkit/dist/bahamut-guild-v2-toolkit.user.js
+// @require      file:///E:\Dicky\web\bahamut-guild-v2-toolkit\dist\bahamut-guild-v2-toolkit.user.js
 // ==/UserScript==
 
-;(function () {
-	'use strict'
+(function () {
+	'use strict';
 
 	// Your code here...
-})()
+})();

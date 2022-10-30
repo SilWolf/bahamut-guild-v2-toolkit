@@ -12,7 +12,7 @@
 	"license": "MIT",
 	"homepage": "https://silwolf.io",
 	"scripts": {
-		"dev": "nodemon --exec 'yarn' --watch './src/**/*.*' build",
+		"dev": "nodemon --exec yarn --watch './src/**/*.*' build",
 		"build": "webpack"
 	},
 	"devDependencies": {
