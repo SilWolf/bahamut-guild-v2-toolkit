@@ -49,9 +49,9 @@ const BHGV2_QTEAlert: TPluginConstructor = (core) => {
 				text-align: center;
 				top: 0;
 				left: calc(50% - 30px);
-				height: 24px;
+				height: 18px;
 				width: 60px;
-				line-height: 24px;
+				line-height: 18px;
 				background: #f00;
 				color: #fff;
 				border-bottom-left-radius: 8px;
@@ -70,7 +70,9 @@ const BHGV2_QTEAlert: TPluginConstructor = (core) => {
 		const config = core.getConfig();
 
 		if (latestComments) {
-			latestComments.forEach((comment) => {
+			for (let i = 0; i < latestComments.length; i++) {
+				const comment = latestComments[i];
+
 				const { element, payload } = comment;
 				if (!element) {
 					return;
@@ -88,19 +90,22 @@ const BHGV2_QTEAlert: TPluginConstructor = (core) => {
 					const indicator = document.createElement('div');
 					indicator.classList.add(`${_plugin.prefix}-indicator`);
 					element.appendChild(indicator);
+
+					found = true;
 				}
+			}
 
-				found = true;
-			});
-		}
+			if (isInit || isUserAction) {
+				return;
+			}
 
-		if (isInit || isUserAction) {
-			return;
-		}
+			console.log('qte', found);
+			console.log('qte', config[`${_plugin.prefix}-notificationSound`]);
 
-		// 播放通知音
-		if (found && config[`${_plugin.prefix}:notificationSound`]) {
-			notifyAudio.play();
+			// 播放通知音
+			if (found && config[`${_plugin.prefix}-notificationSound`]) {
+				notifyAudio.play();
+			}
 		}
 	};
 
