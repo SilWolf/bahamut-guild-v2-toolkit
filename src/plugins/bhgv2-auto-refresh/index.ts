@@ -77,7 +77,6 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 	_plugin.onMutateConfig = (newValue) => {
 		if (newValue[`${_plugin.prefix}:isEnable`] !== undefined) {
 			const isEnabled = newValue[`${_plugin.prefix}:isEnable`];
-
 			if (isEnabled === false) {
 				if (_refreshIntervalObj) {
 					clearTimeout(_refreshIntervalObj);
@@ -213,7 +212,9 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 								_plugin.pluginName,
 								`[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`
 							);
-						} else core.setError(_plugin.pluginName, undefined);
+						} else {
+							core.setError(_plugin.pluginName, undefined);
+						}
 					}
 				};
 

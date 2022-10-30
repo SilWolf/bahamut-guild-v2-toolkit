@@ -1116,13 +1116,16 @@ div[data-google-query-id] {
 }
 
 .bhgv2-comment-list-error-container {
-	padding: 4px;
+	padding: 8px;
 	text-align: center;
-	color: #ff9696;
-	font-size: 12px;
-	border: 2px solid #f00;
-	background: rgba(255, 0, 0, 0.3);
+	color: #842029;
+	font-size: 14px;
+	border: 2px solid #f5c2c7;
+	border-radius: 4px;
+	background: #f8d7da;
 	display: none;
+	margin-top: 8px;
+	margin-bottom: 8px;
 }
 .bhgv2-comment-list-error-container:not(:empty) {
 	display: block;
@@ -1575,8 +1578,10 @@ const BHGV2_AutoRefresh = (core) => {
                         if (_failedCount > 0) {
                             core.setError(_plugin.pluginName, `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`);
                         }
-                        else
+                        else {
                             core.setError(_plugin.pluginName, undefined);
+                        }
+                        core.setError(_plugin.pluginName, `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`);
                     }
                 };
                 _refreshIntervalObj = setTimeout(timeoutFn, 2000);

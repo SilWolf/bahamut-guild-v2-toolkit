@@ -172,13 +172,16 @@ div[data-google-query-id] {
 }
 
 .bhgv2-comment-list-error-container {
-	padding: 4px;
+	padding: 8px;
 	text-align: center;
-	color: #ff9696;
-	font-size: 12px;
-	border: 2px solid #f00;
-	background: rgba(255, 0, 0, 0.3);
+	color: #842029;
+	font-size: 14px;
+	border: 2px solid #f5c2c7;
+	border-radius: 4px;
+	background: #f8d7da;
 	display: none;
+	margin-top: 8px;
+	margin-bottom: 8px;
 }
 .bhgv2-comment-list-error-container:not(:empty) {
 	display: block;
@@ -385,4 +388,4 @@ div[data-google-query-id] {
 .globalcontainer .main-container_wall-post {
 	box-shadow: none;
 }
-`
+`;
