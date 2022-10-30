@@ -14,6 +14,7 @@ import {
 } from './types';
 
 import BHGV2_AutoRefresh from './plugins/bhgv2-auto-refresh';
+import BHGV2_QTEAlert from './plugins/bhgv2-qte-alert';
 import BHGV2_CommentsReverse from './plugins/bhgv2-comments-reverse';
 import BHGV2_DarkMode from './plugins/bhgv2-dark-mode';
 
@@ -1303,6 +1304,7 @@ const _waitForElm = (selector: string) => {
 			BHGV2Core({
 				plugins: [
 					BHGV2_AutoRefresh,
+					BHGV2_QTEAlert,
 					BHGV2_Dense,
 					BHGV2_MasterLayout,
 					BHGV2_CommentsReverse,
