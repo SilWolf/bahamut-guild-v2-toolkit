@@ -388,4 +388,4 @@ div[data-google-query-id] {
 .globalcontainer .main-container_wall-post {
 	box-shadow: none;
 }
-`;
+`

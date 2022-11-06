@@ -8,96 +8,96 @@
 import { TPlugin, TPluginConstructor } from '../../types'
 
 const BHGV2_Dense: TPluginConstructor = (core) => {
-	const _plugin: TPlugin = {
-		pluginName: 'BHGV2_Dense',
-		prefix: 'BHGV2_Dense',
-		label: '串介面',
-	}
+  const _plugin: TPlugin = {
+    pluginName: 'BHGV2_Dense',
+    prefix: 'BHGV2_Dense',
+    label: '串介面',
+  }
 
-	_plugin.configs = [
-		{
-			key: `${_plugin.prefix}-tradUI`,
-			suffixLabel: '仿舊版的介面',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-sizeSmaller`,
-			suffixLabel: '縮小字體',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideFooter`,
-			suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-smallerImage`,
-			suffixLabel: '縮小圖片',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-smallerImageHover`,
-			suffixLabel: '鼠標懸浮時放大',
-			dataType: 'boolean',
-			inputType: 'checkbox',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-squareAvatar`,
-			suffixLabel: '正方型頭像',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-perfectLayout`,
-			suffixLabel: '飛鳥的完美排版',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: true,
-		},
-		{
-			key: `${_plugin.prefix}-hidePreview`,
-			suffixLabel: '隱藏串首的連結預覽',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: true,
-		},
-		{
-			key: `${_plugin.prefix}-font`,
-			prefixLabel: '使用字體: ',
-			dataType: 'text',
-			inputType: 'select',
-			defaultValue: 'default',
-			options: [
-				{ label: '默認', value: 'default' },
-				{ label: '新細明體', value: 'PMingLiU' },
-				{ label: '標楷體', value: 'DFKai-SB' },
-				{ label: 'Arial', value: 'Arial' },
-			],
-		},
-	]
+  _plugin.configs = [
+    {
+      key: `${_plugin.prefix}-tradUI`,
+      suffixLabel: '仿舊版的介面',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-sizeSmaller`,
+      suffixLabel: '縮小字體',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideFooter`,
+      suffixLabel: '隱藏留言底的GP/BP按鈕及回覆按鈕',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-smallerImage`,
+      suffixLabel: '縮小圖片',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-smallerImageHover`,
+      suffixLabel: '鼠標懸浮時放大',
+      dataType: 'boolean',
+      inputType: 'checkbox',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-squareAvatar`,
+      suffixLabel: '正方型頭像',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-perfectLayout`,
+      suffixLabel: '飛鳥的完美排版',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: true,
+    },
+    {
+      key: `${_plugin.prefix}-hidePreview`,
+      suffixLabel: '隱藏串首的連結預覽',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: true,
+    },
+    {
+      key: `${_plugin.prefix}-font`,
+      prefixLabel: '使用字體: ',
+      dataType: 'text',
+      inputType: 'select',
+      defaultValue: 'default',
+      options: [
+        { label: '默認', value: 'default' },
+        { label: '新細明體', value: 'PMingLiU' },
+        { label: '標楷體', value: 'DFKai-SB' },
+        { label: 'Arial', value: 'Arial' },
+      ],
+    },
+  ]
 
-	_plugin.configLayout = [
-		[`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-perfectLayout`],
-		[`${_plugin.prefix}-squareAvatar`],
-		[`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-smallerImageHover`],
-		[`${_plugin.prefix}-sizeSmaller`],
-		[`${_plugin.prefix}-hideFooter`],
-		[`${_plugin.prefix}-hidePreview`],
-		[`${_plugin.prefix}-font`],
-	]
+  _plugin.configLayout = [
+    [`${_plugin.prefix}-tradUI`, `${_plugin.prefix}-perfectLayout`],
+    [`${_plugin.prefix}-squareAvatar`],
+    [`${_plugin.prefix}-smallerImage`, `${_plugin.prefix}-smallerImageHover`],
+    [`${_plugin.prefix}-sizeSmaller`],
+    [`${_plugin.prefix}-hideFooter`],
+    [`${_plugin.prefix}-hidePreview`],
+    [`${_plugin.prefix}-font`],
+  ]
 
-	_plugin.css = [
-		`
+  _plugin.css = [
+    `
 			.webview_commendlist {
 				margin-left: 0;
 				margin-right: 0;
@@ -261,74 +261,74 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				font-family: 'Arial';
 			}
 		`,
-	]
+  ]
 
-	_plugin.onMutateState = ({ latestComments }) => {
-		if (latestComments) {
-			latestComments.forEach((comment) => {
-				const { element } = comment
-				if (!element) {
-					return
-				}
+  _plugin.onMutateState = ({ latestComments }) => {
+    if (latestComments) {
+      latestComments.forEach((comment) => {
+        const { element } = comment
+        if (!element) {
+          return
+        }
 
-				const _tagButton = element.querySelector('button.reply-content__tag')
-				const _contentUser = element.querySelector('a.reply-content__user')
-				if (!_tagButton || !_contentUser) {
-					return
-				}
+        const _tagButton = element.querySelector('button.reply-content__tag')
+        const _contentUser = element.querySelector('a.reply-content__user')
+        if (!_tagButton || !_contentUser) {
+          return
+        }
 
-				const _clonedTagButton = _tagButton.cloneNode(false) as HTMLElement
-				_clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`)
-				_clonedTagButton.innerText = '@'
-				_clonedTagButton.setAttribute('title', '回覆他')
-				_contentUser.insertAdjacentElement('afterend', _clonedTagButton)
-			})
-		}
-	}
+        const _clonedTagButton = _tagButton.cloneNode(false) as HTMLElement
+        _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`)
+        _clonedTagButton.innerText = '@'
+        _clonedTagButton.setAttribute('title', '回覆他')
+        _contentUser.insertAdjacentElement('afterend', _clonedTagButton)
+      })
+    }
+  }
 
-	_plugin.onMutateConfig = (newValue) => {
-		;[
-			'hideFooter',
-			'smallerImage',
-			'smallerImageHover',
-			'squareAvatar',
-		].forEach((key) => {
-			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-				const dom = core.DOM.CommentListOuter
-				if (dom) {
-					dom.classList.toggle(
-						`${_plugin.prefix}-${key}`,
-						newValue[`${_plugin.prefix}-${key}`] as boolean
-					)
-				}
-			}
-		})
-		;['tradUI', 'sizeSmaller', 'perfectLayout', 'hidePreview'].forEach(
-			(key) => {
-				if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-					const dom = core.DOM.Body
-					if (dom) {
-						dom.classList.toggle(
-							`${_plugin.prefix}-${key}`,
-							newValue[`${_plugin.prefix}-${key}`] as boolean
-						)
-					}
-				}
-			}
-		)
-		if (newValue[`${_plugin.prefix}-font`] != undefined) {
-			const dom = core.DOM.Body
-			if (dom) {
-				dom.classList.toggle(`${_plugin.prefix}-font`, true)
-				dom.setAttribute(
-					`data-bhgv2-font`,
-					newValue[`${_plugin.prefix}-font`] as string
-				)
-			}
-		}
-	}
+  _plugin.onMutateConfig = (newValue) => {
+    ;[
+      'hideFooter',
+      'smallerImage',
+      'smallerImageHover',
+      'squareAvatar',
+    ].forEach((key) => {
+      if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+        const dom = core.DOM.CommentListOuter
+        if (dom) {
+          dom.classList.toggle(
+            `${_plugin.prefix}-${key}`,
+            newValue[`${_plugin.prefix}-${key}`] as boolean
+          )
+        }
+      }
+    })
+    ;['tradUI', 'sizeSmaller', 'perfectLayout', 'hidePreview'].forEach(
+      (key) => {
+        if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+          const dom = core.DOM.Body
+          if (dom) {
+            dom.classList.toggle(
+              `${_plugin.prefix}-${key}`,
+              newValue[`${_plugin.prefix}-${key}`] as boolean
+            )
+          }
+        }
+      }
+    )
+    if (newValue[`${_plugin.prefix}-font`] != undefined) {
+      const dom = core.DOM.Body
+      if (dom) {
+        dom.classList.toggle(`${_plugin.prefix}-font`, true)
+        dom.setAttribute(
+          `data-bhgv2-font`,
+          newValue[`${_plugin.prefix}-font`] as string
+        )
+      }
+    }
+  }
 
-	return _plugin
+  return _plugin
 }
 
 export default BHGV2_Dense

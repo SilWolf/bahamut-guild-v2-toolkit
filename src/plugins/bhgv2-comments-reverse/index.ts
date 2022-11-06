@@ -8,31 +8,31 @@
 import { TPlugin, TPluginConstructor } from '../../types'
 
 const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
-	const _plugin: TPlugin = {
-		pluginName: 'BHGV2_CommentsReverse',
-		prefix: 'BHGV2_CommentsReverse',
-		label: '串顛倒排列',
-	}
+  const _plugin: TPlugin = {
+    pluginName: 'BHGV2_CommentsReverse',
+    prefix: 'BHGV2_CommentsReverse',
+    label: '串顛倒排列',
+  }
 
-	_plugin.configs = [
-		{
-			key: `${_plugin.prefix}-isEnable`,
-			suffixLabel: '顛倒哈拉串',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-editorSticky`,
-			suffixLabel: '輸入框貼在上邊沿',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-	]
+  _plugin.configs = [
+    {
+      key: `${_plugin.prefix}-isEnable`,
+      suffixLabel: '顛倒哈拉串',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-editorSticky`,
+      suffixLabel: '輸入框貼在上邊沿',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+  ]
 
-	_plugin.css = [
-		`
+  _plugin.css = [
+    `
 			.bhgv2-comment-list-outer {
 				display: flex;
 				flex-direction: column;
@@ -78,23 +78,23 @@ const BHGV2_CommentsReverse: TPluginConstructor = (core) => {
 				}
 			}
 		`,
-	]
+  ]
 
-	_plugin.onMutateConfig = (newValue) => {
-		;['isEnable', 'editorSticky'].forEach((key) => {
-			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-				const dom = core.DOM.CommentListOuter
-				if (dom) {
-					dom.classList.toggle(
-						`${_plugin.prefix}-${key}`,
-						newValue[`${_plugin.prefix}-${key}`] as boolean
-					)
-				}
-			}
-		})
-	}
+  _plugin.onMutateConfig = (newValue) => {
+    ;['isEnable', 'editorSticky'].forEach((key) => {
+      if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+        const dom = core.DOM.CommentListOuter
+        if (dom) {
+          dom.classList.toggle(
+            `${_plugin.prefix}-${key}`,
+            newValue[`${_plugin.prefix}-${key}`] as boolean
+          )
+        }
+      }
+    })
+  }
 
-	return _plugin
+  return _plugin
 }
 
 export default BHGV2_CommentsReverse

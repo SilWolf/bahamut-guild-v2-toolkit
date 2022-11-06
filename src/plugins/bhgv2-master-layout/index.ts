@@ -8,71 +8,71 @@
 import { TPlugin, TPluginConstructor } from '../../types'
 
 const BHGV2_MasterLayout: TPluginConstructor = (core) => {
-	const _plugin: TPlugin = {
-		pluginName: 'BHGV2_MasterLayout',
-		prefix: 'BHGV2_MasterLayout',
-		label: '公會全頁介面',
-	}
+  const _plugin: TPlugin = {
+    pluginName: 'BHGV2_MasterLayout',
+    prefix: 'BHGV2_MasterLayout',
+    label: '公會全頁介面',
+  }
 
-	_plugin.configs = [
-		{
-			key: `${_plugin.prefix}-hideLeftMenu`,
-			suffixLabel: '隱藏左側選單',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideRightMenu`,
-			suffixLabel: '隱藏右側資訊欄',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideCoverImage`,
-			suffixLabel: '隱藏封面圖',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideHeader`,
-			prefixLabel: '(',
-			suffixLabel: '+標題)',
-			dataType: 'boolean',
-			inputType: 'checkbox',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideTabMenu`,
-			prefixLabel: '(',
-			suffixLabel: '+分頁選單)',
-			dataType: 'boolean',
-			inputType: 'checkbox',
-			defaultValue: false,
-		},
-		{
-			key: `${_plugin.prefix}-hideGuildControlPanel`,
-			suffixLabel: '隱藏公會操作版面',
-			dataType: 'boolean',
-			inputType: 'switch',
-			defaultValue: false,
-		},
-	]
+  _plugin.configs = [
+    {
+      key: `${_plugin.prefix}-hideLeftMenu`,
+      suffixLabel: '隱藏左側選單',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideRightMenu`,
+      suffixLabel: '隱藏右側資訊欄',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideCoverImage`,
+      suffixLabel: '隱藏封面圖',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideHeader`,
+      prefixLabel: '(',
+      suffixLabel: '+標題)',
+      dataType: 'boolean',
+      inputType: 'checkbox',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideTabMenu`,
+      prefixLabel: '(',
+      suffixLabel: '+分頁選單)',
+      dataType: 'boolean',
+      inputType: 'checkbox',
+      defaultValue: false,
+    },
+    {
+      key: `${_plugin.prefix}-hideGuildControlPanel`,
+      suffixLabel: '隱藏公會操作版面',
+      dataType: 'boolean',
+      inputType: 'switch',
+      defaultValue: false,
+    },
+  ]
 
-	_plugin.configLayout = [
-		[`${_plugin.prefix}-hideLeftMenu`, `${_plugin.prefix}-hideRightMenu`],
-		[
-			`${_plugin.prefix}-hideCoverImage`,
-			`${_plugin.prefix}-hideHeader`,
-			`${_plugin.prefix}-hideTabMenu`,
-		],
-		[`${_plugin.prefix}-hideGuildControlPanel`],
-	]
+  _plugin.configLayout = [
+    [`${_plugin.prefix}-hideLeftMenu`, `${_plugin.prefix}-hideRightMenu`],
+    [
+      `${_plugin.prefix}-hideCoverImage`,
+      `${_plugin.prefix}-hideHeader`,
+      `${_plugin.prefix}-hideTabMenu`,
+    ],
+    [`${_plugin.prefix}-hideGuildControlPanel`],
+  ]
 
-	_plugin.css = [
-		`	
+  _plugin.css = [
+    `	
 			.${_plugin.prefix}-hideLeftMenu .main-sidebar_left {
 				width: 0;
 				display: none;
@@ -110,30 +110,30 @@ const BHGV2_MasterLayout: TPluginConstructor = (core) => {
 				display: none;
 			}			
 		`,
-	]
+  ]
 
-	_plugin.onMutateConfig = (newValue) => {
-		;[
-			'hideLeftMenu',
-			'hideRightMenu',
-			'hideCoverImage',
-			'hideHeader',
-			'hideTabMenu',
-			'hideGuildControlPanel',
-		].forEach((key) => {
-			if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
-				const dom = core.DOM.Body
-				if (dom) {
-					dom.classList.toggle(
-						`${_plugin.prefix}-${key}`,
-						newValue[`${_plugin.prefix}-${key}`] as boolean
-					)
-				}
-			}
-		})
-	}
+  _plugin.onMutateConfig = (newValue) => {
+    ;[
+      'hideLeftMenu',
+      'hideRightMenu',
+      'hideCoverImage',
+      'hideHeader',
+      'hideTabMenu',
+      'hideGuildControlPanel',
+    ].forEach((key) => {
+      if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
+        const dom = core.DOM.Body
+        if (dom) {
+          dom.classList.toggle(
+            `${_plugin.prefix}-${key}`,
+            newValue[`${_plugin.prefix}-${key}`] as boolean
+          )
+        }
+      }
+    })
+  }
 
-	return _plugin
+  return _plugin
 }
 
 export default BHGV2_MasterLayout
