@@ -92,133 +92,161 @@ const BHGV2_AutoRefresh: TPluginConstructor = (core) => {
 
         _statusDom.style.display = 'inline-block'
 
-        const timeoutFn = async () => {
-          const { commentListApi } = core.getState()
+        const { commentListApi } = core.getState()
+
+        const getCommentsAsync = async (): Promise<TCoreStateComment[]> => {
           if (!commentListApi) {
-            return
+            return []
           }
 
           const { commentsCount: currentCommentsCount, isParticipated } =
             core.getState()
           const latestComments: TCoreStateComment[] = []
 
-          try {
-            const {
-              comments,
-              commentCount: newCommentsCount,
-              totalPage,
-            } = await fetch(commentListApi, {
-              credentials: 'include',
-            })
-              .then((res) => res.json())
-              .then((res: TCommentsListApiResponse) => res.data)
+          const {
+            comments,
+            commentCount: newCommentsCount,
+            totalPage,
+          } = await fetch(commentListApi, {
+            credentials: 'include',
+          })
+            .then((res) => res.json())
+            .then((res: TCommentsListApiResponse) => res.data)
 
-            latestComments.splice(
-              0,
-              0,
-              ...comments.map((_comment) => ({
-                id: _comment.id,
-                position: _comment.position,
-                payload: _comment,
-              }))
-            )
+          latestComments.splice(
+            0,
+            0,
+            ...comments.map((_comment) => ({
+              id: _comment.id,
+              position: _comment.position,
+              payload: _comment,
+            }))
+          )
 
-            const expectedNewCommentsCount =
-              newCommentsCount - (currentCommentsCount || 0)
+          const expectedNewCommentsCount =
+            newCommentsCount - (currentCommentsCount || 0)
 
-            let page = totalPage - 1
-            while (
-              (latestComments.length < expectedNewCommentsCount ||
-                latestComments.length < 15) &&
-              page > 0
-            ) {
-              page--
+          const pages: number[] = []
+          for (
+            let i = 0;
+            expectedNewCommentsCount - 15 * i > -15 && totalPage - 1 - i >= 0;
+            i++
+          ) {
+            pages.push(totalPage - 1 - i)
+          }
 
-              const { comments: anotherComments } = await fetch(
-                commentListApi + `&page=${page}`,
-                {
-                  credentials: 'include',
-                }
-              )
+          const moreComments = await Promise.all(
+            pages.map((_page) =>
+              fetch(commentListApi + `&page=${_page}`, {
+                credentials: 'include',
+              })
                 .then((res) => res.json())
                 .then((res: TCommentsListApiResponse) => res.data)
-
-              latestComments.splice(
+            )
+          ).then((values) =>
+            values.reduce<TCoreStateComment[]>((prev, curr) => {
+              prev.splice(
                 0,
                 0,
-                ...anotherComments.map((_comment) => ({
+                ...curr.comments.map((_comment) => ({
                   id: _comment.id,
                   position: _comment.position,
                   payload: _comment,
                 }))
               )
-            }
-            const lastCommentCTime =
-              latestComments?.[latestComments.length - 1]?.payload?.ctime
+              return prev
+            }, [])
+          )
 
-            const _config = core.getConfig()
-            let _interval = Math.max(
-              isParticipated ? 2 : 10,
-              parseInt(
-                (newValue[`${_plugin.prefix}:interval`] as string) ||
-                  (_config[`${_plugin.prefix}:interval`] as string)
-              ) || 30
-            )
-            let isSlowMode = false
+          latestComments.splice(0, 0, ...moreComments)
 
-            if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
-              const commentCTime = new Date(lastCommentCTime).getTime()
-              if (commentCTime) {
-                const nowTime = Date.now()
+          return latestComments
+        }
 
-                if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
-                  // over 12 hours
-                  _interval = 3600
-                  isSlowMode = true
-                } else if (nowTime - commentCTime > 30 * 60 * 1000) {
-                  // over 30 minutes
-                  _interval = 300
-                  isSlowMode = true
+        const timeoutFn = () => {
+          getCommentsAsync()
+            .then((latestComments) => {
+              const { isParticipated } = core.getState()
+
+              const lastCommentCTime =
+                latestComments?.[latestComments.length - 1]?.payload?.ctime
+
+              const _config = core.getConfig()
+              let _interval = Math.max(
+                isParticipated ? 2 : 10,
+                parseInt(
+                  (newValue[`${_plugin.prefix}:interval`] as string) ||
+                    (_config[`${_plugin.prefix}:interval`] as string)
+                ) || 30
+              )
+              let isSlowMode = false
+
+              if (
+                _config[`${_plugin.prefix}:autoSlowDown`] &&
+                lastCommentCTime
+              ) {
+                const commentCTime = new Date(lastCommentCTime).getTime()
+                if (commentCTime) {
+                  const nowTime = Date.now()
+
+                  if (nowTime - commentCTime > 12 * 60 * 60 * 1000) {
+                    // over 12 hours
+                    _interval = 3600
+                    isSlowMode = true
+                  } else if (nowTime - commentCTime > 30 * 60 * 1000) {
+                    // over 30 minutes
+                    _interval = 300
+                    isSlowMode = true
+                  }
                 }
               }
-            }
 
-            const _intervalMs = _interval * 1000
+              const _intervalMs = _interval * 1000
 
-            _statusDom.innerHTML = `${
-              _config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
-                ? '慢速更新'
-                : '自動更新中'
-            }(${[
-              `${_interval}s`,
-              _notification ? '通知' : undefined,
-              _notification && _notificationSound ? '聲音' : undefined,
-            ]
-              .filter((item) => !!item)
-              .join(',')})`
+              _statusDom.innerHTML = `${
+                _config[`${_plugin.prefix}:autoSlowDown`] && isSlowMode
+                  ? '慢速更新'
+                  : '自動更新中'
+              }(${[
+                `${_interval}s`,
+                _notification ? '通知' : undefined,
+                _notification && _notificationSound ? '聲音' : undefined,
+              ]
+                .filter((item) => !!item)
+                .join(',')})`
 
-            _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
+              _failedCount = 0
+              core.mutateState({
+                latestComments,
+                lastCommentCTime,
+              })
 
-            _failedCount = 0
-            core.mutateState({
-              latestComments,
-              lastCommentCTime,
+              _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs)
             })
-          } catch (e) {
-            console.error(e)
-            _failedCount += 1
+            .catch((e) => {
+              console.error(e)
+              _failedCount += 1
 
-            _refreshIntervalObj = setTimeout(timeoutFn, 5000)
-          } finally {
-            if (_failedCount > 0) {
-              core.setError(
-                _plugin.pluginName,
-                `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`
-              )
-            } else {
-              core.setError(_plugin.pluginName, undefined)
-            }
-          }
+              if (_failedCount < 20) {
+                _refreshIntervalObj = setTimeout(timeoutFn, 5000)
+              }
+            })
+            .finally(() => {
+              if (_failedCount >= 20) {
+                core.setError(
+                  _plugin.pluginName,
+                  `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次。已達到自動重試上限，請 F5 刷新頁面。`
+                )
+              }
+              if (_failedCount > 0) {
+                core.setError(
+                  _plugin.pluginName,
+                  `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`
+                )
+              } else {
+                core.setError(_plugin.pluginName, undefined)
+              }
+            })
         }
 
         _refreshIntervalObj = setTimeout(timeoutFn, 2000)

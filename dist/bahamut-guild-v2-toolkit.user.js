@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.9.0
+// @version         0.9.1
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -36,6 +36,7 @@ const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
+        ;
         (console[type] || console.log)(`[巴哈插件2.0] ${message}`);
     };
     const _plugins = [];
@@ -211,6 +212,7 @@ const BHGV2Core = ({ plugins, library }) => {
                                         }
                                         _storedComment.payload.text = _newComment.payload.text;
                                     }
+                                    ;
                                     ['.bhgv2-comment-position'].forEach((query) => {
                                         const _oldEle = _oldElement.querySelector(query);
                                         const _newEle = _newElement.querySelector(query);
@@ -307,9 +309,7 @@ const BHGV2Core = ({ plugins, library }) => {
                     }
                     newValue.commentsCount = core.comments.length;
                     newValue.latestComments =
-                        revisedLatestComments.length > 0
-                            ? revisedLatestComments
-                            : undefined;
+                        revisedLatestComments.length > 0 ? revisedLatestComments : undefined;
                     setTimeout(() => {
                         const CTimes = core.DOM.CommentList.querySelectorAll('.bhgv2-comment-ctime');
                         for (const CTime of CTimes) {
@@ -477,7 +477,6 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave, _dom.ConfigFormMessage);
-    // 初始化每個插件
     [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
             const _plugin = plugin(CORE);
@@ -1506,47 +1505,54 @@ const BHGV2_AutoRefresh = (core) => {
                     _refreshIntervalObj = undefined;
                 }
                 _statusDom.style.display = 'inline-block';
-                const timeoutFn = async () => {
-                    const { commentListApi } = core.getState();
+                const { commentListApi } = core.getState();
+                const getCommentsAsync = async () => {
                     if (!commentListApi) {
-                        return;
+                        return [];
                     }
                     const { commentsCount: currentCommentsCount, isParticipated } = core.getState();
                     const latestComments = [];
-                    try {
-                        const { comments, commentCount: newCommentsCount, totalPage, } = await fetch(commentListApi, {
-                            credentials: 'include',
-                        })
-                            .then((res) => res.json())
-                            .then((res) => res.data);
-                        latestComments.splice(0, 0, ...comments.map((_comment) => ({
+                    const { comments, commentCount: newCommentsCount, totalPage, } = await fetch(commentListApi, {
+                        credentials: 'include',
+                    })
+                        .then((res) => res.json())
+                        .then((res) => res.data);
+                    latestComments.splice(0, 0, ...comments.map((_comment) => ({
+                        id: _comment.id,
+                        position: _comment.position,
+                        payload: _comment,
+                    })));
+                    const expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
+                    const pages = [];
+                    for (let i = 0; expectedNewCommentsCount - 15 * i > -15 && totalPage - 1 - i >= 0; i++) {
+                        pages.push(totalPage - 1 - i);
+                    }
+                    const moreComments = await Promise.all(pages.map((_page) => fetch(commentListApi + `&page=${_page}`, {
+                        credentials: 'include',
+                    })
+                        .then((res) => res.json())
+                        .then((res) => res.data))).then((values) => values.reduce((prev, curr) => {
+                        prev.splice(0, 0, ...curr.comments.map((_comment) => ({
                             id: _comment.id,
                             position: _comment.position,
                             payload: _comment,
                         })));
-                        const expectedNewCommentsCount = newCommentsCount - (currentCommentsCount || 0);
-                        let page = totalPage - 1;
-                        while ((latestComments.length < expectedNewCommentsCount ||
-                            latestComments.length < 15) &&
-                            page > 0) {
-                            page--;
-                            const { comments: anotherComments } = await fetch(commentListApi + `&page=${page}`, {
-                                credentials: 'include',
-                            })
-                                .then((res) => res.json())
-                                .then((res) => res.data);
-                            latestComments.splice(0, 0, ...anotherComments.map((_comment) => ({
-                                id: _comment.id,
-                                position: _comment.position,
-                                payload: _comment,
-                            })));
-                        }
+                        return prev;
+                    }, []));
+                    latestComments.splice(0, 0, ...moreComments);
+                    return latestComments;
+                };
+                const timeoutFn = () => {
+                    getCommentsAsync()
+                        .then((latestComments) => {
+                        const { isParticipated } = core.getState();
                         const lastCommentCTime = latestComments?.[latestComments.length - 1]?.payload?.ctime;
                         const _config = core.getConfig();
                         let _interval = Math.max(isParticipated ? 2 : 10, parseInt(newValue[`${_plugin.prefix}:interval`] ||
                             _config[`${_plugin.prefix}:interval`]) || 30);
                         let isSlowMode = false;
-                        if (_config[`${_plugin.prefix}:autoSlowDown`] && lastCommentCTime) {
+                        if (_config[`${_plugin.prefix}:autoSlowDown`] &&
+                            lastCommentCTime) {
                             const commentCTime = new Date(lastCommentCTime).getTime();
                             if (commentCTime) {
                                 const nowTime = Date.now();
@@ -1572,26 +1578,31 @@ const BHGV2_AutoRefresh = (core) => {
                         ]
                             .filter((item) => !!item)
                             .join(',')})`;
-                        _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
                         _failedCount = 0;
                         core.mutateState({
                             latestComments,
                             lastCommentCTime,
                         });
-                    }
-                    catch (e) {
+                        _refreshIntervalObj = setTimeout(timeoutFn, _intervalMs);
+                    })
+                        .catch((e) => {
                         console.error(e);
                         _failedCount += 1;
-                        _refreshIntervalObj = setTimeout(timeoutFn, 5000);
-                    }
-                    finally {
+                        if (_failedCount < 20) {
+                            _refreshIntervalObj = setTimeout(timeoutFn, 5000);
+                        }
+                    })
+                        .finally(() => {
+                        if (_failedCount >= 20) {
+                            core.setError(_plugin.pluginName, `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次。已達到自動重試上限，請 F5 刷新頁面。`);
+                        }
                         if (_failedCount > 0) {
                             core.setError(_plugin.pluginName, `[${new Date().toISOString()}] 自動更新失敗了 ${_failedCount} 次，5秒後重試`);
                         }
                         else {
                             core.setError(_plugin.pluginName, undefined);
                         }
-                    }
+                    });
                 };
                 _refreshIntervalObj = setTimeout(timeoutFn, 2000);
                 const _config = core.getConfig();
@@ -2305,6 +2316,7 @@ const BHGV2_HighlightMe = (core) => {
         }
     };
     _plugin.onMutateConfig = (newValue) => {
+        ;
         ['isEnabled', 'onlyShowHighlighted'].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.CommentListOuter;
@@ -2667,6 +2679,7 @@ const BHGV2_QTEAlert = (core) => {
         }
     };
     _plugin.onMutateConfig = (newValue) => {
+        ;
         ['isEnabled', 'notificationSound'].forEach((key) => {
             if (newValue[`${_plugin.prefix}-${key}`] !== undefined) {
                 const dom = core.DOM.CommentListOuter;
