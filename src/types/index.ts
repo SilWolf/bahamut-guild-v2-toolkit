@@ -18,6 +18,8 @@ export type TCore = {
   error: Record<string, string | undefined>
   setError: (key: string, message: string | undefined) => void
   removeError: (key: string) => void
+  editorTips: string[]
+  toggleEditorTip: (tip: string, isEnable: boolean) => void
 }
 
 export type TPluginConstructor = (core: TCore) => TPlugin

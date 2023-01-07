@@ -51,6 +51,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
   const _config: TCoreConfig = {}
   const _state: TCoreState = {}
   const _error: Record<string, string | undefined> = {}
+  const _editorTips: string[] = ['Enter: 發送', 'Shift+Enter: 換行']
 
   const CORE: TCore = {
     getConfig: () => _config,
@@ -119,6 +120,17 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
     removeError: (key: string) => {
       if (_error[key]) {
         _error[key] = undefined
+      }
+    },
+    editorTips: _editorTips,
+    toggleEditorTip: (tip: string, isEnable = true) => {
+      const foundIndex = _editorTips.indexOf(tip)
+      if (isEnable === true && foundIndex === -1) {
+        _editorTips.push(tip)
+        _dom.EditorTips.innerHTML = _editorTips.join('　')
+      } else if (isEnable === false && foundIndex !== -1) {
+        _editorTips.splice(foundIndex, 1)
+        _dom.EditorTips.innerHTML = _editorTips.join('　')
       }
     },
   }
@@ -591,9 +603,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
   _dom.EditorTips = document.createElement('div')
   _dom.EditorTips.classList.add('bhgv2-editor-tips')
-  _dom.EditorTips.innerHTML =
-    // 'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
-    'Enter: 發送　Shift+Enter: 換行'
+  _dom.EditorTips.innerHTML = 'Enter: 發送　Shift+Enter: 換行'
 
   _dom.Editor.append(_dom.EditorTips)
 

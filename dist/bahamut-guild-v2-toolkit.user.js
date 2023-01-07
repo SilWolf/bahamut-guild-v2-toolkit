@@ -48,6 +48,7 @@ const BHGV2Core = ({ plugins, library }) => {
     const _config = {};
     const _state = {};
     const _error = {};
+    const _editorTips = ['Enter: 發送', 'Shift+Enter: 換行'];
     const CORE = {
         getConfig: () => _config,
         getConfigByNames: (...names) => {
@@ -110,6 +111,18 @@ const BHGV2Core = ({ plugins, library }) => {
         removeError: (key) => {
             if (_error[key]) {
                 _error[key] = undefined;
+            }
+        },
+        editorTips: _editorTips,
+        toggleEditorTip: (tip, isEnable = true) => {
+            const foundIndex = _editorTips.indexOf(tip);
+            if (isEnable === true && foundIndex === -1) {
+                _editorTips.push(tip);
+                _dom.EditorTips.innerHTML = _editorTips.join('　');
+            }
+            else if (isEnable === false && foundIndex !== -1) {
+                _editorTips.splice(foundIndex, 1);
+                _dom.EditorTips.innerHTML = _editorTips.join('　');
             }
         },
     };
@@ -418,9 +431,7 @@ const BHGV2Core = ({ plugins, library }) => {
     oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea);
     _dom.EditorTips = document.createElement('div');
     _dom.EditorTips.classList.add('bhgv2-editor-tips');
-    _dom.EditorTips.innerHTML =
-        // 'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
-        'Enter: 發送　Shift+Enter: 換行';
+    _dom.EditorTips.innerHTML = 'Enter: 發送　Shift+Enter: 換行';
     _dom.Editor.append(_dom.EditorTips);
     _dom.EditorContainerReplyContentFooter = document.createElement('div');
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
@@ -2728,9 +2739,11 @@ const BHGV2_PasteUploadImage = (core) => {
             if (editorTextarea) {
                 if (newValue[`${_plugin.prefix}:isEnablePaste`]) {
                     editorTextarea.addEventListener('paste', handleOnPaste);
+                    core.toggleEditorTip('黏貼圖片: 上傳', true);
                 }
                 else {
                     editorTextarea.removeEventListener('paste', handleOnPaste);
+                    core.toggleEditorTip('黏貼圖片: 上傳', false);
                 }
             }
         }

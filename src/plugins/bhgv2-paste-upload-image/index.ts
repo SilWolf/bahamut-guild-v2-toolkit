@@ -105,8 +105,10 @@ const BHGV2_PasteUploadImage: TPluginConstructor = (core) => {
       if (editorTextarea) {
         if (newValue[`${_plugin.prefix}:isEnablePaste`] as boolean) {
           editorTextarea.addEventListener('paste', handleOnPaste)
+          core.toggleEditorTip('黏貼圖片: 上傳', true)
         } else {
           editorTextarea.removeEventListener('paste', handleOnPaste)
+          core.toggleEditorTip('黏貼圖片: 上傳', false)
         }
       }
     }
