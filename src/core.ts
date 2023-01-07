@@ -589,6 +589,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
   _dom.EditorTextarea.classList.add('content-edit')
   _dom.EditorTextarea.classList.add('bhgv2-editor-textarea')
   _dom.EditorTextarea.setAttribute('placeholder', '留言…')
+  _dom.EditorTextarea.setAttribute('rows', '4')
 
   _dom.EditorTextareaWrapper.append(
     _dom.EditorTextareaCarbon,

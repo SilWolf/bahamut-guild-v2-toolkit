@@ -28,11 +28,47 @@ const BHGV2_PasteUploadImage: TPluginConstructor = (core) => {
       suffixLabel: '啟用拖拉上傳圖片',
       dataType: 'boolean',
       inputType: 'switch',
-      defaultValue: true,
+      defaultValue: false,
     },
   ]
 
-  const handleOnPaste = (e: ClipboardEvent) => {
+  const asyncUploadFiles = (
+    files: (File | null | undefined)[] | FileList
+  ): Promise<string[]> => {
+    const uploadPromises: Promise<{ url: string }>[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i]) {
+        continue
+      }
+
+      const file = files[i]
+      if (file && file.type.startsWith('image/')) {
+        uploadPromises.push(
+          new Promise((res, rej) => {
+            postImgurImage(file)
+              .then(({ link }) => {
+                return res({ url: link })
+              })
+              .catch((err) => {
+                return rej(err)
+              })
+          })
+        )
+      }
+    }
+
+    return Promise.allSettled(uploadPromises).then(
+      (results) =>
+        results
+          .map((result) =>
+            result.status === 'fulfilled' ? result.value.url : undefined
+          )
+          .filter((url) => !!url) as string[]
+    )
+  }
+
+  const handlePaste = (e: ClipboardEvent) => {
     if (!e.clipboardData) {
       return
     }
@@ -45,57 +81,68 @@ const BHGV2_PasteUploadImage: TPluginConstructor = (core) => {
 
     if (files.length > 0) {
       e.preventDefault()
-      const editorTextarea = e.target as HTMLTextAreaElement
-      const uploadPromises: Promise<{ url: string }>[] = []
+      const editorTextarea = core.DOM.EditorTextarea as HTMLTextAreaElement
 
-      for (let i = 0; i < files.length; i++) {
-        if (!files[i]) {
-          continue
-        }
+      editorTextarea.setAttribute('disabled', 'true')
+      editorTextarea.setRangeText(
+        '[[上傳圖片中...]]',
+        editorTextarea.selectionStart,
+        editorTextarea.selectionStart,
+        'select'
+      )
 
-        const file = files[i]
-        if (file && file.type.startsWith('image/')) {
-          uploadPromises.push(
-            new Promise((res, rej) => {
-              postImgurImage(file)
-                .then(({ link }) => {
-                  return res({ url: link })
-                })
-                .catch((err) => {
-                  return rej(err)
-                })
-            })
-          )
-        }
-      }
-
-      if (uploadPromises.length > 0) {
-        editorTextarea.setAttribute('disabled', 'true')
+      asyncUploadFiles(files).then((urls) => {
         editorTextarea.setRangeText(
-          '[[上傳圖片中...]]',
+          urls.map((url) => `${url}\n`).join(''),
           editorTextarea.selectionStart,
-          editorTextarea.selectionStart,
-          'select'
+          editorTextarea.selectionEnd,
+          'end'
         )
+        editorTextarea.removeAttribute('disabled')
+      })
+    }
+  }
 
-        Promise.allSettled(uploadPromises).then((results) => {
-          const urlTexts = results
-            .map((result) =>
-              result.status === 'fulfilled'
-                ? `${result.value.url}\n`
-                : undefined
-            )
-            .filter((url) => !!url)
-            .join('')
-          editorTextarea.setRangeText(
-            urlTexts,
-            editorTextarea.selectionStart,
-            editorTextarea.selectionEnd,
-            'end'
-          )
-          editorTextarea.removeAttribute('disabled')
-        })
-      }
+  const handleDragOver = (e: MouseEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = async (e: DragEvent) => {
+    if (!e.dataTransfer) {
+      return
+    }
+
+    console.log(e)
+
+    const files = e.dataTransfer.items
+      ? Array.from(e.dataTransfer.items)
+          .map((item) => (item.kind === 'file' ? item.getAsFile() : undefined))
+          .filter((item) => !!item)
+      : e.dataTransfer.files
+
+    console.log(files)
+
+    if (files.length > 0) {
+      e.preventDefault()
+      const editorTextarea = core.DOM.EditorTextarea as HTMLTextAreaElement
+
+      editorTextarea.setAttribute('disabled', 'true')
+      editorTextarea.setRangeText(
+        '[[上傳圖片中...]]',
+        editorTextarea.selectionStart,
+        editorTextarea.selectionStart,
+        'select'
+      )
+
+      asyncUploadFiles(files).then((urls) => {
+        editorTextarea.setRangeText(
+          urls.map((url) => `${url}\n`).join(''),
+          editorTextarea.selectionStart,
+          editorTextarea.selectionEnd,
+          'end'
+        )
+        editorTextarea.removeAttribute('disabled')
+      })
     }
   }
 
@@ -104,11 +151,21 @@ const BHGV2_PasteUploadImage: TPluginConstructor = (core) => {
       const editorTextarea = core.DOM.EditorTextarea
       if (editorTextarea) {
         if (newValue[`${_plugin.prefix}:isEnablePaste`] as boolean) {
-          editorTextarea.addEventListener('paste', handleOnPaste)
+          editorTextarea.addEventListener('paste', handlePaste)
           core.toggleEditorTip('黏貼圖片: 上傳', true)
         } else {
-          editorTextarea.removeEventListener('paste', handleOnPaste)
+          editorTextarea.removeEventListener('paste', handlePaste)
           core.toggleEditorTip('黏貼圖片: 上傳', false)
+        }
+
+        if (newValue[`${_plugin.prefix}:isEnableDragAndDrop`] as boolean) {
+          editorTextarea.addEventListener('dragover', handleDragOver)
+          editorTextarea.addEventListener('drop', handleDrop)
+          core.toggleEditorTip('拖拉圖片: 上傳', true)
+        } else {
+          editorTextarea.removeEventListener('dragover', handleDragOver)
+          editorTextarea.removeEventListener('drop', handleDrop)
+          core.toggleEditorTip('拖拉圖片: 上傳', false)
         }
       }
     }

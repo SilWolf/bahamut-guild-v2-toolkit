@@ -426,6 +426,7 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorTextarea.classList.add('content-edit');
     _dom.EditorTextarea.classList.add('bhgv2-editor-textarea');
     _dom.EditorTextarea.setAttribute('placeholder', '留言…');
+    _dom.EditorTextarea.setAttribute('rows', '4');
     _dom.EditorTextareaWrapper.append(_dom.EditorTextareaCarbon, _dom.EditorTextarea);
     oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextareaWrapper);
     oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea);
@@ -2687,7 +2688,30 @@ const BHGV2_PasteUploadImage = (core) => {
             defaultValue: true,
         },
     ];
-    const handleOnPaste = (e) => {
+    const asyncUploadFiles = (files) => {
+        const uploadPromises = [];
+        for (let i = 0; i < files.length; i++) {
+            if (!files[i]) {
+                continue;
+            }
+            const file = files[i];
+            if (file && file.type.startsWith('image/')) {
+                uploadPromises.push(new Promise((res, rej) => {
+                    imgur_helper_1.postImgurImage(file)
+                        .then(({ link }) => {
+                        return res({ url: link });
+                    })
+                        .catch((err) => {
+                        return rej(err);
+                    });
+                }));
+            }
+        }
+        return Promise.allSettled(uploadPromises).then((results) => results
+            .map((result) => result.status === 'fulfilled' ? result.value.url : undefined)
+            .filter((url) => !!url));
+    };
+    const handlePaste = (e) => {
         if (!e.clipboardData) {
             return;
         }
@@ -2698,39 +2722,38 @@ const BHGV2_PasteUploadImage = (core) => {
             : e.clipboardData.files;
         if (files.length > 0) {
             e.preventDefault();
-            const editorTextarea = e.target;
-            const uploadPromises = [];
-            for (let i = 0; i < files.length; i++) {
-                if (!files[i]) {
-                    continue;
-                }
-                const file = files[i];
-                if (file && file.type.startsWith('image/')) {
-                    uploadPromises.push(new Promise((res, rej) => {
-                        imgur_helper_1.postImgurImage(file)
-                            .then(({ link }) => {
-                            return res({ url: link });
-                        })
-                            .catch((err) => {
-                            return rej(err);
-                        });
-                    }));
-                }
-            }
-            if (uploadPromises.length > 0) {
-                editorTextarea.setAttribute('disabled', 'true');
-                editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
-                Promise.allSettled(uploadPromises).then((results) => {
-                    const urlTexts = results
-                        .map((result) => result.status === 'fulfilled'
-                        ? `${result.value.url}\n`
-                        : undefined)
-                        .filter((url) => !!url)
-                        .join('');
-                    editorTextarea.setRangeText(urlTexts, editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
-                    editorTextarea.removeAttribute('disabled');
-                });
-            }
+            const editorTextarea = core.DOM.EditorTextarea;
+            editorTextarea.setAttribute('disabled', 'true');
+            editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
+            asyncUploadFiles(files).then((urls) => {
+                editorTextarea.setRangeText(urls.map((url) => `${url}\n`).join(''), editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
+                editorTextarea.removeAttribute('disabled');
+            });
+        }
+    };
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
+    const handleDrop = async (e) => {
+        if (!e.dataTransfer) {
+            return;
+        }
+        console.log(e);
+        const files = e.dataTransfer.items
+            ? Array.from(e.dataTransfer.items)
+                .map((item) => (item.kind === 'file' ? item.getAsFile() : undefined))
+                .filter((item) => !!item)
+            : e.dataTransfer.files;
+        console.log(files);
+        if (files.length > 0) {
+            e.preventDefault();
+            const editorTextarea = core.DOM.EditorTextarea;
+            editorTextarea.setAttribute('disabled', 'true');
+            editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
+            asyncUploadFiles(files).then((urls) => {
+                editorTextarea.setRangeText(urls.map((url) => `${url}\n`).join(''), editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
+                editorTextarea.removeAttribute('disabled');
+            });
         }
     };
     _plugin.onMutateConfig = (newValue) => {
@@ -2738,12 +2761,22 @@ const BHGV2_PasteUploadImage = (core) => {
             const editorTextarea = core.DOM.EditorTextarea;
             if (editorTextarea) {
                 if (newValue[`${_plugin.prefix}:isEnablePaste`]) {
-                    editorTextarea.addEventListener('paste', handleOnPaste);
+                    editorTextarea.addEventListener('paste', handlePaste);
                     core.toggleEditorTip('黏貼圖片: 上傳', true);
                 }
                 else {
-                    editorTextarea.removeEventListener('paste', handleOnPaste);
+                    editorTextarea.removeEventListener('paste', handlePaste);
                     core.toggleEditorTip('黏貼圖片: 上傳', false);
+                }
+                if (newValue[`${_plugin.prefix}:isEnableDragAndDrop`]) {
+                    editorTextarea.addEventListener('dragover', handleDragOver);
+                    editorTextarea.addEventListener('drop', handleDrop);
+                    core.toggleEditorTip('拖拉圖片: 上傳', true);
+                }
+                else {
+                    editorTextarea.removeEventListener('dragover', handleDragOver);
+                    editorTextarea.removeEventListener('drop', handleDrop);
+                    core.toggleEditorTip('拖拉圖片: 上傳', false);
                 }
             }
         }
