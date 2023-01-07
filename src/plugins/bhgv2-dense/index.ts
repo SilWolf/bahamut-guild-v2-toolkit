@@ -175,6 +175,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 				margin-left: 14px;
 				line-height: 14px;
 				display: none;
+        color: rgba(26, 26, 26, 0.5);
 			}
 
 			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
@@ -279,9 +280,33 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 
         const _clonedTagButton = _tagButton.cloneNode(false) as HTMLElement
         _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`)
-        _clonedTagButton.innerText = '@'
+        _clonedTagButton.innerText = '@回覆'
         _clonedTagButton.setAttribute('title', '回覆他')
         _contentUser.insertAdjacentElement('afterend', _clonedTagButton)
+
+        const editorTextarea = core.DOM.EditorTextarea as HTMLTextAreaElement
+        const _mentionWithPositionButton = document.createElement('button')
+        _mentionWithPositionButton.classList.add(
+          `${_plugin.prefix}-clonedTagButton`
+        )
+        _mentionWithPositionButton.innerText = '#回覆+串數'
+        _mentionWithPositionButton.classList.add(
+          `${_plugin.prefix}-clonedTagButton`
+        )
+        _mentionWithPositionButton.setAttribute('title', '回覆他+#')
+        _mentionWithPositionButton.addEventListener('click', () => {
+          editorTextarea.setRangeText(
+            `[${comment.payload?.userid}:${comment.payload?.name}] (#${comment.position})\n`,
+            editorTextarea.selectionStart,
+            editorTextarea.selectionStart,
+            'end'
+          )
+          editorTextarea.focus()
+        })
+        _clonedTagButton.insertAdjacentElement(
+          'afterend',
+          _mentionWithPositionButton
+        )
       })
     }
   }
