@@ -18,6 +18,8 @@ export type TCore = {
   error: Record<string, string | undefined>
   setError: (key: string, message: string | undefined) => void
   removeError: (key: string) => void
+  editorTips: string[]
+  toggleEditorTip: (tip: string, isEnable: boolean) => void
 }
 
 export type TPluginConstructor = (core: TCore) => TPlugin
@@ -27,6 +29,7 @@ export type TPlugin = {
   pluginName: string
   prefix: string
   configs?: TPluginConfig[]
+  actions?: TPluginAction[]
   configLayout?: string[][]
   onEvent?: (eventName: string, payload: unknown) => boolean
   onMutateState?: (newValue: TCoreState) => void
@@ -73,6 +76,13 @@ export type TPluginConfig = {
   defaultValue: TPluginConfigValue
   options?: TPluginConfigOption[]
 }
+
+export type TPluginAction = {
+  key: string
+  label: string
+  onClick: (e: MouseEvent) => void
+}
+
 export type TPluginConfigDataType = 'boolean' | 'number' | 'text'
 export type TPluginConfigInputType =
   | 'switch'

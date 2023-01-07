@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.9.1
+// @version         0.10.0
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -32,6 +32,7 @@ const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
+const bhgv2_paste_upload_image_1 = __importDefault(__webpack_require__(923));
 const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
@@ -47,6 +48,7 @@ const BHGV2Core = ({ plugins, library }) => {
     const _config = {};
     const _state = {};
     const _error = {};
+    const _editorTips = ['Enter: 發送', 'Shift+Enter: 換行'];
     const CORE = {
         getConfig: () => _config,
         getConfigByNames: (...names) => {
@@ -109,6 +111,18 @@ const BHGV2Core = ({ plugins, library }) => {
         removeError: (key) => {
             if (_error[key]) {
                 _error[key] = undefined;
+            }
+        },
+        editorTips: _editorTips,
+        toggleEditorTip: (tip, isEnable = true) => {
+            const foundIndex = _editorTips.indexOf(tip);
+            if (isEnable === true && foundIndex === -1) {
+                _editorTips.push(tip);
+                _dom.EditorTips.innerHTML = _editorTips.join('　');
+            }
+            else if (isEnable === false && foundIndex !== -1) {
+                _editorTips.splice(foundIndex, 1);
+                _dom.EditorTips.innerHTML = _editorTips.join('　');
             }
         },
     };
@@ -412,14 +426,13 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.EditorTextarea.classList.add('content-edit');
     _dom.EditorTextarea.classList.add('bhgv2-editor-textarea');
     _dom.EditorTextarea.setAttribute('placeholder', '留言…');
+    _dom.EditorTextarea.setAttribute('rows', '4');
     _dom.EditorTextareaWrapper.append(_dom.EditorTextareaCarbon, _dom.EditorTextarea);
     oldEditorTextarea.insertAdjacentElement('afterend', _dom.EditorTextareaWrapper);
     oldEditorTextarea.parentNode?.removeChild(oldEditorTextarea);
     _dom.EditorTips = document.createElement('div');
     _dom.EditorTips.classList.add('bhgv2-editor-tips');
-    _dom.EditorTips.innerHTML =
-        // 'Enter: 發送　Shift+Enter: 換行　Tab: 快速輸入　/指令　@快速輸入'
-        'Enter: 發送　Shift+Enter: 換行';
+    _dom.EditorTips.innerHTML = 'Enter: 發送　Shift+Enter: 換行';
     _dom.Editor.append(_dom.EditorTips);
     _dom.EditorContainerReplyContentFooter = document.createElement('div');
     _dom.EditorContainerReplyContentFooter.classList.add('bhgv2-editor-container-reply-content-footer');
@@ -484,7 +497,7 @@ const BHGV2Core = ({ plugins, library }) => {
             _plugin.configs?.forEach(({ key, defaultValue }) => {
                 _config[key] = defaultValue;
                 if (defaultValue === undefined) {
-                    LOG(`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`);
+                    LOG(`插件 ${_plugin.pluginName} 的設定 ${key} 的 defaultValue 為空，請設定。`);
                 }
             });
             _plugins.push(_plugin);
@@ -511,8 +524,8 @@ const BHGV2Core = ({ plugins, library }) => {
         }
         return false;
     };
-    _plugins.forEach(({ label, pluginName, configs, configLayout }) => {
-        if (!configs) {
+    _plugins.forEach(({ label, pluginName, configs, actions, configLayout }) => {
+        if (!configs && !actions) {
             return;
         }
         const _pluginLi = document.createElement('li');
@@ -522,9 +535,6 @@ const BHGV2Core = ({ plugins, library }) => {
         _pluginA.addEventListener('click', scrollToSectionFn(pluginName));
         _pluginLi.append(_pluginA);
         _dom.ConfigPanelLeftPluginListing.append(_pluginLi);
-        const _configLayout = configLayout || [
-            configs.map((_config) => _config.key),
-        ];
         const _sectionDiv = document.createElement('div');
         _sectionDiv.classList.add('bhgv2-config-form-section');
         _sectionDiv.setAttribute('data-plugin-name', pluginName);
@@ -532,58 +542,87 @@ const BHGV2Core = ({ plugins, library }) => {
         _sectionTitle.classList.add('bhgv2-config-form-title');
         _sectionTitle.innerHTML = `【${label || pluginName}】`;
         _sectionDiv.append(_sectionTitle);
-        for (const row of _configLayout) {
-            const _rowDiv = document.createElement('div');
-            _rowDiv.classList.add('bhgv2-config-form-row');
-            for (const col of row) {
-                const configItem = configs.find((_config) => _config.key === col);
-                if (!configItem) {
-                    return;
+        // 建立插件設定的介面
+        if (configs) {
+            const _configLayout = configLayout || [
+                configs.map((_config) => _config.key),
+            ];
+            for (const row of _configLayout) {
+                const _rowDiv = document.createElement('div');
+                _rowDiv.classList.add('bhgv2-config-form-row');
+                for (const col of row) {
+                    const configItem = configs.find((_config) => _config.key === col);
+                    if (!configItem) {
+                        return;
+                    }
+                    const _colDiv = document.createElement('div');
+                    _colDiv.classList.add('bhgv2-config-form-col');
+                    const prefixLabel = document.createElement('span');
+                    prefixLabel.innerHTML = configItem.prefixLabel || '';
+                    let inputWrapperElement = document.createElement('label');
+                    let inputElement = document.createElement('div');
+                    switch (configItem.inputType) {
+                        case 'number':
+                        case 'text':
+                        case 'checkbox':
+                            inputElement = document.createElement('input');
+                            inputElement.setAttribute('type', configItem.inputType);
+                            break;
+                        case 'switch':
+                            inputWrapperElement = document.createElement('label');
+                            inputWrapperElement.classList.add('switch');
+                            inputElement = document.createElement('input');
+                            inputElement.setAttribute('type', 'checkbox');
+                            const _slider = document.createElement('span');
+                            _slider.classList.add('slider');
+                            inputWrapperElement.append(_slider);
+                            break;
+                        case 'select':
+                            inputElement = document.createElement('select');
+                            for (let option of configItem.options || []) {
+                                const _optionEle = document.createElement('option');
+                                _optionEle.setAttribute('value', option.value);
+                                _optionEle.innerHTML = option.label;
+                                inputElement.append(_optionEle);
+                            }
+                            inputWrapperElement.append(inputElement);
+                            break;
+                    }
+                    inputWrapperElement.setAttribute('for', configItem.key);
+                    inputElement.setAttribute('id', configItem.key);
+                    inputElement.setAttribute('data-config-key', configItem.key);
+                    inputElement.setAttribute('data-type', configItem.dataType);
+                    inputWrapperElement.prepend(inputElement);
+                    const suffixLabel = document.createElement('span');
+                    suffixLabel.innerHTML = configItem.suffixLabel || '';
+                    _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel);
+                    _rowDiv.append(_colDiv);
                 }
-                const _colDiv = document.createElement('div');
-                _colDiv.classList.add('bhgv2-config-form-col');
-                const prefixLabel = document.createElement('span');
-                prefixLabel.innerHTML = configItem.prefixLabel || '';
-                let inputWrapperElement = document.createElement('label');
-                let inputElement = document.createElement('div');
-                switch (configItem.inputType) {
-                    case 'number':
-                    case 'text':
-                    case 'checkbox':
-                        inputElement = document.createElement('input');
-                        inputElement.setAttribute('type', configItem.inputType);
-                        break;
-                    case 'switch':
-                        inputWrapperElement = document.createElement('label');
-                        inputWrapperElement.classList.add('switch');
-                        inputElement = document.createElement('input');
-                        inputElement.setAttribute('type', 'checkbox');
-                        const _slider = document.createElement('span');
-                        _slider.classList.add('slider');
-                        inputWrapperElement.append(_slider);
-                        break;
-                    case 'select':
-                        inputElement = document.createElement('select');
-                        for (let option of configItem.options || []) {
-                            const _optionEle = document.createElement('option');
-                            _optionEle.setAttribute('value', option.value);
-                            _optionEle.innerHTML = option.label;
-                            inputElement.append(_optionEle);
-                        }
-                        inputWrapperElement.append(inputElement);
-                        break;
-                }
-                inputWrapperElement.setAttribute('for', configItem.key);
-                inputElement.setAttribute('id', configItem.key);
-                inputElement.setAttribute('data-config-key', configItem.key);
-                inputElement.setAttribute('data-type', configItem.dataType);
-                inputWrapperElement.prepend(inputElement);
-                const suffixLabel = document.createElement('span');
-                suffixLabel.innerHTML = configItem.suffixLabel || '';
-                _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel);
-                _rowDiv.append(_colDiv);
+                _sectionDiv.append(_rowDiv);
             }
-            _sectionDiv.append(_rowDiv);
+        }
+        if (actions) {
+            //建立插件動作的介面
+            const _actionLayout = configLayout || [
+                actions.map((_action) => _action.key),
+            ];
+            for (const row of _actionLayout) {
+                const _rowDiv = document.createElement('div');
+                for (const col of row) {
+                    const actionItem = actions.find((_action) => _action.key === col);
+                    if (!actionItem) {
+                        return;
+                    }
+                    const buttonElement = document.createElement('button');
+                    buttonElement.innerHTML = actionItem.label;
+                    buttonElement.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        actionItem.onClick(e);
+                    });
+                    _rowDiv.append(buttonElement);
+                }
+                _sectionDiv.append(_rowDiv);
+            }
         }
         _dom.ConfigFormContent.append(_sectionDiv);
     });
@@ -930,6 +969,8 @@ const _waitForElm = (selector) => {
                     bhgv2_rainbow_1.default,
                     // BHGV2_QuickInput,
                     bhgv2_dark_mode_1.default,
+                    // BHGV2_SaveTheThread,
+                    bhgv2_paste_upload_image_1.default,
                 ],
                 library: {
                     jQuery,
@@ -1402,6 +1443,37 @@ const convertCTimeToHumanString = (ctime) => {
         .padStart(2, '0')}`;
 };
 exports.convertCTimeToHumanString = convertCTimeToHumanString;
+
+
+/***/ }),
+
+/***/ 647:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.postImgurImage = void 0;
+const IMGUR_CLIENT_ID = 'aef87581a602ff3';
+const postImgurImage = (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    // formData.append('type', 'base64')
+    return fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: new Headers({
+            Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+        }),
+        body: formData,
+    })
+        .then((res) => {
+        return res.json();
+    })
+        .then((json) => json.data)
+        .catch((e) => {
+        console.log(e);
+    });
+};
+exports.postImgurImage = postImgurImage;
 
 
 /***/ }),
@@ -1985,6 +2057,7 @@ const BHGV2_Dense = (core) => {
 				margin-left: 14px;
 				line-height: 14px;
 				display: none;
+        color: rgba(26, 26, 26, 0.5);
 			}
 
 			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
@@ -2086,9 +2159,20 @@ const BHGV2_Dense = (core) => {
                 }
                 const _clonedTagButton = _tagButton.cloneNode(false);
                 _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
-                _clonedTagButton.innerText = '@';
+                _clonedTagButton.innerText = '回覆';
                 _clonedTagButton.setAttribute('title', '回覆他');
                 _contentUser.insertAdjacentElement('afterend', _clonedTagButton);
+                const editorTextarea = core.DOM.EditorTextarea;
+                const _mentionWithPositionButton = document.createElement('button');
+                _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
+                _mentionWithPositionButton.innerText = '(#)';
+                _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
+                _mentionWithPositionButton.setAttribute('title', '回覆他+#');
+                _mentionWithPositionButton.addEventListener('click', () => {
+                    editorTextarea.setRangeText(`[${comment.payload?.userid}:${comment.payload?.name}] (#${comment.position})\n`, editorTextarea.selectionStart, editorTextarea.selectionStart, 'end');
+                    editorTextarea.focus();
+                });
+                _clonedTagButton.insertAdjacentElement('afterend', _mentionWithPositionButton);
             });
         }
     };
@@ -2578,6 +2662,140 @@ const BHGV2_NotifyOnTitle = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_NotifyOnTitle;
+
+
+/***/ }),
+
+/***/ 923:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_PasteUploadImage - 黏貼上傳圖片
+ *  複製貼上圖片時自動上傳至 IMGUR 圖床
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const imgur_helper_1 = __webpack_require__(647);
+const BHGV2_PasteUploadImage = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_PasteUploadImage',
+        prefix: 'BHGV2_PasteUploadImage',
+        label: '黏貼上傳圖片',
+    };
+    _plugin.configs = [
+        {
+            key: `${_plugin.prefix}:isEnablePaste`,
+            suffixLabel: '啟用黏貼上傳圖片',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
+        {
+            key: `${_plugin.prefix}:isEnableDragAndDrop`,
+            suffixLabel: '啟用拖拉上傳圖片',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    const asyncUploadFiles = (files) => {
+        const uploadPromises = [];
+        for (let i = 0; i < files.length; i++) {
+            if (!files[i]) {
+                continue;
+            }
+            const file = files[i];
+            if (file && file.type.startsWith('image/')) {
+                uploadPromises.push(new Promise((res, rej) => {
+                    imgur_helper_1.postImgurImage(file)
+                        .then(({ link }) => {
+                        return res({ url: link });
+                    })
+                        .catch((err) => {
+                        return rej(err);
+                    });
+                }));
+            }
+        }
+        return Promise.allSettled(uploadPromises).then((results) => results
+            .map((result) => result.status === 'fulfilled' ? result.value.url : undefined)
+            .filter((url) => !!url));
+    };
+    const handlePaste = (e) => {
+        if (!e.clipboardData) {
+            return;
+        }
+        const files = e.clipboardData.items
+            ? Array.from(e.clipboardData.items)
+                .map((item) => (item.kind === 'file' ? item.getAsFile() : undefined))
+                .filter((item) => !!item)
+            : e.clipboardData.files;
+        if (files.length > 0) {
+            e.preventDefault();
+            const editorTextarea = core.DOM.EditorTextarea;
+            editorTextarea.setAttribute('disabled', 'true');
+            editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
+            asyncUploadFiles(files).then((urls) => {
+                editorTextarea.setRangeText(urls.map((url) => `${url}\n`).join(''), editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
+                editorTextarea.removeAttribute('disabled');
+            });
+        }
+    };
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
+    const handleDrop = async (e) => {
+        if (!e.dataTransfer) {
+            return;
+        }
+        console.log(e);
+        const files = e.dataTransfer.items
+            ? Array.from(e.dataTransfer.items)
+                .map((item) => (item.kind === 'file' ? item.getAsFile() : undefined))
+                .filter((item) => !!item)
+            : e.dataTransfer.files;
+        console.log(files);
+        if (files.length > 0) {
+            e.preventDefault();
+            const editorTextarea = core.DOM.EditorTextarea;
+            editorTextarea.setAttribute('disabled', 'true');
+            editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
+            asyncUploadFiles(files).then((urls) => {
+                editorTextarea.setRangeText(urls.map((url) => `${url}\n`).join(''), editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
+                editorTextarea.removeAttribute('disabled');
+            });
+        }
+    };
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}:isEnablePaste`] !== undefined) {
+            const editorTextarea = core.DOM.EditorTextarea;
+            if (editorTextarea) {
+                if (newValue[`${_plugin.prefix}:isEnablePaste`]) {
+                    editorTextarea.addEventListener('paste', handlePaste);
+                    core.toggleEditorTip('黏貼圖片: 上傳', true);
+                }
+                else {
+                    editorTextarea.removeEventListener('paste', handlePaste);
+                    core.toggleEditorTip('黏貼圖片: 上傳', false);
+                }
+                if (newValue[`${_plugin.prefix}:isEnableDragAndDrop`]) {
+                    editorTextarea.addEventListener('dragover', handleDragOver);
+                    editorTextarea.addEventListener('drop', handleDrop);
+                    core.toggleEditorTip('拖拉圖片: 上傳', true);
+                }
+                else {
+                    editorTextarea.removeEventListener('dragover', handleDragOver);
+                    editorTextarea.removeEventListener('drop', handleDrop);
+                    core.toggleEditorTip('拖拉圖片: 上傳', false);
+                }
+            }
+        }
+    };
+    return _plugin;
+};
+exports.default = BHGV2_PasteUploadImage;
 
 
 /***/ }),
