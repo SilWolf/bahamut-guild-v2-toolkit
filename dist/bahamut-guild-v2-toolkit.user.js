@@ -32,6 +32,7 @@ const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
+const bhgv2_save_the_thread_1 = __importDefault(__webpack_require__(497));
 const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
@@ -511,8 +512,8 @@ const BHGV2Core = ({ plugins, library }) => {
         }
         return false;
     };
-    _plugins.forEach(({ label, pluginName, configs, configLayout }) => {
-        if (!configs) {
+    _plugins.forEach(({ label, pluginName, configs, actions, configLayout }) => {
+        if (!configs && !actions) {
             return;
         }
         const _pluginLi = document.createElement('li');
@@ -522,9 +523,6 @@ const BHGV2Core = ({ plugins, library }) => {
         _pluginA.addEventListener('click', scrollToSectionFn(pluginName));
         _pluginLi.append(_pluginA);
         _dom.ConfigPanelLeftPluginListing.append(_pluginLi);
-        const _configLayout = configLayout || [
-            configs.map((_config) => _config.key),
-        ];
         const _sectionDiv = document.createElement('div');
         _sectionDiv.classList.add('bhgv2-config-form-section');
         _sectionDiv.setAttribute('data-plugin-name', pluginName);
@@ -532,58 +530,87 @@ const BHGV2Core = ({ plugins, library }) => {
         _sectionTitle.classList.add('bhgv2-config-form-title');
         _sectionTitle.innerHTML = `【${label || pluginName}】`;
         _sectionDiv.append(_sectionTitle);
-        for (const row of _configLayout) {
-            const _rowDiv = document.createElement('div');
-            _rowDiv.classList.add('bhgv2-config-form-row');
-            for (const col of row) {
-                const configItem = configs.find((_config) => _config.key === col);
-                if (!configItem) {
-                    return;
+        // 建立插件設定的介面
+        if (configs) {
+            const _configLayout = configLayout || [
+                configs.map((_config) => _config.key),
+            ];
+            for (const row of _configLayout) {
+                const _rowDiv = document.createElement('div');
+                _rowDiv.classList.add('bhgv2-config-form-row');
+                for (const col of row) {
+                    const configItem = configs.find((_config) => _config.key === col);
+                    if (!configItem) {
+                        return;
+                    }
+                    const _colDiv = document.createElement('div');
+                    _colDiv.classList.add('bhgv2-config-form-col');
+                    const prefixLabel = document.createElement('span');
+                    prefixLabel.innerHTML = configItem.prefixLabel || '';
+                    let inputWrapperElement = document.createElement('label');
+                    let inputElement = document.createElement('div');
+                    switch (configItem.inputType) {
+                        case 'number':
+                        case 'text':
+                        case 'checkbox':
+                            inputElement = document.createElement('input');
+                            inputElement.setAttribute('type', configItem.inputType);
+                            break;
+                        case 'switch':
+                            inputWrapperElement = document.createElement('label');
+                            inputWrapperElement.classList.add('switch');
+                            inputElement = document.createElement('input');
+                            inputElement.setAttribute('type', 'checkbox');
+                            const _slider = document.createElement('span');
+                            _slider.classList.add('slider');
+                            inputWrapperElement.append(_slider);
+                            break;
+                        case 'select':
+                            inputElement = document.createElement('select');
+                            for (let option of configItem.options || []) {
+                                const _optionEle = document.createElement('option');
+                                _optionEle.setAttribute('value', option.value);
+                                _optionEle.innerHTML = option.label;
+                                inputElement.append(_optionEle);
+                            }
+                            inputWrapperElement.append(inputElement);
+                            break;
+                    }
+                    inputWrapperElement.setAttribute('for', configItem.key);
+                    inputElement.setAttribute('id', configItem.key);
+                    inputElement.setAttribute('data-config-key', configItem.key);
+                    inputElement.setAttribute('data-type', configItem.dataType);
+                    inputWrapperElement.prepend(inputElement);
+                    const suffixLabel = document.createElement('span');
+                    suffixLabel.innerHTML = configItem.suffixLabel || '';
+                    _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel);
+                    _rowDiv.append(_colDiv);
                 }
-                const _colDiv = document.createElement('div');
-                _colDiv.classList.add('bhgv2-config-form-col');
-                const prefixLabel = document.createElement('span');
-                prefixLabel.innerHTML = configItem.prefixLabel || '';
-                let inputWrapperElement = document.createElement('label');
-                let inputElement = document.createElement('div');
-                switch (configItem.inputType) {
-                    case 'number':
-                    case 'text':
-                    case 'checkbox':
-                        inputElement = document.createElement('input');
-                        inputElement.setAttribute('type', configItem.inputType);
-                        break;
-                    case 'switch':
-                        inputWrapperElement = document.createElement('label');
-                        inputWrapperElement.classList.add('switch');
-                        inputElement = document.createElement('input');
-                        inputElement.setAttribute('type', 'checkbox');
-                        const _slider = document.createElement('span');
-                        _slider.classList.add('slider');
-                        inputWrapperElement.append(_slider);
-                        break;
-                    case 'select':
-                        inputElement = document.createElement('select');
-                        for (let option of configItem.options || []) {
-                            const _optionEle = document.createElement('option');
-                            _optionEle.setAttribute('value', option.value);
-                            _optionEle.innerHTML = option.label;
-                            inputElement.append(_optionEle);
-                        }
-                        inputWrapperElement.append(inputElement);
-                        break;
-                }
-                inputWrapperElement.setAttribute('for', configItem.key);
-                inputElement.setAttribute('id', configItem.key);
-                inputElement.setAttribute('data-config-key', configItem.key);
-                inputElement.setAttribute('data-type', configItem.dataType);
-                inputWrapperElement.prepend(inputElement);
-                const suffixLabel = document.createElement('span');
-                suffixLabel.innerHTML = configItem.suffixLabel || '';
-                _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel);
-                _rowDiv.append(_colDiv);
+                _sectionDiv.append(_rowDiv);
             }
-            _sectionDiv.append(_rowDiv);
+        }
+        if (actions) {
+            //建立插件動作的介面
+            const _actionLayout = configLayout || [
+                actions.map((_action) => _action.key),
+            ];
+            for (const row of _actionLayout) {
+                const _rowDiv = document.createElement('div');
+                for (const col of row) {
+                    const actionItem = actions.find((_action) => _action.key === col);
+                    if (!actionItem) {
+                        return;
+                    }
+                    const buttonElement = document.createElement('button');
+                    buttonElement.innerHTML = actionItem.label;
+                    buttonElement.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        actionItem.onClick(e);
+                    });
+                    _rowDiv.append(buttonElement);
+                }
+                _sectionDiv.append(_rowDiv);
+            }
         }
         _dom.ConfigFormContent.append(_sectionDiv);
     });
@@ -930,6 +957,7 @@ const _waitForElm = (selector) => {
                     bhgv2_rainbow_1.default,
                     // BHGV2_QuickInput,
                     bhgv2_dark_mode_1.default,
+                    bhgv2_save_the_thread_1.default,
                 ],
                 library: {
                     jQuery,
@@ -2819,6 +2847,40 @@ const BHGV2_Rainbow = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_Rainbow;
+
+
+/***/ }),
+
+/***/ 497:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_SaveTheThread - 保存對串
+ *  將對串保存起來
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const BHGV2_SaveTheThread = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_SaveTheThread',
+        prefix: 'BHGV2_SaveTheThread',
+        label: '存串',
+    };
+    _plugin.actions = [
+        {
+            key: `${_plugin.prefix}:save`,
+            label: '保存此串…',
+            onClick: (e) => {
+                // 彈出「保存此串…」視窗
+                alert('彈出視窗');
+            },
+        },
+    ];
+    return _plugin;
+};
+exports.default = BHGV2_SaveTheThread;
 
 
 /***/ })

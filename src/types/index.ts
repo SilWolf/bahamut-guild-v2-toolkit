@@ -27,6 +27,7 @@ export type TPlugin = {
   pluginName: string
   prefix: string
   configs?: TPluginConfig[]
+  actions?: TPluginAction[]
   configLayout?: string[][]
   onEvent?: (eventName: string, payload: unknown) => boolean
   onMutateState?: (newValue: TCoreState) => void
@@ -73,6 +74,13 @@ export type TPluginConfig = {
   defaultValue: TPluginConfigValue
   options?: TPluginConfigOption[]
 }
+
+export type TPluginAction = {
+  key: string
+  label: string
+  onClick: (e: MouseEvent) => void
+}
+
 export type TPluginConfigDataType = 'boolean' | 'number' | 'text'
 export type TPluginConfigInputType =
   | 'switch'

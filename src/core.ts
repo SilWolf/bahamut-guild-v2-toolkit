@@ -25,13 +25,14 @@ import BHGV2_Dense from './plugins/bhgv2-dense'
 import BHGV2_MasterLayout from './plugins/bhgv2-master-layout'
 import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
+import BHGV2_SaveTheThread from './plugins/bhgv2-save-the-thread'
 import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
 import { convertCTimeToHumanString } from './helpers/display.helper'
 
-declare var nunjucks: any
-declare var Guild: any
-declare var GuildComment: any
-declare var tippy: any
+declare let nunjucks: any
+declare let Guild: any
+declare let GuildComment: any
+declare let tippy: any
 
 /** 等待DOM準備完成 */
 
@@ -712,7 +713,7 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
         _config[key] = defaultValue
         if (defaultValue === undefined) {
           LOG(
-            `插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`
+            `插件 ${_plugin.pluginName} 的設定 ${key} 的 defaultValue 為空，請設定。`
           )
         }
       })
@@ -748,8 +749,8 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
     return false
   }
 
-  _plugins.forEach(({ label, pluginName, configs, configLayout }) => {
-    if (!configs) {
+  _plugins.forEach(({ label, pluginName, configs, actions, configLayout }) => {
+    if (!configs && !actions) {
       return
     }
 
@@ -762,10 +763,6 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
 
     _dom.ConfigPanelLeftPluginListing.append(_pluginLi)
 
-    const _configLayout = configLayout || [
-      configs.map((_config) => _config.key),
-    ]
-
     const _sectionDiv = document.createElement('div')
     _sectionDiv.classList.add('bhgv2-config-form-section')
     _sectionDiv.setAttribute('data-plugin-name', pluginName)
@@ -775,75 +772,111 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
     _sectionTitle.innerHTML = `【${label || pluginName}】`
     _sectionDiv.append(_sectionTitle)
 
-    for (const row of _configLayout) {
-      const _rowDiv = document.createElement('div')
-      _rowDiv.classList.add('bhgv2-config-form-row')
+    // 建立插件設定的介面
+    if (configs) {
+      const _configLayout = configLayout || [
+        configs.map((_config) => _config.key),
+      ]
 
-      for (const col of row) {
-        const configItem = configs.find((_config) => _config.key === col)
-        if (!configItem) {
-          return
+      for (const row of _configLayout) {
+        const _rowDiv = document.createElement('div')
+        _rowDiv.classList.add('bhgv2-config-form-row')
+
+        for (const col of row) {
+          const configItem = configs.find((_config) => _config.key === col)
+          if (!configItem) {
+            return
+          }
+
+          const _colDiv = document.createElement('div')
+          _colDiv.classList.add('bhgv2-config-form-col')
+
+          const prefixLabel = document.createElement('span')
+          prefixLabel.innerHTML = configItem.prefixLabel || ''
+
+          let inputWrapperElement: HTMLElement = document.createElement('label')
+
+          let inputElement: HTMLElement = document.createElement('div')
+          switch (configItem.inputType) {
+            case 'number':
+            case 'text':
+            case 'checkbox':
+              inputElement = document.createElement('input')
+              inputElement.setAttribute('type', configItem.inputType)
+              break
+
+            case 'switch':
+              inputWrapperElement = document.createElement('label')
+              inputWrapperElement.classList.add('switch')
+
+              inputElement = document.createElement('input')
+              inputElement.setAttribute('type', 'checkbox')
+
+              const _slider = document.createElement('span')
+              _slider.classList.add('slider')
+
+              inputWrapperElement.append(_slider)
+              break
+            case 'select':
+              inputElement = document.createElement('select')
+
+              for (let option of configItem.options || []) {
+                const _optionEle = document.createElement('option')
+                _optionEle.setAttribute('value', option.value)
+                _optionEle.innerHTML = option.label
+                inputElement.append(_optionEle)
+              }
+
+              inputWrapperElement.append(inputElement)
+              break
+          }
+
+          inputWrapperElement.setAttribute('for', configItem.key)
+
+          inputElement.setAttribute('id', configItem.key)
+          inputElement.setAttribute('data-config-key', configItem.key)
+          inputElement.setAttribute('data-type', configItem.dataType)
+          inputWrapperElement.prepend(inputElement)
+
+          const suffixLabel = document.createElement('span')
+          suffixLabel.innerHTML = configItem.suffixLabel || ''
+
+          _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel)
+
+          _rowDiv.append(_colDiv)
         }
 
-        const _colDiv = document.createElement('div')
-        _colDiv.classList.add('bhgv2-config-form-col')
-
-        const prefixLabel = document.createElement('span')
-        prefixLabel.innerHTML = configItem.prefixLabel || ''
-
-        let inputWrapperElement: HTMLElement = document.createElement('label')
-
-        let inputElement: HTMLElement = document.createElement('div')
-        switch (configItem.inputType) {
-          case 'number':
-          case 'text':
-          case 'checkbox':
-            inputElement = document.createElement('input')
-            inputElement.setAttribute('type', configItem.inputType)
-            break
-
-          case 'switch':
-            inputWrapperElement = document.createElement('label')
-            inputWrapperElement.classList.add('switch')
-
-            inputElement = document.createElement('input')
-            inputElement.setAttribute('type', 'checkbox')
-
-            const _slider = document.createElement('span')
-            _slider.classList.add('slider')
-
-            inputWrapperElement.append(_slider)
-            break
-          case 'select':
-            inputElement = document.createElement('select')
-
-            for (let option of configItem.options || []) {
-              const _optionEle = document.createElement('option')
-              _optionEle.setAttribute('value', option.value)
-              _optionEle.innerHTML = option.label
-              inputElement.append(_optionEle)
-            }
-
-            inputWrapperElement.append(inputElement)
-            break
-        }
-
-        inputWrapperElement.setAttribute('for', configItem.key)
-
-        inputElement.setAttribute('id', configItem.key)
-        inputElement.setAttribute('data-config-key', configItem.key)
-        inputElement.setAttribute('data-type', configItem.dataType)
-        inputWrapperElement.prepend(inputElement)
-
-        const suffixLabel = document.createElement('span')
-        suffixLabel.innerHTML = configItem.suffixLabel || ''
-
-        _colDiv.append(prefixLabel, inputWrapperElement, suffixLabel)
-
-        _rowDiv.append(_colDiv)
+        _sectionDiv.append(_rowDiv)
       }
+    }
 
-      _sectionDiv.append(_rowDiv)
+    if (actions) {
+      //建立插件動作的介面
+      const _actionLayout = configLayout || [
+        actions.map((_action) => _action.key),
+      ]
+
+      for (const row of _actionLayout) {
+        const _rowDiv = document.createElement('div')
+
+        for (const col of row) {
+          const actionItem = actions.find((_action) => _action.key === col)
+          if (!actionItem) {
+            return
+          }
+
+          const buttonElement = document.createElement('button')
+          buttonElement.innerHTML = actionItem.label
+          buttonElement.addEventListener('click', (e) => {
+            e.preventDefault()
+            actionItem.onClick(e)
+          })
+
+          _rowDiv.append(buttonElement)
+        }
+
+        _sectionDiv.append(_rowDiv)
+      }
     }
 
     _dom.ConfigFormContent.append(_sectionDiv)
@@ -1309,6 +1342,7 @@ const _waitForElm = (selector: string) => {
           BHGV2_Rainbow,
           // BHGV2_QuickInput,
           BHGV2_DarkMode,
+          // BHGV2_SaveTheThread,
         ],
         library: {
           jQuery,
