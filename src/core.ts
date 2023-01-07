@@ -27,6 +27,8 @@ import BHGV2_NotifyOnTitle from './plugins/bhgv2-notify-on-title'
 import BHGV2_HighlightMe from './plugins/bhgv2-highlight-me'
 import BHGV2_SaveTheThread from './plugins/bhgv2-save-the-thread'
 import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
+import BHGV2_PasteUploadImage from './plugins/bhgv2-paste-upload-image'
+
 import { convertCTimeToHumanString } from './helpers/display.helper'
 
 declare let nunjucks: any
@@ -1343,6 +1345,7 @@ const _waitForElm = (selector: string) => {
           // BHGV2_QuickInput,
           BHGV2_DarkMode,
           // BHGV2_SaveTheThread,
+          BHGV2_PasteUploadImage,
         ],
         library: {
           jQuery,

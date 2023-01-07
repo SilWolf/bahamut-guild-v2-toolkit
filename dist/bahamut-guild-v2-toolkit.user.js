@@ -32,7 +32,7 @@ const bhgv2_dense_1 = __importDefault(__webpack_require__(115));
 const bhgv2_master_layout_1 = __importDefault(__webpack_require__(739));
 const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
-const bhgv2_save_the_thread_1 = __importDefault(__webpack_require__(497));
+const bhgv2_paste_upload_image_1 = __importDefault(__webpack_require__(923));
 const display_helper_1 = __webpack_require__(201);
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
@@ -485,7 +485,7 @@ const BHGV2Core = ({ plugins, library }) => {
             _plugin.configs?.forEach(({ key, defaultValue }) => {
                 _config[key] = defaultValue;
                 if (defaultValue === undefined) {
-                    LOG(`插件 ${_plugin.pluginName}　的設定 ${key} 的 defaultValue 為空，請設定。`);
+                    LOG(`插件 ${_plugin.pluginName} 的設定 ${key} 的 defaultValue 為空，請設定。`);
                 }
             });
             _plugins.push(_plugin);
@@ -957,7 +957,8 @@ const _waitForElm = (selector) => {
                     bhgv2_rainbow_1.default,
                     // BHGV2_QuickInput,
                     bhgv2_dark_mode_1.default,
-                    bhgv2_save_the_thread_1.default,
+                    // BHGV2_SaveTheThread,
+                    bhgv2_paste_upload_image_1.default,
                 ],
                 library: {
                     jQuery,
@@ -1430,6 +1431,37 @@ const convertCTimeToHumanString = (ctime) => {
         .padStart(2, '0')}`;
 };
 exports.convertCTimeToHumanString = convertCTimeToHumanString;
+
+
+/***/ }),
+
+/***/ 647:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.postImgurImage = void 0;
+const IMGUR_CLIENT_ID = 'aef87581a602ff3';
+const postImgurImage = (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    // formData.append('type', 'base64')
+    return fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: new Headers({
+            Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+        }),
+        body: formData,
+    })
+        .then((res) => {
+        return res.json();
+    })
+        .then((json) => json.data)
+        .catch((e) => {
+        console.log(e);
+    });
+};
+exports.postImgurImage = postImgurImage;
 
 
 /***/ }),
@@ -2610,6 +2642,106 @@ exports.default = BHGV2_NotifyOnTitle;
 
 /***/ }),
 
+/***/ 923:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_PasteUploadImage - 黏貼上傳圖片
+ *  複製貼上圖片時自動上傳至 IMGUR 圖床
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const imgur_helper_1 = __webpack_require__(647);
+const BHGV2_PasteUploadImage = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_PasteUploadImage',
+        prefix: 'BHGV2_PasteUploadImage',
+        label: '黏貼上傳圖片',
+    };
+    _plugin.configs = [
+        {
+            key: `${_plugin.prefix}:isEnablePaste`,
+            suffixLabel: '啟用黏貼上傳圖片',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
+        {
+            key: `${_plugin.prefix}:isEnableDragAndDrop`,
+            suffixLabel: '啟用拖拉上傳圖片',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: true,
+        },
+    ];
+    const handleOnPaste = (e) => {
+        if (!e.clipboardData) {
+            return;
+        }
+        const files = e.clipboardData.items
+            ? Array.from(e.clipboardData.items)
+                .map((item) => (item.kind === 'file' ? item.getAsFile() : undefined))
+                .filter((item) => !!item)
+            : e.clipboardData.files;
+        if (files.length > 0) {
+            e.preventDefault();
+            const editorTextarea = e.target;
+            const uploadPromises = [];
+            for (let i = 0; i < files.length; i++) {
+                if (!files[i]) {
+                    continue;
+                }
+                const file = files[i];
+                if (file && file.type.startsWith('image/')) {
+                    uploadPromises.push(new Promise((res, rej) => {
+                        imgur_helper_1.postImgurImage(file)
+                            .then(({ link }) => {
+                            return res({ url: link });
+                        })
+                            .catch((err) => {
+                            return rej(err);
+                        });
+                    }));
+                }
+            }
+            if (uploadPromises.length > 0) {
+                editorTextarea.setAttribute('disabled', 'true');
+                editorTextarea.setRangeText('[[上傳圖片中...]]', editorTextarea.selectionStart, editorTextarea.selectionStart, 'select');
+                Promise.allSettled(uploadPromises).then((results) => {
+                    const urlTexts = results
+                        .map((result) => result.status === 'fulfilled'
+                        ? `${result.value.url}\n`
+                        : undefined)
+                        .filter((url) => !!url)
+                        .join('');
+                    editorTextarea.setRangeText(urlTexts, editorTextarea.selectionStart, editorTextarea.selectionEnd, 'end');
+                    editorTextarea.removeAttribute('disabled');
+                });
+            }
+        }
+    };
+    _plugin.onMutateConfig = (newValue) => {
+        if (newValue[`${_plugin.prefix}:isEnablePaste`] !== undefined) {
+            const editorTextarea = core.DOM.EditorTextarea;
+            if (editorTextarea) {
+                if (newValue[`${_plugin.prefix}:isEnablePaste`]) {
+                    editorTextarea.addEventListener('paste', handleOnPaste);
+                }
+                else {
+                    editorTextarea.removeEventListener('paste', handleOnPaste);
+                }
+            }
+        }
+    };
+    return _plugin;
+};
+exports.default = BHGV2_PasteUploadImage;
+
+
+/***/ }),
+
 /***/ 557:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -2847,40 +2979,6 @@ const BHGV2_Rainbow = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_Rainbow;
-
-
-/***/ }),
-
-/***/ 497:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*******************************************************************************************
- *
- *  BHGV2_SaveTheThread - 保存對串
- *  將對串保存起來
- *
- *******************************************************************************************/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const BHGV2_SaveTheThread = (core) => {
-    const _plugin = {
-        pluginName: 'BHGV2_SaveTheThread',
-        prefix: 'BHGV2_SaveTheThread',
-        label: '存串',
-    };
-    _plugin.actions = [
-        {
-            key: `${_plugin.prefix}:save`,
-            label: '保存此串…',
-            onClick: (e) => {
-                // 彈出「保存此串…」視窗
-                alert('彈出視窗');
-            },
-        },
-    ];
-    return _plugin;
-};
-exports.default = BHGV2_SaveTheThread;
 
 
 /***/ })
