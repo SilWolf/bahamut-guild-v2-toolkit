@@ -280,7 +280,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
 
         const _clonedTagButton = _tagButton.cloneNode(false) as HTMLElement
         _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`)
-        _clonedTagButton.innerText = '@回覆'
+        _clonedTagButton.innerText = '回覆'
         _clonedTagButton.setAttribute('title', '回覆他')
         _contentUser.insertAdjacentElement('afterend', _clonedTagButton)
 
@@ -289,7 +289,7 @@ const BHGV2_Dense: TPluginConstructor = (core) => {
         _mentionWithPositionButton.classList.add(
           `${_plugin.prefix}-clonedTagButton`
         )
-        _mentionWithPositionButton.innerText = '#回覆+串數'
+        _mentionWithPositionButton.innerText = '(#)'
         _mentionWithPositionButton.classList.add(
           `${_plugin.prefix}-clonedTagButton`
         )

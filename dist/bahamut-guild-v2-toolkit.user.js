@@ -2159,13 +2159,13 @@ const BHGV2_Dense = (core) => {
                 }
                 const _clonedTagButton = _tagButton.cloneNode(false);
                 _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
-                _clonedTagButton.innerText = '@回覆';
+                _clonedTagButton.innerText = '回覆';
                 _clonedTagButton.setAttribute('title', '回覆他');
                 _contentUser.insertAdjacentElement('afterend', _clonedTagButton);
                 const editorTextarea = core.DOM.EditorTextarea;
                 const _mentionWithPositionButton = document.createElement('button');
                 _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
-                _mentionWithPositionButton.innerText = '#回覆+串數';
+                _mentionWithPositionButton.innerText = '(#)';
                 _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
                 _mentionWithPositionButton.setAttribute('title', '回覆他+#');
                 _mentionWithPositionButton.addEventListener('click', () => {
