@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.9.1
+// @version         0.10.0
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -2685,7 +2685,7 @@ const BHGV2_PasteUploadImage = (core) => {
             suffixLabel: '啟用拖拉上傳圖片',
             dataType: 'boolean',
             inputType: 'switch',
-            defaultValue: true,
+            defaultValue: false,
         },
     ];
     const asyncUploadFiles = (files) => {
