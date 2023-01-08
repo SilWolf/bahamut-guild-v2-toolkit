@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.10.0
+// @version         0.10.1
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -2057,12 +2057,26 @@ const BHGV2_Dense = (core) => {
 				margin-left: 14px;
 				line-height: 14px;
 				display: none;
-        color: rgba(26, 26, 26, 0.5);
 			}
 
-			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton {
+      .${_plugin.prefix}-mentionWithPositionButton.${_plugin.prefix}-mentionWithPositionButton.${_plugin.prefix}-mentionWithPositionButton {
+				margin-left: 8px;
+				line-height: 14px;
+				display: none;
+			}
+
+			.${_plugin.prefix}-hideFooter .${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton.${_plugin.prefix}-clonedTagButton,
+      .${_plugin.prefix}-hideFooter .${_plugin.prefix}-mentionWithPositionButton.${_plugin.prefix}-mentionWithPositionButton.${_plugin.prefix}-mentionWithPositionButton {
 				display: inline-block;
 			}
+
+      .${_plugin.prefix}-mentionWithPositionButton {
+        color: rgba(26, 26, 26, 0.5);
+      }
+
+      .bhgv2-dark .${_plugin.prefix}-mentionWithPositionButton {
+        color: #A7A6AD;
+      }
 
 			.${_plugin.prefix}-smallerImage .reply-content__cont.reply-content__cont.reply-content__cont img {
 				margin-bottom: 4px;
@@ -2159,14 +2173,13 @@ const BHGV2_Dense = (core) => {
                 }
                 const _clonedTagButton = _tagButton.cloneNode(false);
                 _clonedTagButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
-                _clonedTagButton.innerText = '回覆';
+                _clonedTagButton.innerText = '@';
                 _clonedTagButton.setAttribute('title', '回覆他');
                 _contentUser.insertAdjacentElement('afterend', _clonedTagButton);
                 const editorTextarea = core.DOM.EditorTextarea;
                 const _mentionWithPositionButton = document.createElement('button');
-                _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
-                _mentionWithPositionButton.innerText = '(#)';
-                _mentionWithPositionButton.classList.add(`${_plugin.prefix}-clonedTagButton`);
+                _mentionWithPositionButton.classList.add(`${_plugin.prefix}-mentionWithPositionButton`);
+                _mentionWithPositionButton.innerText = '(+#)';
                 _mentionWithPositionButton.setAttribute('title', '回覆他+#');
                 _mentionWithPositionButton.addEventListener('click', () => {
                     editorTextarea.setRangeText(`[${comment.payload?.userid}:${comment.payload?.name}] (#${comment.position})\n`, editorTextarea.selectionStart, editorTextarea.selectionStart, 'end');
