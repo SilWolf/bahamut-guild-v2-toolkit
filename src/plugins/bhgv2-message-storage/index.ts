@@ -5,6 +5,7 @@
  *
  *******************************************************************************************/
 
+import { generateRandomId } from '../../helpers/string.helper'
 import { TPlugin, TPluginConstructor } from '../../types'
 
 type MS_Folder = {
@@ -115,8 +116,16 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         margin-bottom: 16px;
       }
 
+      .${_plugin.prefix}-overlayForm-group.hidden {
+        margin: 0;
+      }
+
       .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-label {
         display: block;
+      }
+
+      .${_plugin.prefix}-overlayForm-group.hidden .${_plugin.prefix}-overlayForm-label {
+        display: none;
       }
 
       .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-input {
@@ -124,6 +133,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         width: 100%;
         border: 1px solid #000000;
         padding: 4px;
+      }
+
+      .${_plugin.prefix}-overlayForm-group.hidden .${_plugin.prefix}-overlayForm-input {
+        display: none;
       }
 
       .${_plugin.prefix}-overlayForm-actions {
@@ -151,6 +164,52 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const rawFolderItems: MS_FolderItem[] = []
   const sortedFolderItems: MS_FolderItem[] = []
 
+  const overlayFormsMap: Record<string, Element> = {}
+
+  /**
+   * Lifecycle Functions
+   */
+  const refreshSelect = (doMutate?: boolean) => {
+    if (doMutate) {
+      localStorage.setItem(`${_plugin.prefix}-folders`, JSON.stringify(folders))
+    } else {
+      const storedFoldersJSON =
+        localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]'
+      if (!storedFoldersJSON) {
+        localStorage.setItem(`${_plugin.prefix}-folders`, '[]')
+      }
+
+      folders.splice(0, folders.length)
+      folders.push(...JSON.parse(storedFoldersJSON))
+    }
+
+    Selector.innerHTML = ''
+
+    const addNewFolderOption = document.createElement('option')
+    addNewFolderOption.value = MS_ACTION_ADD_FOLDER
+    addNewFolderOption.innerText = '[ 新增一個資料夾... ]'
+    Selector.prepend(addNewFolderOption)
+
+    for (const folder of folders) {
+      const option = document.createElement('option')
+      option.value = folder.id
+      option.innerText = folder.name
+      Selector.prepend(option)
+    }
+
+    const selectPlaceholderOption = document.createElement('option')
+    selectPlaceholderOption.value = '-1'
+    selectPlaceholderOption.innerText = '請選擇資料夾'
+    selectPlaceholderOption.setAttribute('disabled', '1')
+    Selector.prepend(selectPlaceholderOption)
+
+    if (folders.length > 0) {
+      Selector.value = folders[0].id
+    } else {
+      Selector.value = '-1'
+    }
+  }
+
   const updateSelect = (newValue: string) => {
     const storedFolderItemsJSON =
       localStorage.getItem(`${_plugin.prefix}-folder-${newValue}`) ?? '[]'
@@ -165,23 +224,68 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     sortedFolderItems.push(...JSON.parse(storedFolderItemsJSON))
 
     ListingList.innerHTML = ''
+    Selector.value = newValue
   }
 
   const handleChangeSelect = (e: Event) => {
     const newValue = (e.target as HTMLSelectElement).value
 
     if (newValue === MS_ACTION_ADD_FOLDER) {
-      // todo: add folder
-
       ;(e.target as HTMLSelectElement).value = '-1'
-      return
+
+      const overlayForm = overlayFormsMap.folder
+      if (!overlayForm) {
+        return
+      }
+
+      overlayForm.classList.add('show')
+      overlayForm.querySelector('form')?.reset()
     }
 
     updateSelect(newValue)
   }
 
+  const getValuesFromSubmitEvent = (e: Event) => {
+    return [
+      ...(e.target as HTMLFormElement).querySelectorAll<HTMLInputElement>(
+        `input.${_plugin.prefix}-overlayForm-input`
+      ),
+    ].reduce(
+      (prev: Record<string, string>, ele: HTMLInputElement, i: number) => {
+        prev[ele.getAttribute('name') ?? `field-${i}`] = ele.value
+        return prev
+      },
+      {}
+    )
+  }
+
+  /**
+   * Event Handler for OverlayForm - Folder
+   */
+
   const handleSubmitFolderForm = (e: Event) => {
     e.preventDefault()
+
+    const newValue = getValuesFromSubmitEvent(e)
+    if (newValue.id) {
+      const foundFolder = folders.find(({ id }) => id === newValue.id)
+      if (foundFolder) {
+        foundFolder.name = newValue.name
+      }
+    } else {
+      newValue.id = generateRandomId()
+      folders.push(newValue as MS_Folder)
+    }
+
+    refreshSelect(true)
+    updateSelect(newValue.id)
+    handleCancelFolderForm(e)
+  }
+
+  const handleCancelFolderForm = (e: Event) => {
+    e.preventDefault()
+    const overlayForm = overlayFormsMap.folder
+    overlayForm?.classList.remove('show')
   }
 
   /**
@@ -191,6 +295,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   type OverlayFormProps = {
     name: string
     onSubmit: (e: Event) => unknown
+    onCancel: (e: Event) => unknown
     fields: OverlayFormFieldProps[]
   }
 
@@ -198,13 +303,18 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     name: string
     label: string
     type: string
+    isShowLabel?: boolean
   }
 
   const overlayForms: OverlayFormProps[] = [
     {
       name: 'folder',
       onSubmit: handleSubmitFolderForm,
-      fields: [{ name: 'name', label: '資料夾名稱', type: 'text' }],
+      onCancel: handleCancelFolderForm,
+      fields: [
+        { name: 'name', label: '資料夾名稱', type: 'text' },
+        { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
+      ],
     },
   ]
 
@@ -268,31 +378,35 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     overlayFormBackdrop.id = `${_plugin.prefix}-overlayForm-${overlayForm.name}`
     Panel.append(overlayFormBackdrop)
 
-    const OverlayFormPanel = document.createElement('div')
-    OverlayFormPanel.classList.add(`${_plugin.prefix}-overlayForm-panel`)
-    overlayFormBackdrop.append(OverlayFormPanel)
+    const overlayFormPanel = document.createElement('div')
+    overlayFormPanel.classList.add(`${_plugin.prefix}-overlayForm-panel`)
+    overlayFormBackdrop.append(overlayFormPanel)
 
-    const OverlayFormForm = document.createElement('form')
-    OverlayFormForm.classList.add(`${_plugin.prefix}-overlayForm-form`)
-    OverlayFormForm.addEventListener('submit', overlayForm.onSubmit)
-    OverlayFormPanel.append(OverlayFormForm)
+    const overlayFormForm = document.createElement('form')
+    overlayFormForm.classList.add(`${_plugin.prefix}-overlayForm-form`)
+    overlayFormForm.addEventListener('submit', overlayForm.onSubmit)
+    overlayFormPanel.append(overlayFormForm)
 
     for (const field of overlayForm.fields) {
       const formLabel = document.createElement('label')
       formLabel.classList.add(`${_plugin.prefix}-overlayForm-label`)
       formLabel.innerText = field.label
-      formLabel.htmlFor = `${_plugin.prefix}-overlayForm-input-${field.name}`
+      formLabel.htmlFor = field.name
 
       const formInput = document.createElement('input')
       formInput.classList.add(`${_plugin.prefix}-overlayForm-input`)
-      formInput.id = `${_plugin.prefix}-overlayForm-input-${field.name}`
-      formInput.name = `${_plugin.prefix}-overlayForm-input-${field.name}`
+      formInput.name = field.name
+      formInput.type = field.type
+      formInput.required = true
 
       const formGroup = document.createElement('div')
       formGroup.classList.add(`${_plugin.prefix}-overlayForm-group`)
+      if (field.type === 'hidden') {
+        formGroup.classList.add('hidden')
+      }
       formGroup.append(formLabel, formInput)
 
-      OverlayFormForm.append(formGroup)
+      overlayFormForm.append(formGroup)
     }
 
     const formCancelButton = document.createElement('button')
@@ -301,56 +415,28 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       `${_plugin.prefix}-overlayForm-button-cancel`
     )
     formCancelButton.innerText = '取消'
+    formCancelButton.type = 'button'
+    formCancelButton.addEventListener('click', overlayForm.onCancel)
 
     const formSaveButton = document.createElement('button')
     formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button`)
     formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button-save`)
     formSaveButton.innerText = '保存'
+    formSaveButton.type = 'submit'
 
     const formActionsDiv = document.createElement('div')
     formActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-actions`)
     formActionsDiv.append(formCancelButton, formSaveButton)
 
-    OverlayFormForm.append(formActionsDiv)
+    overlayFormForm.append(formActionsDiv)
+
+    overlayFormsMap[overlayForm.name] = overlayFormBackdrop
   }
 
   /**
    * Initialize
    *  */
-  const storedFoldersJSON =
-    localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]'
-  if (!storedFoldersJSON) {
-    localStorage.setItem(`${_plugin.prefix}-folders`, '[]')
-  }
-
-  folders.splice(0, folders.length)
-  folders.push(...JSON.parse(storedFoldersJSON))
-
-  Selector.innerHTML = ''
-
-  const addNewFolderOption = document.createElement('option')
-  addNewFolderOption.value = MS_ACTION_ADD_FOLDER
-  addNewFolderOption.innerText = '[ 新增一個資料夾... ]'
-  Selector.prepend(addNewFolderOption)
-
-  for (const folder of folders) {
-    const option = document.createElement('option')
-    option.value = folder.id
-    option.innerText = folder.name
-    Selector.prepend(option)
-  }
-
-  const selectPlaceholderOption = document.createElement('option')
-  selectPlaceholderOption.value = '-1'
-  selectPlaceholderOption.innerText = '請選擇資料夾'
-  selectPlaceholderOption.setAttribute('disabled', '1')
-  Selector.prepend(selectPlaceholderOption)
-
-  if (folders.length > 0) {
-    Selector.value = folders[0].id
-  } else {
-    Selector.value = '-1'
-  }
+  refreshSelect()
 
   _plugin.onMutateConfig = (newValue) => {}
 
