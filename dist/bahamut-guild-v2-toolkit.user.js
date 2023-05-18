@@ -2596,6 +2596,7 @@ exports.default = BHGV2_MasterLayout;
  *
  *******************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const MS_ACTION_ADD_FOLDER = 'addFolder';
 const BHGV2_MessageStorage = (core) => {
     const _plugin = {
         pluginName: 'BHGV2_MessageStorage',
@@ -2647,6 +2648,7 @@ const BHGV2_MessageStorage = (core) => {
       #${_plugin.prefix}-ListActions .${_plugin.prefix}-ListAction {
         background: #cccccc;
         flex: 1;
+        padding: 4px;
       }
 
       #${_plugin.prefix}-ListingGrid {
@@ -2662,6 +2664,17 @@ const BHGV2_MessageStorage = (core) => {
       }
 		`,
     ];
+    const folders = [];
+    const rawFolderItems = [];
+    const sortedFolderItems = [];
+    const updateSelect = (newValue) => { };
+    const handleChangeSelect = (e) => {
+        console.log(e.target.value);
+        const newValue = e.target.value;
+        if (newValue === MS_ACTION_ADD_FOLDER) {
+            // todo: add folder
+        }
+    };
     const Panel = document.createElement('div');
     Panel.id = `${_plugin.prefix}-panel`;
     core.DOM.EditorContainerOuterRight.append(Panel);
@@ -2675,6 +2688,7 @@ const BHGV2_MessageStorage = (core) => {
     Panel.append(PanelHeader, PanelBody, PanelFooter);
     const Selector = document.createElement('select');
     Selector.id = `${_plugin.prefix}-selector`;
+    Selector.addEventListener('change', handleChangeSelect);
     PanelHeader.append(Selector);
     const ListActions = document.createElement('div');
     ListActions.id = `${_plugin.prefix}-ListActions`;
@@ -2697,6 +2711,35 @@ const BHGV2_MessageStorage = (core) => {
         ListingGrid.append(item);
     }
     PanelBody.append(ListActions, ListingGrid, ListingList);
+    // Initialize
+    const storedFoldersJSON = localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]';
+    if (!localStorage.getItem(`${_plugin.prefix}-folders`)) {
+        localStorage.setItem(`${_plugin.prefix}-folders`, '[]');
+    }
+    folders.splice(0, folders.length);
+    folders.push(...JSON.parse(storedFoldersJSON));
+    Selector.innerHTML = '';
+    const addNewFolderOption = document.createElement('option');
+    addNewFolderOption.value = MS_ACTION_ADD_FOLDER;
+    addNewFolderOption.innerText = '[ 新增一個資料夾... ]';
+    Selector.prepend(addNewFolderOption);
+    for (const folder of folders) {
+        const option = document.createElement('option');
+        option.value = folder.id;
+        option.innerText = folder.name;
+        Selector.prepend(option);
+    }
+    const selectPlaceholderOption = document.createElement('option');
+    selectPlaceholderOption.value = '-1';
+    selectPlaceholderOption.innerText = '請選擇資料夾';
+    selectPlaceholderOption.setAttribute('disabled', '1');
+    Selector.prepend(selectPlaceholderOption);
+    if (folders.length > 0) {
+        Selector.value = folders[0].id;
+    }
+    else {
+        Selector.value = '-1';
+    }
     _plugin.onMutateConfig = (newValue) => { };
     return _plugin;
 };

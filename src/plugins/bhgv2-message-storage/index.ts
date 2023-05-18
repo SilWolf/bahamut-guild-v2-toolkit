@@ -7,6 +7,18 @@
 
 import { TPlugin, TPluginConstructor } from '../../types'
 
+type MS_Folder = {
+  id: string
+  name: string
+}
+
+type MS_FolderItem = {
+  name: string
+  value: string
+}
+
+const MS_ACTION_ADD_FOLDER = 'addFolder'
+
 const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const _plugin: TPlugin = {
     pluginName: 'BHGV2_MessageStorage',
@@ -62,19 +74,58 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 4px;
       }
 
-      #${_plugin.prefix}-ListingGrid {
+      #${_plugin.prefix}-ListingList-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 8px;
       }
 
-      #${_plugin.prefix}-ListingGrid .${_plugin.prefix}-ListingItem {
+      #${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
         border: 1px solid #000;
         width: 100%;
         aspect-ratio: 1 / 1;
       }
 		`,
   ]
+
+  const folders: MS_Folder[] = []
+  const rawFolderItems: MS_FolderItem[] = []
+  const sortedFolderItems: MS_FolderItem[] = []
+
+  const updateSelect = (newValue: string) => {
+    const storedFolderItemsJSON =
+      localStorage.getItem(`${_plugin.prefix}-folder-${newValue}`) ?? '[]'
+    if (!storedFolderItemsJSON) {
+      localStorage.setItem(`${_plugin.prefix}-folder-${newValue}`, '[]')
+    }
+
+    rawFolderItems.splice(0, rawFolderItems.length)
+    rawFolderItems.push(...JSON.parse(storedFolderItemsJSON))
+
+    sortedFolderItems.splice(0, sortedFolderItems.length)
+    sortedFolderItems.push(...JSON.parse(storedFolderItemsJSON))
+
+    ListingList.innerHTML = ''
+
+    for (const item of sortedFolderItems) {
+      const div = document.createElement('div')
+      div.classList.add(`${_plugin.prefix}-ListingItem`)
+      ListingList.append(div)
+    }
+  }
+
+  const handleChangeSelect = (e: Event) => {
+    const newValue = (e.target as HTMLSelectElement).value
+
+    if (newValue === MS_ACTION_ADD_FOLDER) {
+      // todo: add folder
+
+      ;(e.target as HTMLSelectElement).value = '-1'
+      return
+    }
+
+    updateSelect(newValue)
+  }
 
   const Panel = document.createElement('div')
   Panel.id = `${_plugin.prefix}-panel`
@@ -95,6 +146,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   const Selector = document.createElement('select')
   Selector.id = `${_plugin.prefix}-selector`
+  Selector.addEventListener('change', handleChangeSelect)
 
   PanelHeader.append(Selector)
 
@@ -113,18 +165,53 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   ListActions.append(ListActionForAdd, ListActionForImport)
 
-  const ListingGrid = document.createElement('div')
-  ListingGrid.id = `${_plugin.prefix}-ListingGrid`
   const ListingList = document.createElement('div')
   ListingList.id = `${_plugin.prefix}-ListingList`
+  ListingList.classList.add(`${_plugin.prefix}-ListingList-grid`)
 
   for (let i = 0; i < 4; i++) {
     const item = document.createElement('div')
     item.classList.add(`${_plugin.prefix}-ListingItem`)
-    ListingGrid.append(item)
+    ListingList.append(item)
   }
 
-  PanelBody.append(ListActions, ListingGrid, ListingList)
+  PanelBody.append(ListActions, ListingList)
+
+  // Initialize
+  const storedFoldersJSON =
+    localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]'
+  if (!storedFoldersJSON) {
+    localStorage.setItem(`${_plugin.prefix}-folders`, '[]')
+  }
+
+  folders.splice(0, folders.length)
+  folders.push(...JSON.parse(storedFoldersJSON))
+
+  Selector.innerHTML = ''
+
+  const addNewFolderOption = document.createElement('option')
+  addNewFolderOption.value = MS_ACTION_ADD_FOLDER
+  addNewFolderOption.innerText = '[ 新增一個資料夾... ]'
+  Selector.prepend(addNewFolderOption)
+
+  for (const folder of folders) {
+    const option = document.createElement('option')
+    option.value = folder.id
+    option.innerText = folder.name
+    Selector.prepend(option)
+  }
+
+  const selectPlaceholderOption = document.createElement('option')
+  selectPlaceholderOption.value = '-1'
+  selectPlaceholderOption.innerText = '請選擇資料夾'
+  selectPlaceholderOption.setAttribute('disabled', '1')
+  Selector.prepend(selectPlaceholderOption)
+
+  if (folders.length > 0) {
+    Selector.value = folders[0].id
+  } else {
+    Selector.value = '-1'
+  }
 
   _plugin.onMutateConfig = (newValue) => {}
 
