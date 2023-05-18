@@ -34,6 +34,7 @@ const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
 const bhgv2_paste_upload_image_1 = __importDefault(__webpack_require__(923));
 const display_helper_1 = __webpack_require__(201);
+const bhgv2_message_storage_1 = __importDefault(__webpack_require__(872));
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
@@ -490,6 +491,10 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave, _dom.ConfigFormMessage);
+    _dom.EditorContainerOuterRight = document.createElement('div');
+    _dom.EditorContainerOuterRight.id = 'bhgv2-editor-container-outer-right';
+    _dom.EditorContainerOuterRight.classList.add('bhgv2-editor-container-outer-right');
+    _dom.EditorContainer.appendChild(_dom.EditorContainerOuterRight);
     [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
             const _plugin = plugin(CORE);
@@ -971,6 +976,7 @@ const _waitForElm = (selector) => {
                     bhgv2_dark_mode_1.default,
                     // BHGV2_SaveTheThread,
                     bhgv2_paste_upload_image_1.default,
+                    bhgv2_message_storage_1.default,
                 ],
                 library: {
                     jQuery,
@@ -1132,11 +1138,23 @@ div[data-google-query-id] {
 	border-radius: 2px;
 }
 
+.bhgv2-comment-list-outer {
+	position: relative;
+}
+
 .bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;
 	font-size: 12px;
+}
+
+.bhgv2-editor-container > div#bhgv2-editor-container-outer-right {
+	position: absolute;
+	top: 0;
+	left: calc(100% + 16px);
+	min-width: 320px;
+	background: rgba(0, 0, 0, 0.15);
 }
 
 .bhgv2-editor-tips {
@@ -2563,6 +2581,126 @@ const BHGV2_MasterLayout = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_MasterLayout;
+
+
+/***/ }),
+
+/***/ 872:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_MessageStorage - 標題提示
+ *  當有新的通知/訂閱/推薦時，在網頁標題上顯示數字
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const BHGV2_MessageStorage = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_MessageStorage',
+        prefix: 'BHGV2_MessageStorage',
+        label: '預設文檔倉庫',
+    };
+    _plugin.configs = [
+        {
+            key: `${_plugin.prefix}-isEnable`,
+            suffixLabel: '標題顯示通知數目',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.css = [
+        `
+			#${_plugin.prefix}-panel {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.87);
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-header {
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-body {
+        height: 320px;
+        overflow-y: scroll;
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-footer {
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-selector {
+        width: 100%;
+      }
+
+      #${_plugin.prefix}-ListActions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      #${_plugin.prefix}-ListActions .${_plugin.prefix}-ListAction {
+        background: #cccccc;
+        flex: 1;
+      }
+
+      #${_plugin.prefix}-ListingGrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      #${_plugin.prefix}-ListingGrid .${_plugin.prefix}-ListingItem {
+        border: 1px solid #000;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+      }
+		`,
+    ];
+    const Panel = document.createElement('div');
+    Panel.id = `${_plugin.prefix}-panel`;
+    core.DOM.EditorContainerOuterRight.append(Panel);
+    const PanelHeader = document.createElement('div');
+    PanelHeader.id = `${_plugin.prefix}-panel-header`;
+    const PanelBody = document.createElement('div');
+    PanelBody.id = `${_plugin.prefix}-panel-body`;
+    const PanelFooter = document.createElement('div');
+    PanelFooter.id = `${_plugin.prefix}-panel-footer`;
+    PanelFooter.innerText = 'panel-footer';
+    Panel.append(PanelHeader, PanelBody, PanelFooter);
+    const Selector = document.createElement('select');
+    Selector.id = `${_plugin.prefix}-selector`;
+    PanelHeader.append(Selector);
+    const ListActions = document.createElement('div');
+    ListActions.id = `${_plugin.prefix}-ListActions`;
+    const ListActionForAdd = document.createElement('button');
+    ListActionForAdd.id = `${_plugin.prefix}-ListActionForAdd`;
+    ListActionForAdd.classList.add(`${_plugin.prefix}-ListAction`);
+    ListActionForAdd.innerText = '新增';
+    const ListActionForImport = document.createElement('button');
+    ListActionForImport.id = `${_plugin.prefix}-ListActionForImport`;
+    ListActionForImport.classList.add(`${_plugin.prefix}-ListAction`);
+    ListActionForImport.innerText = '匯入';
+    ListActions.append(ListActionForAdd, ListActionForImport);
+    const ListingGrid = document.createElement('div');
+    ListingGrid.id = `${_plugin.prefix}-ListingGrid`;
+    const ListingList = document.createElement('div');
+    ListingList.id = `${_plugin.prefix}-ListingList`;
+    for (let i = 0; i < 4; i++) {
+        const item = document.createElement('div');
+        item.classList.add(`${_plugin.prefix}-ListingItem`);
+        ListingGrid.append(item);
+    }
+    PanelBody.append(ListActions, ListingGrid, ListingList);
+    _plugin.onMutateConfig = (newValue) => { };
+    return _plugin;
+};
+exports.default = BHGV2_MessageStorage;
 
 
 /***/ }),

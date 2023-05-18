@@ -138,11 +138,23 @@ div[data-google-query-id] {
 	border-radius: 2px;
 }
 
+.bhgv2-comment-list-outer {
+	position: relative;
+}
+
 .bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;
 	font-size: 12px;
+}
+
+.bhgv2-editor-container > div#bhgv2-editor-container-outer-right {
+	position: absolute;
+	top: 0;
+	left: calc(100% + 16px);
+	min-width: 320px;
+	background: rgba(0, 0, 0, 0.15);
 }
 
 .bhgv2-editor-tips {
