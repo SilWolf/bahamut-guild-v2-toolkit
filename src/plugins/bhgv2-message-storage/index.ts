@@ -38,6 +38,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   _plugin.css = [
     `
 			#${_plugin.prefix}-panel {
+        position: relative;
         width: 100%;
         background: rgba(255, 255, 255, 0.87);
         box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
@@ -85,6 +86,64 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         width: 100%;
         aspect-ratio: 1 / 1;
       }
+
+      .${_plugin.prefix}-overlayForm-backdrop {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+      }
+
+      .${_plugin.prefix}-overlayForm-backdrop.show {
+        display: block;
+      }
+
+      .${_plugin.prefix}-overlayForm-panel {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      .${_plugin.prefix}-overlayForm-group {
+        margin-bottom: 16px;
+      }
+
+      .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-label {
+        display: block;
+      }
+
+      .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-input {
+        display: block;
+        width: 100%;
+        border: 1px solid #000000;
+        padding: 4px;
+      }
+
+      .${_plugin.prefix}-overlayForm-actions {
+        display: flex;
+        gap: 8px;
+      }
+      
+      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button {
+        flex: 1;
+        text-align: center;
+        padding: 4px 0;
+      }
+      
+      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-cancel {
+        background: #cccccc;
+      }
+      
+      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-save {
+        background: #cccccc;
+      }
 		`,
   ]
 
@@ -106,12 +165,6 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     sortedFolderItems.push(...JSON.parse(storedFolderItemsJSON))
 
     ListingList.innerHTML = ''
-
-    for (const item of sortedFolderItems) {
-      const div = document.createElement('div')
-      div.classList.add(`${_plugin.prefix}-ListingItem`)
-      ListingList.append(div)
-    }
   }
 
   const handleChangeSelect = (e: Event) => {
@@ -126,6 +179,38 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
     updateSelect(newValue)
   }
+
+  const handleSubmitFolderForm = (e: Event) => {
+    e.preventDefault()
+  }
+
+  /**
+   * Constants - Overlay Forms
+   */
+
+  type OverlayFormProps = {
+    name: string
+    onSubmit: (e: Event) => unknown
+    fields: OverlayFormFieldProps[]
+  }
+
+  type OverlayFormFieldProps = {
+    name: string
+    label: string
+    type: string
+  }
+
+  const overlayForms: OverlayFormProps[] = [
+    {
+      name: 'folder',
+      onSubmit: handleSubmitFolderForm,
+      fields: [{ name: 'name', label: '資料夾名稱', type: 'text' }],
+    },
+  ]
+
+  /**
+   * UIs
+   */
 
   const Panel = document.createElement('div')
   Panel.id = `${_plugin.prefix}-panel`
@@ -177,7 +262,61 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   PanelBody.append(ListActions, ListingList)
 
-  // Initialize
+  for (const overlayForm of overlayForms) {
+    const overlayFormBackdrop = document.createElement('div')
+    overlayFormBackdrop.classList.add(`${_plugin.prefix}-overlayForm-backdrop`)
+    overlayFormBackdrop.id = `${_plugin.prefix}-overlayForm-${overlayForm.name}`
+    Panel.append(overlayFormBackdrop)
+
+    const OverlayFormPanel = document.createElement('div')
+    OverlayFormPanel.classList.add(`${_plugin.prefix}-overlayForm-panel`)
+    overlayFormBackdrop.append(OverlayFormPanel)
+
+    const OverlayFormForm = document.createElement('form')
+    OverlayFormForm.classList.add(`${_plugin.prefix}-overlayForm-form`)
+    OverlayFormForm.addEventListener('submit', overlayForm.onSubmit)
+    OverlayFormPanel.append(OverlayFormForm)
+
+    for (const field of overlayForm.fields) {
+      const formLabel = document.createElement('label')
+      formLabel.classList.add(`${_plugin.prefix}-overlayForm-label`)
+      formLabel.innerText = field.label
+      formLabel.htmlFor = `${_plugin.prefix}-overlayForm-input-${field.name}`
+
+      const formInput = document.createElement('input')
+      formInput.classList.add(`${_plugin.prefix}-overlayForm-input`)
+      formInput.id = `${_plugin.prefix}-overlayForm-input-${field.name}`
+      formInput.name = `${_plugin.prefix}-overlayForm-input-${field.name}`
+
+      const formGroup = document.createElement('div')
+      formGroup.classList.add(`${_plugin.prefix}-overlayForm-group`)
+      formGroup.append(formLabel, formInput)
+
+      OverlayFormForm.append(formGroup)
+    }
+
+    const formCancelButton = document.createElement('button')
+    formCancelButton.classList.add(`${_plugin.prefix}-overlayForm-button`)
+    formCancelButton.classList.add(
+      `${_plugin.prefix}-overlayForm-button-cancel`
+    )
+    formCancelButton.innerText = '取消'
+
+    const formSaveButton = document.createElement('button')
+    formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button`)
+    formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button-save`)
+    formSaveButton.innerText = '保存'
+
+    const formActionsDiv = document.createElement('div')
+    formActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-actions`)
+    formActionsDiv.append(formCancelButton, formSaveButton)
+
+    OverlayFormForm.append(formActionsDiv)
+  }
+
+  /**
+   * Initialize
+   *  */
   const storedFoldersJSON =
     localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]'
   if (!storedFoldersJSON) {
