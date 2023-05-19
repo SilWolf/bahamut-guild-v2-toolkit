@@ -400,4 +400,29 @@ div[data-google-query-id] {
 .globalcontainer .main-container_wall-post {
 	box-shadow: none;
 }
+
+.bhgv2-loading-indicator {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.bhgv2-loading-indicator:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #000;
+  border-color: #000 transparent #000 transparent;
+  animation: bhgv2-loading-indicator 1.2s linear infinite;
+}
+@keyframes bhgv2-loading-indicator {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 `

@@ -5,6 +5,7 @@
  *
  *******************************************************************************************/
 
+import { postImgurImage } from '../../helpers/imgur.helper'
 import { generateRandomId } from '../../helpers/string.helper'
 import { TPlugin, TPluginConstructor } from '../../types'
 
@@ -70,6 +71,13 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 16px 8px;
         border: 1px dashed #ccc;
         margin-bottom: 16px;
+      }
+
+      #${_plugin.prefix}-ListActionForUpload-input {
+        position: absolute;
+        z-index: -1000;
+        visibility: hidden;
+        pointer-events: none;
       }
 
       #${_plugin.prefix}-ListActions .${_plugin.prefix}-ListAction {
@@ -170,6 +178,38 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-save {
         background: #cccccc;
       }
+
+      #${_plugin.prefix}-loadingIndicator {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        flex-direction: col;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      #${_plugin.prefix}-loadingIndicator.show {
+        display: flex;
+      }
+
+      #${_plugin.prefix}-LoadingIndicatorContent {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      #${_plugin.prefix}-LoadingIndicatorCircle {
+        margin: 16px auto;
+      }
 		`,
   ]
 
@@ -258,6 +298,15 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     }
   }
 
+  const showLoading = (message?: string) => {
+    LoadingIndicator.classList.add('show')
+    LoadingIndicatorContentMessage.innerText = message ?? '請稍等'
+  }
+
+  const hideLoading = () => {
+    LoadingIndicator.classList.remove('show')
+  }
+
   const updateSelect = (newValue: string) => {
     Selector.value = newValue
     refreshListing()
@@ -311,25 +360,85 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     overlayForm.querySelector('form')?.reset()
   }
 
+  const handleClickListingUpload = (e: Event) => {
+    e.preventDefault()
+
+    ListActionForUploadInput.click()
+  }
+
+  const handleChangeListingUploadInput = (e: Event) => {
+    e.preventDefault()
+
+    // Fetch FileList object
+    const files = (e.target as HTMLInputElement).files
+    if (!files) {
+      return
+    }
+
+    showLoading('上傳圖片中，請稍等')
+
+    const uploadPromises: Promise<{ url: string }>[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i]) {
+        continue
+      }
+
+      const file = files[i]
+      if (file && file.type.startsWith('image/')) {
+        uploadPromises.push(
+          new Promise((res, rej) => {
+            postImgurImage(file)
+              .then(({ link }) => {
+                return res({ url: link })
+              })
+              .catch((err) => {
+                return rej(err)
+              })
+          })
+        )
+      }
+    }
+
+    return Promise.allSettled(uploadPromises)
+      .then(
+        (results) =>
+          results
+            .map((result) =>
+              result.status === 'fulfilled' ? result.value.url : undefined
+            )
+            .filter((url) => !!url) as string[]
+      )
+      .then((urls) => {
+        for (const url of urls) {
+          const id = generateRandomId()
+          rawFolderItems.push({
+            id,
+            name: id,
+            value: url,
+          })
+        }
+
+        refreshListing(true)
+      })
+      .finally(hideLoading)
+  }
+
   const handleClickListingItem = (e: Event) => {
     e.preventDefault()
 
     const editorTextarea = core.DOM.EditorTextarea as HTMLTextAreaElement
     if (!editorTextarea) {
-      console.log('1')
       return
     }
 
     const dataId = (e.target as HTMLDivElement).getAttribute('data-id')
     if (!dataId) {
-      console.log(e.target)
-      console.log('2')
       return
     }
 
     const foundItem = rawFolderItems.find(({ id }) => id === dataId)
     if (!foundItem) {
-      console.log('3')
       return
     }
 
@@ -409,6 +518,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     name: string
     label: string
     type: string
+    helperText?: string
     isShowLabel?: boolean
   }
 
@@ -428,7 +538,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       onCancel: handleCancelItemForm,
       fields: [
         { name: 'name', label: '顯示名稱', type: 'text' },
-        { name: 'value', label: '內容', type: 'textarea' },
+        { name: 'value', label: '內容', type: 'textarea', helperText: '' },
         { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
       ],
     },
@@ -468,21 +578,43 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   ListActionForAdd.href = '#'
   ListActionForAdd.id = `${_plugin.prefix}-ListActionForAdd`
   ListActionForAdd.classList.add(`${_plugin.prefix}-ListAction`)
-  ListActionForAdd.innerText = '新增'
+  ListActionForAdd.innerText = '新增文字'
   ListActionForAdd.addEventListener('click', handleClickListingAdd)
 
-  const ListActionStatementA = document.createTextNode(' ，或拖曳圖片上傳，或 ')
+  const ListActionStatementA = document.createTextNode(' 或 ')
+
+  const ListActionForUpload = document.createElement('a')
+  ListActionForUpload.href = '#'
+  ListActionForUpload.id = `${_plugin.prefix}-ListActionForUpload`
+  ListActionForUpload.classList.add(`${_plugin.prefix}-ListAction`)
+  ListActionForUpload.innerText = '拖曳/點擊上傳圖片'
+  ListActionForUpload.addEventListener('click', handleClickListingUpload)
+
+  const ListActionStatementB = document.createTextNode('\n 或 ')
 
   const ListActionForImport = document.createElement('a')
   ListActionForImport.href = '#'
   ListActionForImport.id = `${_plugin.prefix}-ListActionForImport`
   ListActionForImport.classList.add(`${_plugin.prefix}-ListAction`)
-  ListActionForImport.innerText = '匯入'
+  ListActionForImport.innerText = '批量匯入'
+
+  const ListActionForUploadInput = document.createElement('input')
+  ListActionForUploadInput.type = 'file'
+  ListActionForUploadInput.id = `${_plugin.prefix}-ListActionForUpload-input`
+  ListActionForUploadInput.accept = 'image/*'
+  ListActionForUploadInput.multiple = true
+  ListActionForUploadInput.addEventListener(
+    'change',
+    handleChangeListingUploadInput
+  )
 
   ListActions.append(
     ListActionForAdd,
     ListActionStatementA,
-    ListActionForImport
+    ListActionForUpload,
+    ListActionStatementB,
+    ListActionForImport,
+    ListActionForUploadInput
   )
 
   const ListingList = document.createElement('div')
@@ -558,6 +690,26 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
     overlayFormsMap[overlayForm.name] = overlayFormBackdrop
   }
+
+  const LoadingIndicator = document.createElement('div')
+  LoadingIndicator.id = `${_plugin.prefix}-loadingIndicator`
+  Panel.append(LoadingIndicator)
+
+  const LoadingIndicatorContent = document.createElement('div')
+  LoadingIndicatorContent.id = `${_plugin.prefix}-LoadingIndicatorContent`
+  LoadingIndicator.append(LoadingIndicatorContent)
+
+  const LoadingIndicatorContentMessage = document.createElement('div')
+  LoadingIndicatorContentMessage.innerText = '運作中，請稍等...'
+
+  const LoadingIndicatorCircle = document.createElement('div')
+  LoadingIndicatorCircle.id = `${_plugin.prefix}-LoadingIndicatorCircle`
+  LoadingIndicatorCircle.classList.add('bhgv2-loading-indicator')
+
+  LoadingIndicatorContent.append(
+    LoadingIndicatorContentMessage,
+    LoadingIndicatorCircle
+  )
 
   /**
    * Initialize
