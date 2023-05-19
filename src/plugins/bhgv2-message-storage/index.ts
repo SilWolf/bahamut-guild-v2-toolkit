@@ -14,6 +14,7 @@ type MS_Folder = {
 }
 
 type MS_FolderItem = {
+  id: string
   name: string
   value: string
 }
@@ -65,27 +66,39 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       }
 
       #${_plugin.prefix}-ListActions {
-        display: flex;
-        gap: 8px;
+        text-align: center;
+        padding: 16px 8px;
+        border: 1px dashed #ccc;
         margin-bottom: 16px;
       }
 
       #${_plugin.prefix}-ListActions .${_plugin.prefix}-ListAction {
-        background: #cccccc;
-        flex: 1;
-        padding: 4px;
+        color: #117e96;
       }
 
-      #${_plugin.prefix}-ListingList-grid {
+      .${_plugin.prefix}-ListingList-grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 8px;
       }
 
-      #${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
-        border: 1px solid #000;
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
+        border: 1px solid #ccc;
         width: 100%;
         aspect-ratio: 1 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem:hover {
+        border-color: #000;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem img {
+        pointer-events: none;
+        width: 100%;
       }
 
       .${_plugin.prefix}-overlayForm-backdrop {
@@ -202,29 +215,52 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     selectPlaceholderOption.innerText = '請選擇資料夾'
     selectPlaceholderOption.setAttribute('disabled', '1')
     Selector.prepend(selectPlaceholderOption)
+  }
 
-    if (folders.length > 0) {
-      Selector.value = folders[0].id
+  const refreshListing = (doMutate?: boolean) => {
+    const folderId = Selector.value
+    const lsKey = `${_plugin.prefix}-folder-${folderId}`
+
+    if (doMutate) {
+      localStorage.setItem(lsKey, JSON.stringify(rawFolderItems))
     } else {
-      Selector.value = '-1'
+      const storedFolderItemsJSON =
+        localStorage.getItem(`${_plugin.prefix}-folder-${folderId}`) ?? '[]'
+      if (!storedFolderItemsJSON) {
+        localStorage.setItem(`${_plugin.prefix}-folder-${folderId}`, '[]')
+      }
+
+      rawFolderItems.splice(0, rawFolderItems.length)
+      rawFolderItems.push(...JSON.parse(storedFolderItemsJSON))
+    }
+
+    sortedFolderItems.splice(0, sortedFolderItems.length)
+    sortedFolderItems.push(...rawFolderItems)
+
+    ListingList.innerHTML = ''
+
+    for (const item of sortedFolderItems) {
+      const listingItem = document.createElement('div')
+      listingItem.classList.add(`${_plugin.prefix}-ListingItem`)
+      listingItem.setAttribute('data-id', item.id)
+      listingItem.addEventListener('click', handleClickListingItem)
+
+      if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
+        const img = document.createElement('img')
+        img.src = item.value
+        img.alt = item.name
+        listingItem.append(img)
+      } else {
+        listingItem.innerText = item.name || item.value.substring(0, 25)
+      }
+
+      ListingList.append(listingItem)
     }
   }
 
   const updateSelect = (newValue: string) => {
-    const storedFolderItemsJSON =
-      localStorage.getItem(`${_plugin.prefix}-folder-${newValue}`) ?? '[]'
-    if (!storedFolderItemsJSON) {
-      localStorage.setItem(`${_plugin.prefix}-folder-${newValue}`, '[]')
-    }
-
-    rawFolderItems.splice(0, rawFolderItems.length)
-    rawFolderItems.push(...JSON.parse(storedFolderItemsJSON))
-
-    sortedFolderItems.splice(0, sortedFolderItems.length)
-    sortedFolderItems.push(...JSON.parse(storedFolderItemsJSON))
-
-    ListingList.innerHTML = ''
     Selector.value = newValue
+    refreshListing()
   }
 
   const handleChangeSelect = (e: Event) => {
@@ -247,16 +283,58 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   const getValuesFromSubmitEvent = (e: Event) => {
     return [
-      ...(e.target as HTMLFormElement).querySelectorAll<HTMLInputElement>(
-        `input.${_plugin.prefix}-overlayForm-input`
-      ),
+      ...(e.target as HTMLFormElement).querySelectorAll<
+        HTMLInputElement | HTMLTextAreaElement
+      >(`.${_plugin.prefix}-overlayForm-input`),
     ].reduce(
-      (prev: Record<string, string>, ele: HTMLInputElement, i: number) => {
+      (
+        prev: Record<string, string>,
+        ele: HTMLInputElement | HTMLTextAreaElement,
+        i: number
+      ) => {
         prev[ele.getAttribute('name') ?? `field-${i}`] = ele.value
         return prev
       },
       {}
     )
+  }
+
+  const handleClickListingAdd = (e: Event) => {
+    e.preventDefault()
+
+    const overlayForm = overlayFormsMap.item
+    if (!overlayForm) {
+      return
+    }
+
+    overlayForm.classList.add('show')
+    overlayForm.querySelector('form')?.reset()
+  }
+
+  const handleClickListingItem = (e: Event) => {
+    e.preventDefault()
+
+    const editorTextarea = core.DOM.EditorTextarea as HTMLTextAreaElement
+    if (!editorTextarea) {
+      console.log('1')
+      return
+    }
+
+    const dataId = (e.target as HTMLDivElement).getAttribute('data-id')
+    if (!dataId) {
+      console.log(e.target)
+      console.log('2')
+      return
+    }
+
+    const foundItem = rawFolderItems.find(({ id }) => id === dataId)
+    if (!foundItem) {
+      console.log('3')
+      return
+    }
+
+    editorTextarea.value = `${editorTextarea.value}${foundItem.value}\n`
+    editorTextarea.focus()
   }
 
   /**
@@ -266,7 +344,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const handleSubmitFolderForm = (e: Event) => {
     e.preventDefault()
 
-    const newValue = getValuesFromSubmitEvent(e)
+    const newValue = getValuesFromSubmitEvent(e) as MS_Folder
     if (newValue.id) {
       const foundFolder = folders.find(({ id }) => id === newValue.id)
       if (foundFolder) {
@@ -274,7 +352,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       }
     } else {
       newValue.id = generateRandomId()
-      folders.push(newValue as MS_Folder)
+      folders.push(newValue)
     }
 
     refreshSelect(true)
@@ -285,6 +363,34 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const handleCancelFolderForm = (e: Event) => {
     e.preventDefault()
     const overlayForm = overlayFormsMap.folder
+    overlayForm?.classList.remove('show')
+  }
+
+  /**
+   * Event Handler for OverlayForm - Item
+   */
+  const handleSubmitItemForm = (e: Event) => {
+    e.preventDefault()
+
+    const newValue = getValuesFromSubmitEvent(e) as MS_FolderItem
+    if (newValue.id) {
+      const foundItem = rawFolderItems.find(({ id }) => id === newValue.id)
+      if (foundItem) {
+        foundItem.name = newValue.name
+        foundItem.value = newValue.value
+      }
+    } else {
+      newValue.id = generateRandomId()
+      rawFolderItems.push(newValue)
+    }
+
+    refreshListing(true)
+    handleCancelItemForm(e)
+  }
+
+  const handleCancelItemForm = (e: Event) => {
+    e.preventDefault()
+    const overlayForm = overlayFormsMap.item
     overlayForm?.classList.remove('show')
   }
 
@@ -313,6 +419,16 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       onCancel: handleCancelFolderForm,
       fields: [
         { name: 'name', label: '資料夾名稱', type: 'text' },
+        { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
+      ],
+    },
+    {
+      name: 'item',
+      onSubmit: handleSubmitItemForm,
+      onCancel: handleCancelItemForm,
+      fields: [
+        { name: 'name', label: '顯示名稱', type: 'text' },
+        { name: 'value', label: '內容', type: 'textarea' },
         { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
       ],
     },
@@ -348,27 +464,30 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const ListActions = document.createElement('div')
   ListActions.id = `${_plugin.prefix}-ListActions`
 
-  const ListActionForAdd = document.createElement('button')
+  const ListActionForAdd = document.createElement('a')
+  ListActionForAdd.href = '#'
   ListActionForAdd.id = `${_plugin.prefix}-ListActionForAdd`
   ListActionForAdd.classList.add(`${_plugin.prefix}-ListAction`)
   ListActionForAdd.innerText = '新增'
+  ListActionForAdd.addEventListener('click', handleClickListingAdd)
 
-  const ListActionForImport = document.createElement('button')
+  const ListActionStatementA = document.createTextNode(' ，或拖曳圖片上傳，或 ')
+
+  const ListActionForImport = document.createElement('a')
+  ListActionForImport.href = '#'
   ListActionForImport.id = `${_plugin.prefix}-ListActionForImport`
   ListActionForImport.classList.add(`${_plugin.prefix}-ListAction`)
   ListActionForImport.innerText = '匯入'
 
-  ListActions.append(ListActionForAdd, ListActionForImport)
+  ListActions.append(
+    ListActionForAdd,
+    ListActionStatementA,
+    ListActionForImport
+  )
 
   const ListingList = document.createElement('div')
   ListingList.id = `${_plugin.prefix}-ListingList`
   ListingList.classList.add(`${_plugin.prefix}-ListingList-grid`)
-
-  for (let i = 0; i < 4; i++) {
-    const item = document.createElement('div')
-    item.classList.add(`${_plugin.prefix}-ListingItem`)
-    ListingList.append(item)
-  }
 
   PanelBody.append(ListActions, ListingList)
 
@@ -388,23 +507,30 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     overlayFormPanel.append(overlayFormForm)
 
     for (const field of overlayForm.fields) {
-      const formLabel = document.createElement('label')
-      formLabel.classList.add(`${_plugin.prefix}-overlayForm-label`)
-      formLabel.innerText = field.label
-      formLabel.htmlFor = field.name
-
-      const formInput = document.createElement('input')
-      formInput.classList.add(`${_plugin.prefix}-overlayForm-input`)
-      formInput.name = field.name
-      formInput.type = field.type
-      formInput.required = true
-
       const formGroup = document.createElement('div')
       formGroup.classList.add(`${_plugin.prefix}-overlayForm-group`)
       if (field.type === 'hidden') {
         formGroup.classList.add('hidden')
       }
-      formGroup.append(formLabel, formInput)
+
+      const formLabel = document.createElement('label')
+      formLabel.classList.add(`${_plugin.prefix}-overlayForm-label`)
+      formLabel.innerText = field.label
+      formLabel.htmlFor = field.name
+      formGroup.append(formLabel)
+
+      const formInput = document.createElement(
+        field.type === 'textarea' ? 'textarea' : 'input'
+      )
+      formInput.classList.add(`${_plugin.prefix}-overlayForm-input`)
+      formInput.name = field.name
+      if (field.type !== 'textarea') {
+        ;(formInput as HTMLInputElement).type = field.type
+      } else {
+        ;(formInput as HTMLTextAreaElement).rows = 4
+      }
+      formInput.required = true
+      formGroup.append(formInput)
 
       overlayFormForm.append(formGroup)
     }
@@ -437,6 +563,12 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
    * Initialize
    *  */
   refreshSelect()
+
+  if (folders.length > 0) {
+    updateSelect(folders[0].id)
+  } else {
+    Selector.value = '-1'
+  }
 
   _plugin.onMutateConfig = (newValue) => {}
 
