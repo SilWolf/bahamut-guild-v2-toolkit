@@ -18,6 +18,7 @@ type MS_FolderItem = {
   id: string
   name: string
   value: string
+  order?: string
 }
 
 const MS_ACTION_ADD_FOLDER = 'addFolder'
@@ -53,8 +54,6 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       }
 
 			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-body {
-        height: 320px;
-        overflow-y: scroll;
         padding: 16px;
       }
 
@@ -91,22 +90,32 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       }
 
       .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
-        border: 1px solid #ccc;
         width: 100%;
         aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item {
+        border: 1px solid #ccc;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
       }
 
-      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem:hover {
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item:hover {
         border-color: #000;
       }
 
       .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem img {
         pointer-events: none;
-        width: 100%;
+        max-height: 100%;
+        max-width: 100%;
+      }
+      
+      #${_plugin.prefix}-ListingHelperText {
+        color: #ccc;
+        font-size: 0.8em;
       }
 
       .${_plugin.prefix}-overlayForm-backdrop {
@@ -210,12 +219,35 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       #${_plugin.prefix}-LoadingIndicatorCircle {
         margin: 16px auto;
       }
+
+      #${_plugin.prefix}-Pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button {
+        color: #117e96;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button.active {
+        color: #000000;
+        pointer-events: none;
+        text-decoration: underline;
+      }
+      
 		`,
   ]
+
+  const PAGINATION_PAGE_SIZE = 9
 
   const folders: MS_Folder[] = []
   const rawFolderItems: MS_FolderItem[] = []
   const sortedFolderItems: MS_FolderItem[] = []
+
+  let paginationCurrentPage = 1
+  let paginationPageMax = 1
 
   const overlayFormsMap: Record<string, Element> = {}
 
@@ -264,10 +296,9 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     if (doMutate) {
       localStorage.setItem(lsKey, JSON.stringify(rawFolderItems))
     } else {
-      const storedFolderItemsJSON =
-        localStorage.getItem(`${_plugin.prefix}-folder-${folderId}`) ?? '[]'
+      const storedFolderItemsJSON = localStorage.getItem(lsKey) ?? '[]'
       if (!storedFolderItemsJSON) {
-        localStorage.setItem(`${_plugin.prefix}-folder-${folderId}`, '[]')
+        localStorage.setItem(lsKey, '[]')
       }
 
       rawFolderItems.splice(0, rawFolderItems.length)
@@ -277,24 +308,91 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     sortedFolderItems.splice(0, sortedFolderItems.length)
     sortedFolderItems.push(...rawFolderItems)
 
+    const visibleItems = sortedFolderItems.slice(
+      (paginationCurrentPage - 1) * PAGINATION_PAGE_SIZE,
+      paginationCurrentPage * PAGINATION_PAGE_SIZE
+    )
+
     ListingList.innerHTML = ''
 
-    for (const item of sortedFolderItems) {
+    for (let i = 0; i < PAGINATION_PAGE_SIZE; i++) {
+      const item = visibleItems[i]
+
       const listingItem = document.createElement('div')
       listingItem.classList.add(`${_plugin.prefix}-ListingItem`)
-      listingItem.setAttribute('data-id', item.id)
-      listingItem.addEventListener('click', handleClickListingItem)
+      if (item) {
+        listingItem.classList.add('has-item')
+        listingItem.setAttribute('data-id', item.id)
+        listingItem.addEventListener('click', handleClickListingItem)
+        listingItem.addEventListener(
+          'contextmenu',
+          handleContextMenuListingItem
+        )
 
-      if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
-        const img = document.createElement('img')
-        img.src = item.value
-        img.alt = item.name
-        listingItem.append(img)
-      } else {
-        listingItem.innerText = item.name || item.value.substring(0, 25)
+        if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
+          const img = document.createElement('img')
+          img.src = item.value
+          img.alt = item.name
+          listingItem.append(img)
+        } else {
+          listingItem.innerText = item.name || item.value.substring(0, 25)
+        }
       }
 
       ListingList.append(listingItem)
+    }
+  }
+
+  const handleClickPaginationPage = (e: Event) => {
+    e.preventDefault()
+
+    const page = (e.target as HTMLAnchorElement).getAttribute('data-page')
+    if (!page) {
+      return
+    }
+
+    const pageInt = parseInt(page)
+    if (isNaN(pageInt)) {
+      return
+    }
+
+    paginationCurrentPage = pageInt
+    refreshListing()
+    refreshPagination()
+  }
+
+  const refreshPagination = (doMutate?: boolean) => {
+    if (doMutate) {
+      paginationPageMax =
+        Math.floor((rawFolderItems.length - 1) / PAGINATION_PAGE_SIZE) + 1
+
+      Pagination.innerHTML = ''
+
+      for (let i = 1; i <= paginationPageMax; i++) {
+        const page = document.createElement('a')
+        page.classList.add(`${_plugin.prefix}-Pagination-button`)
+        page.classList.add(`${_plugin.prefix}-Pagination-button-number`)
+        page.innerText = i.toString()
+        page.href = '#'
+        page.setAttribute('data-page', i.toString())
+        page.addEventListener('click', handleClickPaginationPage)
+
+        Pagination.append(page)
+      }
+
+      paginationCurrentPage = Math.max(
+        1,
+        Math.min(paginationPageMax, paginationCurrentPage)
+      )
+    }
+
+    const pages = [...Pagination.querySelectorAll('a')]
+    for (const page of pages) {
+      const pageIndex = page.getAttribute('data-page')
+      page.classList.toggle(
+        'active',
+        parseInt(pageIndex as string) === paginationCurrentPage
+      )
     }
   }
 
@@ -310,6 +408,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const updateSelect = (newValue: string) => {
     Selector.value = newValue
     refreshListing()
+    refreshPagination(true)
   }
 
   const handleChangeSelect = (e: Event) => {
@@ -318,13 +417,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     if (newValue === MS_ACTION_ADD_FOLDER) {
       ;(e.target as HTMLSelectElement).value = '-1'
 
-      const overlayForm = overlayFormsMap.folder
-      if (!overlayForm) {
-        return
-      }
-
-      overlayForm.classList.add('show')
-      overlayForm.querySelector('form')?.reset()
+      showOverlayForm('folder')
     }
 
     updateSelect(newValue)
@@ -348,16 +441,49 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     )
   }
 
-  const handleClickListingAdd = (e: Event) => {
-    e.preventDefault()
+  const setValuesForOverlayForm = (
+    overlayFormKey: string,
+    newValue: Record<string, string>
+  ) => {
+    const overlayForm = overlayFormsMap[overlayFormKey]
+    if (!overlayForm) {
+      return
+    }
 
-    const overlayForm = overlayFormsMap.item
+    const fields = [
+      ...overlayForm.querySelectorAll(`.${_plugin.prefix}-overlayForm-input`),
+    ] as (HTMLInputElement | HTMLTextAreaElement)[]
+
+    console.log(fields)
+
+    for (const field of fields) {
+      const name = field.name
+      if (!!name && newValue[name]) {
+        field.value = newValue[name]
+      }
+    }
+  }
+
+  const showOverlayForm = (
+    overlayFormKey: string,
+    newValue?: Record<string, string>
+  ) => {
+    const overlayForm = overlayFormsMap[overlayFormKey]
     if (!overlayForm) {
       return
     }
 
     overlayForm.classList.add('show')
     overlayForm.querySelector('form')?.reset()
+
+    if (newValue) {
+      setValuesForOverlayForm(overlayFormKey, newValue)
+    }
+  }
+
+  const handleClickListingAdd = (e: Event) => {
+    e.preventDefault()
+    showOverlayForm('item')
   }
 
   const handleClickListingUpload = (e: Event) => {
@@ -420,8 +546,25 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         }
 
         refreshListing(true)
+        refreshPagination(true)
       })
       .finally(hideLoading)
+  }
+
+  const handleContextMenuListingItem = (e: MouseEvent) => {
+    e.preventDefault()
+
+    const dataId = (e.target as HTMLDivElement).getAttribute('data-id')
+    if (!dataId) {
+      return
+    }
+
+    const foundItem = rawFolderItems.find(({ id }) => id === dataId)
+    if (!foundItem) {
+      return
+    }
+
+    showOverlayForm('item', foundItem)
   }
 
   const handleClickListingItem = (e: Event) => {
@@ -487,6 +630,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       if (foundItem) {
         foundItem.name = newValue.name
         foundItem.value = newValue.value
+        foundItem.order = newValue.order
       }
     } else {
       newValue.id = generateRandomId()
@@ -494,6 +638,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     }
 
     refreshListing(true)
+    refreshPagination(true)
     handleCancelItemForm(e)
   }
 
@@ -518,6 +663,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     name: string
     label: string
     type: string
+    required?: boolean
     helperText?: string
     isShowLabel?: boolean
   }
@@ -528,7 +674,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       onSubmit: handleSubmitFolderForm,
       onCancel: handleCancelFolderForm,
       fields: [
-        { name: 'name', label: '資料夾名稱', type: 'text' },
+        { name: 'name', label: '資料夾名稱', type: 'text', required: true },
         { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
       ],
     },
@@ -537,8 +683,19 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       onSubmit: handleSubmitItemForm,
       onCancel: handleCancelItemForm,
       fields: [
-        { name: 'name', label: '顯示名稱', type: 'text' },
-        { name: 'value', label: '內容', type: 'textarea', helperText: '' },
+        {
+          name: 'value',
+          label: '內容',
+          type: 'textarea',
+          required: true,
+        },
+        { name: 'name', label: '顯示名稱(選填)', type: 'text' },
+        {
+          name: 'order',
+          label: '排序(選填)',
+          type: 'number',
+          helperText: '只限數字，能用作排序',
+        },
         { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
       ],
     },
@@ -561,7 +718,6 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   const PanelFooter = document.createElement('div')
   PanelFooter.id = `${_plugin.prefix}-panel-footer`
-  PanelFooter.innerText = 'panel-footer'
 
   Panel.append(PanelHeader, PanelBody, PanelFooter)
 
@@ -587,7 +743,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   ListActionForUpload.href = '#'
   ListActionForUpload.id = `${_plugin.prefix}-ListActionForUpload`
   ListActionForUpload.classList.add(`${_plugin.prefix}-ListAction`)
-  ListActionForUpload.innerText = '拖曳/點擊上傳圖片'
+  ListActionForUpload.innerText = '上傳圖片'
   ListActionForUpload.addEventListener('click', handleClickListingUpload)
 
   const ListActionStatementB = document.createTextNode('\n 或 ')
@@ -621,7 +777,11 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   ListingList.id = `${_plugin.prefix}-ListingList`
   ListingList.classList.add(`${_plugin.prefix}-ListingList-grid`)
 
-  PanelBody.append(ListActions, ListingList)
+  const ListingHelperText = document.createElement('div')
+  ListingHelperText.id = `${_plugin.prefix}-ListingHelperText`
+  ListingHelperText.innerText = '右鍵: 編輯'
+
+  PanelBody.append(ListActions, ListingList, ListingHelperText)
 
   for (const overlayForm of overlayForms) {
     const overlayFormBackdrop = document.createElement('div')
@@ -661,7 +821,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       } else {
         ;(formInput as HTMLTextAreaElement).rows = 4
       }
-      formInput.required = true
+      formInput.required = field.required ?? false
       formGroup.append(formInput)
 
       overlayFormForm.append(formGroup)
@@ -710,6 +870,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     LoadingIndicatorContentMessage,
     LoadingIndicatorCircle
   )
+
+  const Pagination = document.createElement('div')
+  Pagination.id = `${_plugin.prefix}-Pagination`
+  PanelFooter.append(Pagination)
 
   /**
    * Initialize

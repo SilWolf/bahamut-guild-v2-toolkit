@@ -2672,8 +2672,6 @@ const BHGV2_MessageStorage = (core) => {
       }
 
 			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-body {
-        height: 320px;
-        overflow-y: scroll;
         padding: 16px;
       }
 
@@ -2710,22 +2708,32 @@ const BHGV2_MessageStorage = (core) => {
       }
 
       .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
-        border: 1px solid #ccc;
         width: 100%;
         aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item {
+        border: 1px solid #ccc;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
       }
 
-      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem:hover {
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item:hover {
         border-color: #000;
       }
 
       .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem img {
         pointer-events: none;
-        width: 100%;
+        max-height: 100%;
+        max-width: 100%;
+      }
+      
+      #${_plugin.prefix}-ListingHelperText {
+        color: #ccc;
+        font-size: 0.8em;
       }
 
       .${_plugin.prefix}-overlayForm-backdrop {
@@ -2829,11 +2837,32 @@ const BHGV2_MessageStorage = (core) => {
       #${_plugin.prefix}-LoadingIndicatorCircle {
         margin: 16px auto;
       }
+
+      #${_plugin.prefix}-Pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button {
+        color: #117e96;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button.active {
+        color: #000000;
+        pointer-events: none;
+        text-decoration: underline;
+      }
+      
 		`,
     ];
+    const PAGINATION_PAGE_SIZE = 9;
     const folders = [];
     const rawFolderItems = [];
     const sortedFolderItems = [];
+    let paginationCurrentPage = 1;
+    let paginationPageMax = 1;
     const overlayFormsMap = {};
     /**
      * Lifecycle Functions
@@ -2874,31 +2903,74 @@ const BHGV2_MessageStorage = (core) => {
             localStorage.setItem(lsKey, JSON.stringify(rawFolderItems));
         }
         else {
-            const storedFolderItemsJSON = localStorage.getItem(`${_plugin.prefix}-folder-${folderId}`) ?? '[]';
+            const storedFolderItemsJSON = localStorage.getItem(lsKey) ?? '[]';
             if (!storedFolderItemsJSON) {
-                localStorage.setItem(`${_plugin.prefix}-folder-${folderId}`, '[]');
+                localStorage.setItem(lsKey, '[]');
             }
             rawFolderItems.splice(0, rawFolderItems.length);
             rawFolderItems.push(...JSON.parse(storedFolderItemsJSON));
         }
         sortedFolderItems.splice(0, sortedFolderItems.length);
         sortedFolderItems.push(...rawFolderItems);
+        const visibleItems = sortedFolderItems.slice((paginationCurrentPage - 1) * PAGINATION_PAGE_SIZE, paginationCurrentPage * PAGINATION_PAGE_SIZE);
         ListingList.innerHTML = '';
-        for (const item of sortedFolderItems) {
+        for (let i = 0; i < PAGINATION_PAGE_SIZE; i++) {
+            const item = visibleItems[i];
             const listingItem = document.createElement('div');
             listingItem.classList.add(`${_plugin.prefix}-ListingItem`);
-            listingItem.setAttribute('data-id', item.id);
-            listingItem.addEventListener('click', handleClickListingItem);
-            if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
-                const img = document.createElement('img');
-                img.src = item.value;
-                img.alt = item.name;
-                listingItem.append(img);
-            }
-            else {
-                listingItem.innerText = item.name || item.value.substring(0, 25);
+            if (item) {
+                listingItem.classList.add('has-item');
+                listingItem.setAttribute('data-id', item.id);
+                listingItem.addEventListener('click', handleClickListingItem);
+                listingItem.addEventListener('contextmenu', handleContextMenuListingItem);
+                if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
+                    const img = document.createElement('img');
+                    img.src = item.value;
+                    img.alt = item.name;
+                    listingItem.append(img);
+                }
+                else {
+                    listingItem.innerText = item.name || item.value.substring(0, 25);
+                }
             }
             ListingList.append(listingItem);
+        }
+    };
+    const handleClickPaginationPage = (e) => {
+        e.preventDefault();
+        const page = e.target.getAttribute('data-page');
+        if (!page) {
+            return;
+        }
+        const pageInt = parseInt(page);
+        if (isNaN(pageInt)) {
+            return;
+        }
+        paginationCurrentPage = pageInt;
+        refreshListing();
+        refreshPagination();
+    };
+    const refreshPagination = (doMutate) => {
+        if (doMutate) {
+            paginationPageMax =
+                Math.floor((rawFolderItems.length - 1) / PAGINATION_PAGE_SIZE) + 1;
+            Pagination.innerHTML = '';
+            for (let i = 1; i <= paginationPageMax; i++) {
+                const page = document.createElement('a');
+                page.classList.add(`${_plugin.prefix}-Pagination-button`);
+                page.classList.add(`${_plugin.prefix}-Pagination-button-number`);
+                page.innerText = i.toString();
+                page.href = '#';
+                page.setAttribute('data-page', i.toString());
+                page.addEventListener('click', handleClickPaginationPage);
+                Pagination.append(page);
+            }
+            paginationCurrentPage = Math.max(1, Math.min(paginationPageMax, paginationCurrentPage));
+        }
+        const pages = [...Pagination.querySelectorAll('a')];
+        for (const page of pages) {
+            const pageIndex = page.getAttribute('data-page');
+            page.classList.toggle('active', parseInt(pageIndex) === paginationCurrentPage);
         }
     };
     const showLoading = (message) => {
@@ -2911,18 +2983,14 @@ const BHGV2_MessageStorage = (core) => {
     const updateSelect = (newValue) => {
         Selector.value = newValue;
         refreshListing();
+        refreshPagination(true);
     };
     const handleChangeSelect = (e) => {
         const newValue = e.target.value;
         if (newValue === MS_ACTION_ADD_FOLDER) {
             ;
             e.target.value = '-1';
-            const overlayForm = overlayFormsMap.folder;
-            if (!overlayForm) {
-                return;
-            }
-            overlayForm.classList.add('show');
-            overlayForm.querySelector('form')?.reset();
+            showOverlayForm('folder');
         }
         updateSelect(newValue);
     };
@@ -2934,14 +3002,36 @@ const BHGV2_MessageStorage = (core) => {
             return prev;
         }, {});
     };
-    const handleClickListingAdd = (e) => {
-        e.preventDefault();
-        const overlayForm = overlayFormsMap.item;
+    const setValuesForOverlayForm = (overlayFormKey, newValue) => {
+        const overlayForm = overlayFormsMap[overlayFormKey];
+        if (!overlayForm) {
+            return;
+        }
+        const fields = [
+            ...overlayForm.querySelectorAll(`.${_plugin.prefix}-overlayForm-input`),
+        ];
+        console.log(fields);
+        for (const field of fields) {
+            const name = field.name;
+            if (!!name && newValue[name]) {
+                field.value = newValue[name];
+            }
+        }
+    };
+    const showOverlayForm = (overlayFormKey, newValue) => {
+        const overlayForm = overlayFormsMap[overlayFormKey];
         if (!overlayForm) {
             return;
         }
         overlayForm.classList.add('show');
         overlayForm.querySelector('form')?.reset();
+        if (newValue) {
+            setValuesForOverlayForm(overlayFormKey, newValue);
+        }
+    };
+    const handleClickListingAdd = (e) => {
+        e.preventDefault();
+        showOverlayForm('item');
     };
     const handleClickListingUpload = (e) => {
         e.preventDefault();
@@ -2987,8 +3077,21 @@ const BHGV2_MessageStorage = (core) => {
                 });
             }
             refreshListing(true);
+            refreshPagination(true);
         })
             .finally(hideLoading);
+    };
+    const handleContextMenuListingItem = (e) => {
+        e.preventDefault();
+        const dataId = e.target.getAttribute('data-id');
+        if (!dataId) {
+            return;
+        }
+        const foundItem = rawFolderItems.find(({ id }) => id === dataId);
+        if (!foundItem) {
+            return;
+        }
+        showOverlayForm('item', foundItem);
     };
     const handleClickListingItem = (e) => {
         e.preventDefault();
@@ -3043,6 +3146,7 @@ const BHGV2_MessageStorage = (core) => {
             if (foundItem) {
                 foundItem.name = newValue.name;
                 foundItem.value = newValue.value;
+                foundItem.order = newValue.order;
             }
         }
         else {
@@ -3050,6 +3154,7 @@ const BHGV2_MessageStorage = (core) => {
             rawFolderItems.push(newValue);
         }
         refreshListing(true);
+        refreshPagination(true);
         handleCancelItemForm(e);
     };
     const handleCancelItemForm = (e) => {
@@ -3063,7 +3168,7 @@ const BHGV2_MessageStorage = (core) => {
             onSubmit: handleSubmitFolderForm,
             onCancel: handleCancelFolderForm,
             fields: [
-                { name: 'name', label: '資料夾名稱', type: 'text' },
+                { name: 'name', label: '資料夾名稱', type: 'text', required: true },
                 { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
             ],
         },
@@ -3072,8 +3177,19 @@ const BHGV2_MessageStorage = (core) => {
             onSubmit: handleSubmitItemForm,
             onCancel: handleCancelItemForm,
             fields: [
-                { name: 'name', label: '顯示名稱', type: 'text' },
-                { name: 'value', label: '內容', type: 'textarea', helperText: '' },
+                {
+                    name: 'value',
+                    label: '內容',
+                    type: 'textarea',
+                    required: true,
+                },
+                { name: 'name', label: '顯示名稱(選填)', type: 'text' },
+                {
+                    name: 'order',
+                    label: '排序(選填)',
+                    type: 'number',
+                    helperText: '只限數字，能用作排序',
+                },
                 { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
             ],
         },
@@ -3090,7 +3206,6 @@ const BHGV2_MessageStorage = (core) => {
     PanelBody.id = `${_plugin.prefix}-panel-body`;
     const PanelFooter = document.createElement('div');
     PanelFooter.id = `${_plugin.prefix}-panel-footer`;
-    PanelFooter.innerText = 'panel-footer';
     Panel.append(PanelHeader, PanelBody, PanelFooter);
     const Selector = document.createElement('select');
     Selector.id = `${_plugin.prefix}-selector`;
@@ -3109,7 +3224,7 @@ const BHGV2_MessageStorage = (core) => {
     ListActionForUpload.href = '#';
     ListActionForUpload.id = `${_plugin.prefix}-ListActionForUpload`;
     ListActionForUpload.classList.add(`${_plugin.prefix}-ListAction`);
-    ListActionForUpload.innerText = '拖曳/點擊上傳圖片';
+    ListActionForUpload.innerText = '上傳圖片';
     ListActionForUpload.addEventListener('click', handleClickListingUpload);
     const ListActionStatementB = document.createTextNode('\n 或 ');
     const ListActionForImport = document.createElement('a');
@@ -3127,7 +3242,10 @@ const BHGV2_MessageStorage = (core) => {
     const ListingList = document.createElement('div');
     ListingList.id = `${_plugin.prefix}-ListingList`;
     ListingList.classList.add(`${_plugin.prefix}-ListingList-grid`);
-    PanelBody.append(ListActions, ListingList);
+    const ListingHelperText = document.createElement('div');
+    ListingHelperText.id = `${_plugin.prefix}-ListingHelperText`;
+    ListingHelperText.innerText = '右鍵: 編輯';
+    PanelBody.append(ListActions, ListingList, ListingHelperText);
     for (const overlayForm of overlayForms) {
         const overlayFormBackdrop = document.createElement('div');
         overlayFormBackdrop.classList.add(`${_plugin.prefix}-overlayForm-backdrop`);
@@ -3162,7 +3280,7 @@ const BHGV2_MessageStorage = (core) => {
                 ;
                 formInput.rows = 4;
             }
-            formInput.required = true;
+            formInput.required = field.required ?? false;
             formGroup.append(formInput);
             overlayFormForm.append(formGroup);
         }
@@ -3195,6 +3313,9 @@ const BHGV2_MessageStorage = (core) => {
     LoadingIndicatorCircle.id = `${_plugin.prefix}-LoadingIndicatorCircle`;
     LoadingIndicatorCircle.classList.add('bhgv2-loading-indicator');
     LoadingIndicatorContent.append(LoadingIndicatorContentMessage, LoadingIndicatorCircle);
+    const Pagination = document.createElement('div');
+    Pagination.id = `${_plugin.prefix}-Pagination`;
+    PanelFooter.append(Pagination);
     /**
      * Initialize
      *  */
