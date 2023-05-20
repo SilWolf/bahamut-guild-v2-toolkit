@@ -2798,12 +2798,22 @@ const BHGV2_MessageStorage = (core) => {
         padding: 4px 0;
       }
       
-      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-cancel {
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-cancel {
         background: #cccccc;
       }
       
-      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-save {
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-save {
         background: #cccccc;
+      }
+      
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-delete {
+        margin-top: 16px;
+        color: #f00;
+        display: none;
+      }
+
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-delete.show {
+        display: inline-block;
       }
 
       #${_plugin.prefix}-loadingIndicator {
@@ -2855,6 +2865,50 @@ const BHGV2_MessageStorage = (core) => {
         text-decoration: underline;
       }
       
+      #${_plugin.prefix}-DeleteConfirm {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        flex-direction: col;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      #${_plugin.prefix}-DeleteConfirm.show {
+        display: flex;
+      }
+
+      #${_plugin.prefix}-DeleteConfirmContent {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      #${_plugin.prefix}-DeleteConfirmActions {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+      }
+      
+      #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button {
+        flex: 1;
+        text-align: center;
+        padding: 4px 0;
+      }
+      
+      #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button#${_plugin.prefix}-deleteConfirm-button-confirm {
+        background: #f00;
+        color: #fff;
+      }
 		`,
     ];
     const PAGINATION_PAGE_SIZE = 9;
@@ -2864,6 +2918,7 @@ const BHGV2_MessageStorage = (core) => {
     let paginationCurrentPage = 1;
     let paginationPageMax = 1;
     const overlayFormsMap = {};
+    let deleteConfirmFn;
     /**
      * Lifecycle Functions
      */
@@ -2950,6 +3005,15 @@ const BHGV2_MessageStorage = (core) => {
         refreshListing();
         refreshPagination();
     };
+    const handleClickDeleteConfirmConfirm = (e) => {
+        e.preventDefault();
+        deleteConfirmFn();
+        DeleteConfirm.classList.toggle('show', false);
+    };
+    const handleClickDeleteConfirmCancel = (e) => {
+        e.preventDefault();
+        DeleteConfirm.classList.toggle('show', false);
+    };
     const refreshPagination = (doMutate) => {
         if (doMutate) {
             paginationPageMax =
@@ -2979,6 +3043,10 @@ const BHGV2_MessageStorage = (core) => {
     };
     const hideLoading = () => {
         LoadingIndicator.classList.remove('show');
+    };
+    const showDeleteConfirm = (fn) => {
+        deleteConfirmFn = fn;
+        DeleteConfirm.classList.toggle('show', true);
     };
     const updateSelect = (newValue) => {
         Selector.value = newValue;
@@ -3010,7 +3078,6 @@ const BHGV2_MessageStorage = (core) => {
         const fields = [
             ...overlayForm.querySelectorAll(`.${_plugin.prefix}-overlayForm-input`),
         ];
-        console.log(fields);
         for (const field of fields) {
             const name = field.name;
             if (!!name && newValue[name]) {
@@ -3019,14 +3086,36 @@ const BHGV2_MessageStorage = (core) => {
         }
     };
     const showOverlayForm = (overlayFormKey, newValue) => {
-        const overlayForm = overlayFormsMap[overlayFormKey];
-        if (!overlayForm) {
+        const overlayFormEle = overlayFormsMap[overlayFormKey];
+        if (!overlayFormEle) {
             return;
         }
-        overlayForm.classList.add('show');
-        overlayForm.querySelector('form')?.reset();
+        const overlayForm = overlayForms.find(({ name }) => name === overlayFormKey);
+        overlayFormEle.classList.add('show');
+        overlayFormEle.querySelector('form')?.reset();
         if (newValue) {
             setValuesForOverlayForm(overlayFormKey, newValue);
+            if (overlayForm?.deletePrimaryKeyFn) {
+                const deleteButton = overlayFormEle.querySelector('button[data-role="delete"]');
+                if (deleteButton) {
+                    const primaryKey = overlayForm.deletePrimaryKeyFn(newValue);
+                    if (primaryKey) {
+                        deleteButton.setAttribute('data-primary-key', primaryKey);
+                        deleteButton.classList.toggle('show', true);
+                    }
+                    else {
+                        deleteButton.removeAttribute('data-primary-key');
+                        deleteButton.classList.toggle('show', false);
+                    }
+                }
+            }
+        }
+        else {
+            const deleteButton = overlayFormEle.querySelector('button[data-role="delete"]');
+            if (deleteButton) {
+                deleteButton.removeAttribute('data-primary-key');
+                deleteButton.classList.toggle('show', false);
+            }
         }
     };
     const handleClickListingAdd = (e) => {
@@ -3162,6 +3251,23 @@ const BHGV2_MessageStorage = (core) => {
         const overlayForm = overlayFormsMap.item;
         overlayForm?.classList.remove('show');
     };
+    const handleDeleteItemForm = (e) => {
+        e.preventDefault();
+        const dataId = e.target.getAttribute('data-primary-key');
+        if (!dataId) {
+            return;
+        }
+        const foundItemIndex = rawFolderItems.findIndex(({ id }) => id === dataId);
+        if (foundItemIndex === -1) {
+            return;
+        }
+        showDeleteConfirm(() => {
+            rawFolderItems.splice(foundItemIndex, 1);
+            refreshListing(true);
+            refreshPagination(true);
+            handleCancelItemForm(e);
+        });
+    };
     const overlayForms = [
         {
             name: 'folder',
@@ -3176,6 +3282,7 @@ const BHGV2_MessageStorage = (core) => {
             name: 'item',
             onSubmit: handleSubmitItemForm,
             onCancel: handleCancelItemForm,
+            onDelete: handleDeleteItemForm,
             fields: [
                 {
                     name: 'value',
@@ -3192,6 +3299,7 @@ const BHGV2_MessageStorage = (core) => {
                 },
                 { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
             ],
+            deletePrimaryKeyFn: (value) => value.id,
         },
     ];
     /**
@@ -3295,10 +3403,23 @@ const BHGV2_MessageStorage = (core) => {
         formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button-save`);
         formSaveButton.innerText = '保存';
         formSaveButton.type = 'submit';
+        const formDeleteButton = document.createElement('button');
+        formDeleteButton.classList.add(`${_plugin.prefix}-overlayForm-button`);
+        formDeleteButton.classList.add(`${_plugin.prefix}-overlayForm-button-delete`);
+        formDeleteButton.innerText = '刪除';
+        formDeleteButton.type = 'button';
+        formDeleteButton.setAttribute('data-role', 'delete');
+        if (overlayForm.onDelete) {
+            formDeleteButton.addEventListener('click', overlayForm.onDelete);
+        }
         const formActionsDiv = document.createElement('div');
         formActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-actions`);
         formActionsDiv.append(formCancelButton, formSaveButton);
-        overlayFormForm.append(formActionsDiv);
+        const formSubActionsDiv = document.createElement('div');
+        formSubActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-sub-actions`);
+        formActionsDiv.append(formCancelButton, formSaveButton);
+        formSubActionsDiv.append(formDeleteButton);
+        overlayFormForm.append(formActionsDiv, formSubActionsDiv);
         overlayFormsMap[overlayForm.name] = overlayFormBackdrop;
     }
     const LoadingIndicator = document.createElement('div');
@@ -3316,6 +3437,31 @@ const BHGV2_MessageStorage = (core) => {
     const Pagination = document.createElement('div');
     Pagination.id = `${_plugin.prefix}-Pagination`;
     PanelFooter.append(Pagination);
+    const DeleteConfirm = document.createElement('div');
+    DeleteConfirm.id = `${_plugin.prefix}-DeleteConfirm`;
+    Panel.append(DeleteConfirm);
+    const DeleteConfirmContent = document.createElement('div');
+    DeleteConfirmContent.id = `${_plugin.prefix}-DeleteConfirmContent`;
+    DeleteConfirm.append(DeleteConfirmContent);
+    const DeleteConfirmContentMessage = document.createElement('div');
+    DeleteConfirmContentMessage.innerText = '確定要刪除嗎？';
+    DeleteConfirmContent.append(DeleteConfirmContentMessage);
+    const DeleteConfirmActions = document.createElement('div');
+    DeleteConfirmActions.id = `${_plugin.prefix}-DeleteConfirmActions`;
+    const DeleteConfirmCancelButton = document.createElement('button');
+    DeleteConfirmCancelButton.classList.add(`${_plugin.prefix}-deleteConfirm-button`);
+    DeleteConfirmCancelButton.id = `${_plugin.prefix}-deleteConfirm-button-cancel`;
+    DeleteConfirmCancelButton.innerText = '取消';
+    DeleteConfirmCancelButton.type = 'button';
+    DeleteConfirmCancelButton.addEventListener('click', handleClickDeleteConfirmCancel);
+    const DeleteConfirmConfirmButton = document.createElement('button');
+    DeleteConfirmConfirmButton.classList.add(`${_plugin.prefix}-deleteConfirm-button`);
+    DeleteConfirmConfirmButton.id = `${_plugin.prefix}-deleteConfirm-button-confirm`;
+    DeleteConfirmConfirmButton.innerText = '確定刪除';
+    DeleteConfirmConfirmButton.type = 'button';
+    DeleteConfirmConfirmButton.addEventListener('click', handleClickDeleteConfirmConfirm);
+    DeleteConfirmActions.append(DeleteConfirmCancelButton, DeleteConfirmConfirmButton);
+    DeleteConfirmContent.append(DeleteConfirmActions);
     /**
      * Initialize
      *  */
