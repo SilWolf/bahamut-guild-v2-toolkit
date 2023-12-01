@@ -19,7 +19,7 @@
 #### 手動安裝
 
 2. 打開 Tampermonkey 的控制台
-3. 點擊上方的分頁「匯入匯出工具」，在「自 URL 安裝」的文字框中，填入 `https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js` ，然後點擊「安裝」。
+3. 點擊上方的分頁「匯入匯出工具」，在「自 URL 安裝」的文字框中，填入 [`https://raw.githubusercontent.com/SilWolf/bahamut-guild-v2-toolkit/main/bahamut-guild-v2-toolkits.user.js`](https://github.com/SilWolf/bahamut-guild-v2-toolkit/raw/main/dist/bahamut-guild-v2-toolkit.user.js) ，然後點擊「安裝」。
    ![](https://i.imgur.com/GXLzzkp.png)
 4. 完成安裝步驟後，點擊上方的分頁「已安裝的使用者腳本」，如果見到了 `Bahamut Guild V2 Toolkits` 就代表安裝成功。沒有見到的話，重新載入一下此頁面。
    ![](https://i.imgur.com/LP5dQid.png)
