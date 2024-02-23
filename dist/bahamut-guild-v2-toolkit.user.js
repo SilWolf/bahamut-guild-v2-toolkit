@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            巴哈姆特公會2.0插件
 // @namespace       https://silwolf.io
-// @version         0.10.1
+// @version         0.10.2
 // @description     巴哈姆特公會2.0插件
 // @author          銀狼(silwolf167)
 // @contributors    海角－沙鷗(jason21716)
@@ -34,6 +34,7 @@ const bhgv2_notify_on_title_1 = __importDefault(__webpack_require__(285));
 const bhgv2_highlight_me_1 = __importDefault(__webpack_require__(898));
 const bhgv2_paste_upload_image_1 = __importDefault(__webpack_require__(923));
 const display_helper_1 = __webpack_require__(201);
+const bhgv2_message_storage_1 = __importDefault(__webpack_require__(872));
 /** 等待DOM準備完成 */
 const BHGV2Core = ({ plugins, library }) => {
     const LOG = (message, type = 'log') => {
@@ -490,6 +491,10 @@ const BHGV2Core = ({ plugins, library }) => {
     _dom.ConfigFormFooterSave = document.createElement('button');
     _dom.ConfigFormFooterSave.innerHTML = '儲存';
     _dom.ConfigFormFooter.append(_dom.ConfigFormFooterSaveAsDefault, _dom.ConfigFormFooterSave, _dom.ConfigFormMessage);
+    _dom.EditorContainerOuterRight = document.createElement('div');
+    _dom.EditorContainerOuterRight.id = 'bhgv2-editor-container-outer-right';
+    _dom.EditorContainerOuterRight.classList.add('bhgv2-editor-container-outer-right');
+    _dom.EditorContainer.appendChild(_dom.EditorContainerOuterRight);
     [_CorePlugin, ...plugins].forEach((plugin) => {
         try {
             const _plugin = plugin(CORE);
@@ -971,6 +976,7 @@ const _waitForElm = (selector) => {
                     bhgv2_dark_mode_1.default,
                     // BHGV2_SaveTheThread,
                     bhgv2_paste_upload_image_1.default,
+                    bhgv2_message_storage_1.default,
                 ],
                 library: {
                     jQuery,
@@ -1132,11 +1138,23 @@ div[data-google-query-id] {
 	border-radius: 2px;
 }
 
+.bhgv2-comment-list-outer {
+	position: relative;
+}
+
 .bhgv2-comment-list-outer > div.bhgv2-editor-container .bhgv2-editor-container-footer {
 	display: flex;
 	flex-direction: row;
 	padding: 13px 0 5px;
 	font-size: 12px;
+}
+
+.bhgv2-editor-container > div#bhgv2-editor-container-outer-right {
+	position: absolute;
+	top: 0;
+	left: calc(100% + 16px);
+	min-width: 320px;
+	background: rgba(0, 0, 0, 0.15);
 }
 
 .bhgv2-editor-tips {
@@ -1382,6 +1400,34 @@ div[data-google-query-id] {
 .globalcontainer .main-container_wall-post {
 	box-shadow: none;
 }
+
+.bhgv2-loading-indicator {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.bhgv2-loading-indicator:after {
+  content: " ";
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #000;
+  border-color: #000 transparent #000 transparent;
+  animation: bhgv2-loading-indicator 1.2s linear infinite;
+}
+html[data-theme="dark"] .bhgv2-loading-indicator:after {
+	border-color: #fff transparent #fff transparent
+}
+@keyframes bhgv2-loading-indicator {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 `;
 
 
@@ -1492,6 +1538,24 @@ const createNotification = (options) => {
     GM_notification(_options);
 };
 exports.createNotification = createNotification;
+
+
+/***/ }),
+
+/***/ 146:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateRandomId = void 0;
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcefghijklmnopqrstuvwxyz0123456789_';
+const generateRandomId = () => {
+    return new Array(12)
+        .fill('0')
+        .map(() => characters[Math.floor(characters.length * Math.random())])
+        .join('');
+};
+exports.generateRandomId = generateRandomId;
 
 
 /***/ }),
@@ -1865,7 +1929,8 @@ const BHGV2_DarkMode = (core) => {
             if (!body) {
                 return;
             }
-            body.classList.toggle('bhgv2-dark', _getCookie('ckForumDarkTheme') == 'yes');
+            body.classList.toggle('bhgv2-dark', _getCookie('ckForumDarkTheme') == 'yes' ||
+                _getCookie('ckTheme') == 'dark');
         });
     });
     var target = core.DOM.Head;
@@ -2563,6 +2628,927 @@ const BHGV2_MasterLayout = (core) => {
     return _plugin;
 };
 exports.default = BHGV2_MasterLayout;
+
+
+/***/ }),
+
+/***/ 872:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*******************************************************************************************
+ *
+ *  BHGV2_MessageStorage - 標題提示
+ *  當有新的通知/訂閱/推薦時，在網頁標題上顯示數字
+ *
+ *******************************************************************************************/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const imgur_helper_1 = __webpack_require__(647);
+const string_helper_1 = __webpack_require__(146);
+const MS_ACTION_ADD_FOLDER = 'addFolder';
+const BHGV2_MessageStorage = (core) => {
+    const _plugin = {
+        pluginName: 'BHGV2_MessageStorage',
+        prefix: 'BHGV2_MessageStorage',
+        label: '文字倉庫',
+    };
+    _plugin.configs = [
+        {
+            key: `${_plugin.prefix}-isEnable`,
+            suffixLabel: '啟用',
+            dataType: 'boolean',
+            inputType: 'switch',
+            defaultValue: false,
+        },
+    ];
+    _plugin.css = [
+        `
+			#${_plugin.prefix}-panel {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        display: none;
+      }
+			#${_plugin.prefix}-panel.active {
+        display: block;
+      }
+
+			html[data-theme="dark"] #${_plugin.prefix}-panel {
+        background: #272728;
+      }
+
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-appbar {
+        padding: 8px 16px;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        background: #13aeab;
+        color: #fff;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-header {
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-body {
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-footer {
+        padding: 16px;
+      }
+
+			#${_plugin.prefix}-panel.collapsed  {
+        width: auto;
+      }
+
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-header,
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-body,
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-footer {
+        display: none;
+      }
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-selector {
+        width: 100%;
+        padding: 4px 0;
+      }
+
+			html[data-theme="dark"] #${_plugin.prefix}-panel #${_plugin.prefix}-selector {
+        background: #1c1c1c;
+        color: #f7f7f7;
+      }
+
+      #${_plugin.prefix}-ListActions {
+        text-align: center;
+        padding: 16px 8px;
+        border: 1px dashed #ccc;
+        margin-bottom: 16px;
+      }
+
+      #${_plugin.prefix}-ListActionForUpload-input {
+        position: absolute;
+        z-index: -1000;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      #${_plugin.prefix}-ListActions .${_plugin.prefix}-ListAction {
+        color: #117e96;
+      }
+
+      .${_plugin.prefix}-ListingList-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item {
+        border: 1px solid #ccc;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item:hover {
+        border-color: #000;
+      }
+
+      html[data-theme="dark"] .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item:hover {
+        border-color: #fff;
+      }
+
+      .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem img {
+        pointer-events: none;
+        max-height: 100%;
+        max-width: 100%;
+      }
+      
+      #${_plugin.prefix}-ListingHelperText {
+        color: #ccc;
+        font-size: 0.8em;
+        margin-top: 8px;
+      }
+
+      .${_plugin.prefix}-overlayForm-backdrop {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+      }
+
+      .${_plugin.prefix}-overlayForm-backdrop.show {
+        display: block;
+      }
+
+      .${_plugin.prefix}-overlayForm-panel {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      html[data-theme="dark"] .${_plugin.prefix}-overlayForm-panel {
+        background: #272728;
+      }
+
+      .${_plugin.prefix}-overlayForm-group {
+        margin-bottom: 16px;
+      }
+
+      .${_plugin.prefix}-overlayForm-group.hidden {
+        margin: 0;
+      }
+
+      .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-label {
+        display: block;
+      }
+
+      .${_plugin.prefix}-overlayForm-group.hidden .${_plugin.prefix}-overlayForm-label {
+        display: none;
+      }
+
+      .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-input {
+        display: block;
+        width: 100%;
+        border: 1px solid #000000;
+        padding: 4px;
+      }
+
+      html[data-theme="dark"] .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-input {
+        background: #1c1c1c;
+        color: #f7f7f7;
+      }
+
+      .${_plugin.prefix}-overlayForm-group.hidden .${_plugin.prefix}-overlayForm-input {
+        display: none;
+      }
+
+      .${_plugin.prefix}-overlayForm-actions {
+        display: flex;
+        gap: 8px;
+      }
+      
+      .${_plugin.prefix}-overlayForm-actions button.${_plugin.prefix}-overlayForm-button {
+        flex: 1;
+        text-align: center;
+        padding: 4px 0;
+      }
+      
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-cancel {
+        background: #cccccc;
+      }
+      
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-save {
+        background: #cccccc;
+      }
+      
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-delete {
+        margin-top: 16px;
+        color: #f00;
+        display: none;
+      }
+
+      button.${_plugin.prefix}-overlayForm-button.${_plugin.prefix}-overlayForm-button-delete.show {
+        display: inline-block;
+      }
+
+      #${_plugin.prefix}-loadingIndicator {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        flex-direction: col;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      #${_plugin.prefix}-loadingIndicator.show {
+        display: flex;
+      }
+
+      #${_plugin.prefix}-LoadingIndicatorContent {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      html[data-theme="dark"] .${_plugin.prefix}-LoadingIndicatorContent {
+        background: #272728;
+      }
+
+      #${_plugin.prefix}-LoadingIndicatorCircle {
+        margin: 16px auto;
+      }
+
+      #${_plugin.prefix}-Pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button {
+        color: #117e96;
+      }
+      
+      #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button.active {
+        color: #000000;
+        pointer-events: none;
+        text-decoration: underline;
+      }
+      
+      html[data-theme="dark"] #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button.active {
+        color: #fff;
+      }
+      
+      #${_plugin.prefix}-DeleteConfirm {
+        display: none;
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        flex-direction: col;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      #${_plugin.prefix}-DeleteConfirm.show {
+        display: flex;
+      }
+
+      #${_plugin.prefix}-DeleteConfirmContent {
+        position: relative;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      html[data-theme="dark"] #${_plugin.prefix}-DeleteConfirmContent {
+        background: #272728;
+      }
+
+      #${_plugin.prefix}-DeleteConfirmActions {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+      }
+      
+      #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button {
+        flex: 1;
+        text-align: center;
+        padding: 4px 0;
+      }
+
+      html[data-theme="dark"] #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button {
+        color: #fff;
+      }
+      
+      #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button#${_plugin.prefix}-deleteConfirm-button-confirm {
+        background: #f00;
+        color: #fff;
+      }
+		`,
+    ];
+    const PAGINATION_PAGE_SIZE = 9;
+    const folders = [];
+    const rawFolderItems = [];
+    const sortedFolderItems = [];
+    let paginationCurrentPage = 1;
+    let paginationPageMax = 1;
+    const overlayFormsMap = {};
+    let deleteConfirmFn;
+    /**
+     * Lifecycle Functions
+     */
+    const refreshSelect = (doMutate) => {
+        if (doMutate) {
+            localStorage.setItem(`${_plugin.prefix}-folders`, JSON.stringify(folders));
+        }
+        else {
+            const storedFoldersJSON = localStorage.getItem(`${_plugin.prefix}-folders`) ?? '[]';
+            if (!storedFoldersJSON) {
+                localStorage.setItem(`${_plugin.prefix}-folders`, '[]');
+            }
+            folders.splice(0, folders.length);
+            folders.push(...JSON.parse(storedFoldersJSON));
+        }
+        Selector.innerHTML = '';
+        const addNewFolderOption = document.createElement('option');
+        addNewFolderOption.value = MS_ACTION_ADD_FOLDER;
+        addNewFolderOption.innerText = '[ 新增一個資料夾... ]';
+        Selector.prepend(addNewFolderOption);
+        for (const folder of folders) {
+            const option = document.createElement('option');
+            option.value = folder.id;
+            option.innerText = folder.name;
+            Selector.prepend(option);
+        }
+        const selectPlaceholderOption = document.createElement('option');
+        selectPlaceholderOption.value = '-1';
+        selectPlaceholderOption.innerText = '請選擇資料夾';
+        selectPlaceholderOption.setAttribute('disabled', '1');
+        Selector.prepend(selectPlaceholderOption);
+    };
+    const refreshListing = (doMutate) => {
+        const folderId = Selector.value;
+        const lsKey = `${_plugin.prefix}-folder-${folderId}`;
+        if (doMutate) {
+            localStorage.setItem(lsKey, JSON.stringify(rawFolderItems));
+        }
+        else {
+            const storedFolderItemsJSON = localStorage.getItem(lsKey) ?? '[]';
+            if (!storedFolderItemsJSON) {
+                localStorage.setItem(lsKey, '[]');
+            }
+            rawFolderItems.splice(0, rawFolderItems.length);
+            rawFolderItems.push(...JSON.parse(storedFolderItemsJSON));
+        }
+        sortedFolderItems.splice(0, sortedFolderItems.length);
+        sortedFolderItems.push(...rawFolderItems);
+        const visibleItems = sortedFolderItems.slice((paginationCurrentPage - 1) * PAGINATION_PAGE_SIZE, paginationCurrentPage * PAGINATION_PAGE_SIZE);
+        ListingList.innerHTML = '';
+        for (let i = 0; i < PAGINATION_PAGE_SIZE; i++) {
+            const item = visibleItems[i];
+            const listingItem = document.createElement('div');
+            listingItem.classList.add(`${_plugin.prefix}-ListingItem`);
+            if (item) {
+                listingItem.classList.add('has-item');
+                listingItem.setAttribute('data-id', item.id);
+                listingItem.addEventListener('click', handleClickListingItem);
+                listingItem.addEventListener('contextmenu', handleContextMenuListingItem);
+                if (item.value.match(/^http.+\.(png|gif|jpg|jpeg|bmp)$/i)) {
+                    const img = document.createElement('img');
+                    img.src = item.value;
+                    img.alt = item.name;
+                    listingItem.append(img);
+                }
+                else {
+                    listingItem.innerText = item.name || item.value.substring(0, 25);
+                }
+            }
+            ListingList.append(listingItem);
+        }
+    };
+    const handleClickPanelAppbar = () => {
+        Panel.classList.toggle('collapsed');
+    };
+    const handleClickPaginationPage = (e) => {
+        e.preventDefault();
+        const page = e.target.getAttribute('data-page');
+        if (!page) {
+            return;
+        }
+        const pageInt = parseInt(page);
+        if (isNaN(pageInt)) {
+            return;
+        }
+        paginationCurrentPage = pageInt;
+        refreshListing();
+        refreshPagination();
+    };
+    const handleClickDeleteConfirmConfirm = (e) => {
+        e.preventDefault();
+        deleteConfirmFn();
+        DeleteConfirm.classList.toggle('show', false);
+    };
+    const handleClickDeleteConfirmCancel = (e) => {
+        e.preventDefault();
+        DeleteConfirm.classList.toggle('show', false);
+    };
+    const refreshPagination = (doMutate) => {
+        if (doMutate) {
+            paginationPageMax =
+                Math.floor((rawFolderItems.length - 1) / PAGINATION_PAGE_SIZE) + 1;
+            Pagination.innerHTML = '';
+            for (let i = 1; i <= paginationPageMax; i++) {
+                const page = document.createElement('a');
+                page.classList.add(`${_plugin.prefix}-Pagination-button`);
+                page.classList.add(`${_plugin.prefix}-Pagination-button-number`);
+                page.innerText = i.toString();
+                page.href = '#';
+                page.setAttribute('data-page', i.toString());
+                page.addEventListener('click', handleClickPaginationPage);
+                Pagination.append(page);
+            }
+            paginationCurrentPage = Math.max(1, Math.min(paginationPageMax, paginationCurrentPage));
+        }
+        const pages = [...Pagination.querySelectorAll('a')];
+        for (const page of pages) {
+            const pageIndex = page.getAttribute('data-page');
+            page.classList.toggle('active', parseInt(pageIndex) === paginationCurrentPage);
+        }
+    };
+    const showLoading = (message) => {
+        LoadingIndicator.classList.add('show');
+        LoadingIndicatorContentMessage.innerText = message ?? '請稍等';
+    };
+    const hideLoading = () => {
+        LoadingIndicator.classList.remove('show');
+    };
+    const showDeleteConfirm = (fn) => {
+        deleteConfirmFn = fn;
+        DeleteConfirm.classList.toggle('show', true);
+    };
+    const updateSelect = (newValue) => {
+        Selector.value = newValue;
+        refreshListing();
+        refreshPagination(true);
+    };
+    const handleChangeSelect = (e) => {
+        const newValue = e.target.value;
+        if (newValue === MS_ACTION_ADD_FOLDER) {
+            ;
+            e.target.value = '-1';
+            showOverlayForm('folder');
+        }
+        updateSelect(newValue);
+    };
+    const getValuesFromSubmitEvent = (e) => {
+        return [
+            ...e.target.querySelectorAll(`.${_plugin.prefix}-overlayForm-input`),
+        ].reduce((prev, ele, i) => {
+            prev[ele.getAttribute('name') ?? `field-${i}`] = ele.value;
+            return prev;
+        }, {});
+    };
+    const setValuesForOverlayForm = (overlayFormKey, newValue) => {
+        const overlayForm = overlayFormsMap[overlayFormKey];
+        if (!overlayForm) {
+            return;
+        }
+        const fields = [
+            ...overlayForm.querySelectorAll(`.${_plugin.prefix}-overlayForm-input`),
+        ];
+        for (const field of fields) {
+            const name = field.name;
+            if (!!name && newValue[name]) {
+                field.value = newValue[name];
+            }
+        }
+    };
+    const showOverlayForm = (overlayFormKey, newValue) => {
+        const overlayFormEle = overlayFormsMap[overlayFormKey];
+        if (!overlayFormEle) {
+            return;
+        }
+        const overlayForm = overlayForms.find(({ name }) => name === overlayFormKey);
+        overlayFormEle.classList.add('show');
+        overlayFormEle.querySelector('form')?.reset();
+        if (newValue) {
+            setValuesForOverlayForm(overlayFormKey, newValue);
+            if (overlayForm?.deletePrimaryKeyFn) {
+                const deleteButton = overlayFormEle.querySelector('button[data-role="delete"]');
+                if (deleteButton) {
+                    const primaryKey = overlayForm.deletePrimaryKeyFn(newValue);
+                    if (primaryKey) {
+                        deleteButton.setAttribute('data-primary-key', primaryKey);
+                        deleteButton.classList.toggle('show', true);
+                    }
+                    else {
+                        deleteButton.removeAttribute('data-primary-key');
+                        deleteButton.classList.toggle('show', false);
+                    }
+                }
+            }
+        }
+        else {
+            const deleteButton = overlayFormEle.querySelector('button[data-role="delete"]');
+            if (deleteButton) {
+                deleteButton.removeAttribute('data-primary-key');
+                deleteButton.classList.toggle('show', false);
+            }
+        }
+    };
+    const handleClickListingAdd = (e) => {
+        e.preventDefault();
+        showOverlayForm('item');
+    };
+    const handleClickListingUpload = (e) => {
+        e.preventDefault();
+        ListActionForUploadInput.click();
+    };
+    const handleChangeListingUploadInput = (e) => {
+        e.preventDefault();
+        // Fetch FileList object
+        const files = e.target.files;
+        if (!files) {
+            return;
+        }
+        showLoading('上傳圖片中，請稍等');
+        const uploadPromises = [];
+        for (let i = 0; i < files.length; i++) {
+            if (!files[i]) {
+                continue;
+            }
+            const file = files[i];
+            if (file && file.type.startsWith('image/')) {
+                uploadPromises.push(new Promise((res, rej) => {
+                    imgur_helper_1.postImgurImage(file)
+                        .then(({ link }) => {
+                        return res({ url: link });
+                    })
+                        .catch((err) => {
+                        return rej(err);
+                    });
+                }));
+            }
+        }
+        return Promise.allSettled(uploadPromises)
+            .then((results) => results
+            .map((result) => result.status === 'fulfilled' ? result.value.url : undefined)
+            .filter((url) => !!url))
+            .then((urls) => {
+            for (const url of urls) {
+                const id = string_helper_1.generateRandomId();
+                rawFolderItems.push({
+                    id,
+                    name: id,
+                    value: url,
+                });
+            }
+            refreshListing(true);
+            refreshPagination(true);
+        })
+            .finally(hideLoading);
+    };
+    const handleContextMenuListingItem = (e) => {
+        e.preventDefault();
+        const dataId = e.target.getAttribute('data-id');
+        if (!dataId) {
+            return;
+        }
+        const foundItem = rawFolderItems.find(({ id }) => id === dataId);
+        if (!foundItem) {
+            return;
+        }
+        showOverlayForm('item', foundItem);
+    };
+    const handleClickListingItem = (e) => {
+        e.preventDefault();
+        const editorTextarea = core.DOM.EditorTextarea;
+        if (!editorTextarea) {
+            return;
+        }
+        const dataId = e.target.getAttribute('data-id');
+        if (!dataId) {
+            return;
+        }
+        const foundItem = rawFolderItems.find(({ id }) => id === dataId);
+        if (!foundItem) {
+            return;
+        }
+        editorTextarea.value = `${editorTextarea.value}${foundItem.value}\n`;
+        editorTextarea.focus();
+    };
+    /**
+     * Event Handler for OverlayForm - Folder
+     */
+    const handleSubmitFolderForm = (e) => {
+        e.preventDefault();
+        const newValue = getValuesFromSubmitEvent(e);
+        if (newValue.id) {
+            const foundFolder = folders.find(({ id }) => id === newValue.id);
+            if (foundFolder) {
+                foundFolder.name = newValue.name;
+            }
+        }
+        else {
+            newValue.id = string_helper_1.generateRandomId();
+            folders.push(newValue);
+        }
+        refreshSelect(true);
+        updateSelect(newValue.id);
+        handleCancelFolderForm(e);
+    };
+    const handleCancelFolderForm = (e) => {
+        e.preventDefault();
+        const overlayForm = overlayFormsMap.folder;
+        overlayForm?.classList.remove('show');
+    };
+    /**
+     * Event Handler for OverlayForm - Item
+     */
+    const handleSubmitItemForm = (e) => {
+        e.preventDefault();
+        const newValue = getValuesFromSubmitEvent(e);
+        if (newValue.id) {
+            const foundItem = rawFolderItems.find(({ id }) => id === newValue.id);
+            if (foundItem) {
+                foundItem.name = newValue.name;
+                foundItem.value = newValue.value;
+                foundItem.order = newValue.order;
+            }
+        }
+        else {
+            newValue.id = string_helper_1.generateRandomId();
+            rawFolderItems.push(newValue);
+        }
+        refreshListing(true);
+        refreshPagination(true);
+        handleCancelItemForm(e);
+    };
+    const handleCancelItemForm = (e) => {
+        e.preventDefault();
+        const overlayForm = overlayFormsMap.item;
+        overlayForm?.classList.remove('show');
+    };
+    const handleDeleteItemForm = (e) => {
+        e.preventDefault();
+        const dataId = e.target.getAttribute('data-primary-key');
+        if (!dataId) {
+            return;
+        }
+        const foundItemIndex = rawFolderItems.findIndex(({ id }) => id === dataId);
+        if (foundItemIndex === -1) {
+            return;
+        }
+        showDeleteConfirm(() => {
+            rawFolderItems.splice(foundItemIndex, 1);
+            refreshListing(true);
+            refreshPagination(true);
+            handleCancelItemForm(e);
+        });
+    };
+    const overlayForms = [
+        {
+            name: 'folder',
+            onSubmit: handleSubmitFolderForm,
+            onCancel: handleCancelFolderForm,
+            fields: [
+                { name: 'name', label: '資料夾名稱', type: 'text', required: true },
+                { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
+            ],
+        },
+        {
+            name: 'item',
+            onSubmit: handleSubmitItemForm,
+            onCancel: handleCancelItemForm,
+            onDelete: handleDeleteItemForm,
+            fields: [
+                {
+                    name: 'value',
+                    label: '內容',
+                    type: 'textarea',
+                    required: true,
+                },
+                { name: 'name', label: '顯示名稱(選填)', type: 'text' },
+                {
+                    name: 'order',
+                    label: '排序(選填)',
+                    type: 'number',
+                    helperText: '只限數字，能用作排序',
+                },
+                { name: 'id', label: 'ID', type: 'hidden', isShowLabel: false },
+            ],
+            deletePrimaryKeyFn: (value) => value.id,
+        },
+    ];
+    /**
+     * UIs
+     */
+    const Panel = document.createElement('div');
+    Panel.id = `${_plugin.prefix}-panel`;
+    core.DOM.EditorContainerOuterRight.append(Panel);
+    const PanelAppbar = document.createElement('div');
+    PanelAppbar.id = `${_plugin.prefix}-panel-appbar`;
+    PanelAppbar.innerText = _plugin.label;
+    PanelAppbar.addEventListener('click', handleClickPanelAppbar);
+    const PanelHeader = document.createElement('div');
+    PanelHeader.id = `${_plugin.prefix}-panel-header`;
+    const PanelBody = document.createElement('div');
+    PanelBody.id = `${_plugin.prefix}-panel-body`;
+    const PanelFooter = document.createElement('div');
+    PanelFooter.id = `${_plugin.prefix}-panel-footer`;
+    Panel.append(PanelAppbar, PanelHeader, PanelBody, PanelFooter);
+    const Selector = document.createElement('select');
+    Selector.id = `${_plugin.prefix}-selector`;
+    Selector.addEventListener('change', handleChangeSelect);
+    PanelHeader.append(Selector);
+    const ListActions = document.createElement('div');
+    ListActions.id = `${_plugin.prefix}-ListActions`;
+    const ListActionForAdd = document.createElement('a');
+    ListActionForAdd.href = '#';
+    ListActionForAdd.id = `${_plugin.prefix}-ListActionForAdd`;
+    ListActionForAdd.classList.add(`${_plugin.prefix}-ListAction`);
+    ListActionForAdd.innerText = '新增文字';
+    ListActionForAdd.addEventListener('click', handleClickListingAdd);
+    const ListActionStatementA = document.createTextNode(' 或 ');
+    const ListActionForUpload = document.createElement('a');
+    ListActionForUpload.href = '#';
+    ListActionForUpload.id = `${_plugin.prefix}-ListActionForUpload`;
+    ListActionForUpload.classList.add(`${_plugin.prefix}-ListAction`);
+    ListActionForUpload.innerText = '上傳圖片';
+    ListActionForUpload.addEventListener('click', handleClickListingUpload);
+    const ListActionForUploadInput = document.createElement('input');
+    ListActionForUploadInput.type = 'file';
+    ListActionForUploadInput.id = `${_plugin.prefix}-ListActionForUpload-input`;
+    ListActionForUploadInput.accept = 'image/*';
+    ListActionForUploadInput.multiple = true;
+    ListActionForUploadInput.addEventListener('change', handleChangeListingUploadInput);
+    ListActions.append(ListActionForAdd, ListActionStatementA, ListActionForUpload, ListActionForUploadInput);
+    const ListingList = document.createElement('div');
+    ListingList.id = `${_plugin.prefix}-ListingList`;
+    ListingList.classList.add(`${_plugin.prefix}-ListingList-grid`);
+    const ListingHelperText = document.createElement('div');
+    ListingHelperText.id = `${_plugin.prefix}-ListingHelperText`;
+    ListingHelperText.innerText = '右鍵: 編輯';
+    PanelBody.append(ListActions, ListingList, ListingHelperText);
+    for (const overlayForm of overlayForms) {
+        const overlayFormBackdrop = document.createElement('div');
+        overlayFormBackdrop.classList.add(`${_plugin.prefix}-overlayForm-backdrop`);
+        overlayFormBackdrop.id = `${_plugin.prefix}-overlayForm-${overlayForm.name}`;
+        Panel.append(overlayFormBackdrop);
+        const overlayFormPanel = document.createElement('div');
+        overlayFormPanel.classList.add(`${_plugin.prefix}-overlayForm-panel`);
+        overlayFormBackdrop.append(overlayFormPanel);
+        const overlayFormForm = document.createElement('form');
+        overlayFormForm.classList.add(`${_plugin.prefix}-overlayForm-form`);
+        overlayFormForm.addEventListener('submit', overlayForm.onSubmit);
+        overlayFormPanel.append(overlayFormForm);
+        for (const field of overlayForm.fields) {
+            const formGroup = document.createElement('div');
+            formGroup.classList.add(`${_plugin.prefix}-overlayForm-group`);
+            if (field.type === 'hidden') {
+                formGroup.classList.add('hidden');
+            }
+            const formLabel = document.createElement('label');
+            formLabel.classList.add(`${_plugin.prefix}-overlayForm-label`);
+            formLabel.innerText = field.label;
+            formLabel.htmlFor = field.name;
+            formGroup.append(formLabel);
+            const formInput = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+            formInput.classList.add(`${_plugin.prefix}-overlayForm-input`);
+            formInput.name = field.name;
+            if (field.type !== 'textarea') {
+                ;
+                formInput.type = field.type;
+            }
+            else {
+                ;
+                formInput.rows = 4;
+            }
+            formInput.required = field.required ?? false;
+            formGroup.append(formInput);
+            overlayFormForm.append(formGroup);
+        }
+        const formCancelButton = document.createElement('button');
+        formCancelButton.classList.add(`${_plugin.prefix}-overlayForm-button`);
+        formCancelButton.classList.add(`${_plugin.prefix}-overlayForm-button-cancel`);
+        formCancelButton.innerText = '取消';
+        formCancelButton.type = 'button';
+        formCancelButton.addEventListener('click', overlayForm.onCancel);
+        const formSaveButton = document.createElement('button');
+        formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button`);
+        formSaveButton.classList.add(`${_plugin.prefix}-overlayForm-button-save`);
+        formSaveButton.innerText = '保存';
+        formSaveButton.type = 'submit';
+        const formDeleteButton = document.createElement('button');
+        formDeleteButton.classList.add(`${_plugin.prefix}-overlayForm-button`);
+        formDeleteButton.classList.add(`${_plugin.prefix}-overlayForm-button-delete`);
+        formDeleteButton.innerText = '刪除';
+        formDeleteButton.type = 'button';
+        formDeleteButton.setAttribute('data-role', 'delete');
+        if (overlayForm.onDelete) {
+            formDeleteButton.addEventListener('click', overlayForm.onDelete);
+        }
+        const formActionsDiv = document.createElement('div');
+        formActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-actions`);
+        formActionsDiv.append(formCancelButton, formSaveButton);
+        const formSubActionsDiv = document.createElement('div');
+        formSubActionsDiv.classList.add(`${_plugin.prefix}-overlayForm-sub-actions`);
+        formActionsDiv.append(formCancelButton, formSaveButton);
+        formSubActionsDiv.append(formDeleteButton);
+        overlayFormForm.append(formActionsDiv, formSubActionsDiv);
+        overlayFormsMap[overlayForm.name] = overlayFormBackdrop;
+    }
+    const LoadingIndicator = document.createElement('div');
+    LoadingIndicator.id = `${_plugin.prefix}-loadingIndicator`;
+    Panel.append(LoadingIndicator);
+    const LoadingIndicatorContent = document.createElement('div');
+    LoadingIndicatorContent.id = `${_plugin.prefix}-LoadingIndicatorContent`;
+    LoadingIndicator.append(LoadingIndicatorContent);
+    const LoadingIndicatorContentMessage = document.createElement('div');
+    LoadingIndicatorContentMessage.innerText = '運作中，請稍等...';
+    const LoadingIndicatorCircle = document.createElement('div');
+    LoadingIndicatorCircle.id = `${_plugin.prefix}-LoadingIndicatorCircle`;
+    LoadingIndicatorCircle.classList.add('bhgv2-loading-indicator');
+    LoadingIndicatorContent.append(LoadingIndicatorContentMessage, LoadingIndicatorCircle);
+    const Pagination = document.createElement('div');
+    Pagination.id = `${_plugin.prefix}-Pagination`;
+    PanelFooter.append(Pagination);
+    const DeleteConfirm = document.createElement('div');
+    DeleteConfirm.id = `${_plugin.prefix}-DeleteConfirm`;
+    Panel.append(DeleteConfirm);
+    const DeleteConfirmContent = document.createElement('div');
+    DeleteConfirmContent.id = `${_plugin.prefix}-DeleteConfirmContent`;
+    DeleteConfirm.append(DeleteConfirmContent);
+    const DeleteConfirmContentMessage = document.createElement('div');
+    DeleteConfirmContentMessage.innerText = '確定要刪除嗎？';
+    DeleteConfirmContent.append(DeleteConfirmContentMessage);
+    const DeleteConfirmActions = document.createElement('div');
+    DeleteConfirmActions.id = `${_plugin.prefix}-DeleteConfirmActions`;
+    const DeleteConfirmCancelButton = document.createElement('button');
+    DeleteConfirmCancelButton.classList.add(`${_plugin.prefix}-deleteConfirm-button`);
+    DeleteConfirmCancelButton.id = `${_plugin.prefix}-deleteConfirm-button-cancel`;
+    DeleteConfirmCancelButton.innerText = '取消';
+    DeleteConfirmCancelButton.type = 'button';
+    DeleteConfirmCancelButton.addEventListener('click', handleClickDeleteConfirmCancel);
+    const DeleteConfirmConfirmButton = document.createElement('button');
+    DeleteConfirmConfirmButton.classList.add(`${_plugin.prefix}-deleteConfirm-button`);
+    DeleteConfirmConfirmButton.id = `${_plugin.prefix}-deleteConfirm-button-confirm`;
+    DeleteConfirmConfirmButton.innerText = '確定刪除';
+    DeleteConfirmConfirmButton.type = 'button';
+    DeleteConfirmConfirmButton.addEventListener('click', handleClickDeleteConfirmConfirm);
+    DeleteConfirmActions.append(DeleteConfirmCancelButton, DeleteConfirmConfirmButton);
+    DeleteConfirmContent.append(DeleteConfirmActions);
+    /**
+     * Initialize
+     *  */
+    refreshSelect();
+    if (folders.length > 0) {
+        updateSelect(folders[0].id);
+    }
+    else {
+        Selector.value = '-1';
+    }
+    _plugin.onMutateConfig = (newValue) => {
+        Panel.classList.toggle('active', !!newValue[`${_plugin.prefix}-isEnable`]);
+    };
+    return _plugin;
+};
+exports.default = BHGV2_MessageStorage;
 
 
 /***/ }),

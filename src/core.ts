@@ -30,6 +30,7 @@ import BHGV2_QuickInput from './plugins/bhgv2-quick-input'
 import BHGV2_PasteUploadImage from './plugins/bhgv2-paste-upload-image'
 
 import { convertCTimeToHumanString } from './helpers/display.helper'
+import BHGV2_MessageStorage from './plugins/bhgv2-message-storage'
 
 declare let nunjucks: any
 declare let Guild: any
@@ -716,6 +717,13 @@ const BHGV2Core: TCoreConstructor = ({ plugins, library }) => {
     _dom.ConfigFormMessage
   )
 
+  _dom.EditorContainerOuterRight = document.createElement('div')
+  _dom.EditorContainerOuterRight.id = 'bhgv2-editor-container-outer-right'
+  _dom.EditorContainerOuterRight.classList.add(
+    'bhgv2-editor-container-outer-right'
+  )
+  _dom.EditorContainer.appendChild(_dom.EditorContainerOuterRight)
+
   // 初始化每個插件
   ;[_CorePlugin, ...plugins].forEach((plugin) => {
     try {
@@ -1357,6 +1365,7 @@ const _waitForElm = (selector: string) => {
           BHGV2_DarkMode,
           // BHGV2_SaveTheThread,
           BHGV2_PasteUploadImage,
+          BHGV2_MessageStorage,
         ],
         library: {
           jQuery,
