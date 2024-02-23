@@ -1,7 +1,7 @@
 {
   "name": "bahamut-guild-v2-toolkit",
   "displayName": "巴哈姆特公會2.0插件",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "巴哈姆特公會2.0插件",
   "main": "index.js",
   "repository": "https://github.com/SilWolf/bahamut-guild-v2-toolkit.git",

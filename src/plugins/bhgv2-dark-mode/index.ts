@@ -30,7 +30,8 @@ const BHGV2_DarkMode: TPluginConstructor = (core) => {
       }
       body.classList.toggle(
         'bhgv2-dark',
-        _getCookie('ckForumDarkTheme') == 'yes'
+        _getCookie('ckForumDarkTheme') == 'yes' ||
+          _getCookie('ckTheme') == 'dark'
       )
     })
   })

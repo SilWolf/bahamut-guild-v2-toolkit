@@ -27,13 +27,13 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const _plugin: TPlugin = {
     pluginName: 'BHGV2_MessageStorage',
     prefix: 'BHGV2_MessageStorage',
-    label: '預設文檔倉庫',
+    label: '文字倉庫',
   }
 
   _plugin.configs = [
     {
       key: `${_plugin.prefix}-isEnable`,
-      suffixLabel: '標題顯示通知數目',
+      suffixLabel: '啟用',
       dataType: 'boolean',
       inputType: 'switch',
       defaultValue: false,
@@ -44,9 +44,29 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 			#${_plugin.prefix}-panel {
         position: relative;
         width: 100%;
-        background: rgba(255, 255, 255, 0.87);
+        background: #ffffff;
         box-shadow: rgba(0, 0, 0, 0.25) 0 1px 4px;
         border-radius: 4px;
+        display: none;
+      }
+			#${_plugin.prefix}-panel.active {
+        display: block;
+      }
+
+			html[data-theme="dark"] #${_plugin.prefix}-panel {
+        background: #272728;
+      }
+
+
+			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-appbar {
+        padding: 8px 16px;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        background: #13aeab;
+        color: #fff;
       }
 
 			#${_plugin.prefix}-panel #${_plugin.prefix}-panel-header {
@@ -61,8 +81,24 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 16px;
       }
 
+			#${_plugin.prefix}-panel.collapsed  {
+        width: auto;
+      }
+
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-header,
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-body,
+			#${_plugin.prefix}-panel.collapsed #${_plugin.prefix}-panel-footer {
+        display: none;
+      }
+
 			#${_plugin.prefix}-panel #${_plugin.prefix}-selector {
         width: 100%;
+        padding: 4px 0;
+      }
+
+			html[data-theme="dark"] #${_plugin.prefix}-panel #${_plugin.prefix}-selector {
+        background: #1c1c1c;
+        color: #f7f7f7;
       }
 
       #${_plugin.prefix}-ListActions {
@@ -107,6 +143,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         border-color: #000;
       }
 
+      html[data-theme="dark"] .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem.has-item:hover {
+        border-color: #fff;
+      }
+
       .${_plugin.prefix}-ListingList-grid .${_plugin.prefix}-ListingItem img {
         pointer-events: none;
         max-height: 100%;
@@ -116,6 +156,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
       #${_plugin.prefix}-ListingHelperText {
         color: #ccc;
         font-size: 0.8em;
+        margin-top: 8px;
       }
 
       .${_plugin.prefix}-overlayForm-backdrop {
@@ -142,6 +183,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 16px;
       }
 
+      html[data-theme="dark"] .${_plugin.prefix}-overlayForm-panel {
+        background: #272728;
+      }
+
       .${_plugin.prefix}-overlayForm-group {
         margin-bottom: 16px;
       }
@@ -163,6 +208,11 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         width: 100%;
         border: 1px solid #000000;
         padding: 4px;
+      }
+
+      html[data-theme="dark"] .${_plugin.prefix}-overlayForm-group .${_plugin.prefix}-overlayForm-input {
+        background: #1c1c1c;
+        color: #f7f7f7;
       }
 
       .${_plugin.prefix}-overlayForm-group.hidden .${_plugin.prefix}-overlayForm-input {
@@ -226,6 +276,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 16px;
       }
 
+      html[data-theme="dark"] .${_plugin.prefix}-LoadingIndicatorContent {
+        background: #272728;
+      }
+
       #${_plugin.prefix}-LoadingIndicatorCircle {
         margin: 16px auto;
       }
@@ -234,7 +288,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
       }
       
       #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button {
@@ -245,6 +299,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         color: #000000;
         pointer-events: none;
         text-decoration: underline;
+      }
+      
+      html[data-theme="dark"] #${_plugin.prefix}-Pagination a.${_plugin.prefix}-Pagination-button.active {
+        color: #fff;
       }
       
       #${_plugin.prefix}-DeleteConfirm {
@@ -275,6 +333,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         padding: 16px;
       }
 
+      html[data-theme="dark"] #${_plugin.prefix}-DeleteConfirmContent {
+        background: #272728;
+      }
+
       #${_plugin.prefix}-DeleteConfirmActions {
         margin-top: 16px;
         display: flex;
@@ -285,6 +347,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
         flex: 1;
         text-align: center;
         padding: 4px 0;
+      }
+
+      html[data-theme="dark"] #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button {
+        color: #fff;
       }
       
       #${_plugin.prefix}-DeleteConfirmActions button.${_plugin.prefix}-deleteConfirm-button#${_plugin.prefix}-deleteConfirm-button-confirm {
@@ -397,6 +463,10 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
       ListingList.append(listingItem)
     }
+  }
+
+  const handleClickPanelAppbar = () => {
+    Panel.classList.toggle('collapsed')
   }
 
   const handleClickPaginationPage = (e: Event) => {
@@ -831,6 +901,11 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
 
   core.DOM.EditorContainerOuterRight.append(Panel)
 
+  const PanelAppbar = document.createElement('div')
+  PanelAppbar.id = `${_plugin.prefix}-panel-appbar`
+  PanelAppbar.innerText = _plugin.label as string
+  PanelAppbar.addEventListener('click', handleClickPanelAppbar)
+
   const PanelHeader = document.createElement('div')
   PanelHeader.id = `${_plugin.prefix}-panel-header`
 
@@ -840,7 +915,7 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   const PanelFooter = document.createElement('div')
   PanelFooter.id = `${_plugin.prefix}-panel-footer`
 
-  Panel.append(PanelHeader, PanelBody, PanelFooter)
+  Panel.append(PanelAppbar, PanelHeader, PanelBody, PanelFooter)
 
   const Selector = document.createElement('select')
   Selector.id = `${_plugin.prefix}-selector`
@@ -867,14 +942,6 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
   ListActionForUpload.innerText = '上傳圖片'
   ListActionForUpload.addEventListener('click', handleClickListingUpload)
 
-  const ListActionStatementB = document.createTextNode('\n 或 ')
-
-  const ListActionForImport = document.createElement('a')
-  ListActionForImport.href = '#'
-  ListActionForImport.id = `${_plugin.prefix}-ListActionForImport`
-  ListActionForImport.classList.add(`${_plugin.prefix}-ListAction`)
-  ListActionForImport.innerText = '批量匯入'
-
   const ListActionForUploadInput = document.createElement('input')
   ListActionForUploadInput.type = 'file'
   ListActionForUploadInput.id = `${_plugin.prefix}-ListActionForUpload-input`
@@ -889,8 +956,6 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     ListActionForAdd,
     ListActionStatementA,
     ListActionForUpload,
-    ListActionStatementB,
-    ListActionForImport,
     ListActionForUploadInput
   )
 
@@ -1071,7 +1136,9 @@ const BHGV2_MessageStorage: TPluginConstructor = (core) => {
     Selector.value = '-1'
   }
 
-  _plugin.onMutateConfig = (newValue) => {}
+  _plugin.onMutateConfig = (newValue) => {
+    Panel.classList.toggle('active', !!newValue[`${_plugin.prefix}-isEnable`])
+  }
 
   return _plugin
 }

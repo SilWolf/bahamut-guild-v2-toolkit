@@ -417,6 +417,9 @@ div[data-google-query-id] {
   border-color: #000 transparent #000 transparent;
   animation: bhgv2-loading-indicator 1.2s linear infinite;
 }
+html[data-theme="dark"] .bhgv2-loading-indicator:after {
+	border-color: #fff transparent #fff transparent
+}
 @keyframes bhgv2-loading-indicator {
   0% {
     transform: rotate(0deg);
