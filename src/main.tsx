@@ -4,13 +4,14 @@ import App from './App';
 import './index.css';
 
 ReactDOM.createRoot(
-  (() => {
-    const app = document.createElement('div');
-    document.body.append(app);
-    return app;
-  })(),
+	(() => {
+		const app = document.querySelector(
+			'.main-container_wall'
+		) as HTMLDivElement;
+		return app;
+	})()
 ).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+	<React.StrictMode>
+		<App />
+	</React.StrictMode>
 );

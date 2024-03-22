@@ -4,24 +4,28 @@ import monkey, { cdn } from 'vite-plugin-monkey';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    monkey({
-      entry: 'src/main.tsx',
-      userscript: {
-        icon: 'https://vitejs.dev/logo.svg',
-        namespace: 'npm/vite-plugin-monkey',
-        match: ['https://www.google.com/'],
-      },
-      build: {
-        externalGlobals: {
-          react: cdn.jsdelivr('React', 'umd/react.production.min.js'),
-          'react-dom': cdn.jsdelivr(
-            'ReactDOM',
-            'umd/react-dom.production.min.js',
-          ),
-        },
-      },
-    }),
-  ],
+	plugins: [
+		react(),
+		monkey({
+			entry: 'src/main.tsx',
+			userscript: {
+				icon: 'https://vitejs.dev/logo.svg',
+				namespace: 'npm/vite-plugin-monkey',
+				match: ['https://guild.gamer.com.tw/post_detail.php*'],
+			},
+			build: {
+				externalGlobals: {
+					react: cdn.jsdelivr('React', 'umd/react.production.min.js'),
+					'react-dom': cdn.jsdelivr(
+						'ReactDOM',
+						'umd/react-dom.production.min.js'
+					),
+					// bootstrap: cdn.jsdelivr('Bootstrap', 'dist/js/bootstrap.min.js'),
+				},
+				// externalResource: {
+				// 	'bootstrap/dist/css/bootstrap.min.css': cdn.jsdelivr(),
+				// },
+			},
+		}),
+	],
 });
