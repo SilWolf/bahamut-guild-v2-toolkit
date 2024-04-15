@@ -20,6 +20,7 @@ export default defineConfig({
 						'ReactDOM',
 						'umd/react-dom.production.min.js'
 					),
+					axios: cdn.jsdelivr('Axios', 'dist/axios.min.js'),
 					// bootstrap: cdn.jsdelivr('Bootstrap', 'dist/js/bootstrap.min.js'),
 				},
 				// externalResource: {
