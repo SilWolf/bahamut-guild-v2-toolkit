@@ -12,6 +12,7 @@ import {
 } from './helpers/api.helper';
 import useBahaPostMetadata from './hooks/useBahaPostMetadata';
 import { useEffect } from 'react';
+import BahaPostCommentRenderer from './components/BahaPostCommentRenderer';
 
 const fetchComments: QueryFunction<
 	Awaited<ReturnType<typeof apiGetComments>>,
@@ -69,6 +70,11 @@ function App() {
 						<p>插件初始化中…</p>
 					</div>
 				)}
+
+				<BahaPostCommentRenderer
+					content={`![](https://i.imgur.com/Lq23kgK.png)`}
+				/>
+
 				{post && (
 					<div className='tw-p-4 tw-bg-white tw-shadow tw-space-y-2'>
 						<div className='tw-flex tw-items-center tw-gap-x-2'>
@@ -85,9 +91,10 @@ function App() {
 							</div>
 						</div>
 						<div>
-							<p className='tw-whitespace-pre-line tw-leading-[1.5]'>
+							{/* <p className='tw-whitespace-pre-line tw-leading-[1.5]'>
 								{post.content}
-							</p>
+							</p> */}
+							<BahaPostCommentRenderer content={post.content} />
 						</div>
 					</div>
 				)}
@@ -112,7 +119,8 @@ function App() {
 													#{comment.position}
 												</span>
 											</div>
-											<p className='tw-whitespace-pre-line'>{comment.text}</p>
+											{/* <p className='tw-whitespace-pre-line'>{comment.text}</p> */}
+											<BahaPostCommentRenderer content={comment.text} />
 										</div>
 									</div>
 								</div>
