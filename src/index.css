@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer components {
+	.bhgtv3-post {
+		line-height: 1.5;
+	}
+
 	.bhgtv3-pclist {
 		@apply tw-border-0 tw-border-t tw-border-solid tw-border-neutral-200 tw-px-4 tw-pt-3 tw-pb-4 [&_.bhgtv3-pc-avatar]:tw-w-[--bhgtv3-pc-avatar-size] [&_.bhgtv3-pc-avatar]:tw-h-[--bhgtv3-pc-avatar-size] [&_.bhgtv3-pc-avatar]:tw-ring-2 [&_.bhgtv3-pc-avatar]:tw-ring-transparent [&_.bhgtv3-pc-main]:tw-space-y-2 [&_.bhgtv3-pc-main]:tw-inline-block [&_.bhgtv3-pc-content]:tw-leading-[1.5] [&_.bhgtv3-pc-avatar]:tw-transition-[width,height] [&_.bhgtv3-pc-main]:tw-transition-[width] [&_.bhgtv3-pc-main]:tw-flex-1;
 	}
