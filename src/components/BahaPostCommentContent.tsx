@@ -6,18 +6,23 @@ type Props = {
 
 const NODE_REGEXP = /\!?\@?\[([^\]]*)\]\(([^\)]*)\)/g;
 
-const BahaPostCommentRenderer = memo(({ content }: Props) => {
-	const lines = content.split('\n').map((line) => {
+const BahaPostCommentContent = memo(({ content }: Props) => {
+	const splittedContent = content.split('\n');
+	const lines: ReactNode[][] = [];
+	let firstYoutubeUrl: string | null = null;
+
+	for (const line of splittedContent) {
 		const matches = [...line.matchAll(NODE_REGEXP)];
 
 		if (matches.length === 0) {
-			return [<span>{line || '　'}</span>];
+			lines.push([<span>{line || '　'}</span>]);
+			continue;
 		}
 
 		const nodes: ReactNode[] = [];
 		for (let i = 0; i < matches.length; i++) {
 			const textBefore = content.substring(
-				matches[i - 1] ? matches[i - 1].index + matches[i - 1].length : 0,
+				matches[i - 1] ? matches[i - 1].index + matches[i - 1][0].length : 0,
 				matches[i].index
 			);
 			if (textBefore) {
@@ -55,22 +60,48 @@ const BahaPostCommentRenderer = memo(({ content }: Props) => {
 						{matches[i][2]}
 					</a>
 				);
+
+				if (
+					!firstYoutubeUrl &&
+					matches[i][2].match(
+						/http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+					)
+				) {
+					firstYoutubeUrl = matches[i][2];
+				}
 			}
 		}
 
 		const lastMatch = matches.at(-1);
 
 		if (lastMatch) {
-			nodes.push(
-				<span>{line.substring(lastMatch.index + lastMatch[0].length)}</span>
-			);
+			const remainText = line.substring(lastMatch.index + lastMatch[0].length);
+			if (remainText) {
+				nodes.push(
+					<span>{line.substring(lastMatch.index + lastMatch[0].length)}</span>
+				);
+			}
 		}
 
-		return nodes;
-	});
+		lines.push(nodes);
+	}
+
+	if (firstYoutubeUrl) {
+		lines.push([
+			<div className='tw-aspect-video tw-relative tw-w-full'>
+				<iframe
+					loading='lazy'
+					style={{ position: 'absolute', width: '100%', height: '100%' }}
+					src='https://www.youtube.com/embed/t8dhw1TFQLI'
+					frameBorder='0'
+					allowFullScreen={true}
+				></iframe>
+			</div>,
+		]);
+	}
 
 	return (
-		<div className='tw-leading-[1.5]'>
+		<div>
 			{lines.map((nodes, i) => (
 				<div key={i}>
 					{nodes.map((node, j) => (
@@ -82,4 +113,4 @@ const BahaPostCommentRenderer = memo(({ content }: Props) => {
 	);
 });
 
-export default BahaPostCommentRenderer;
+export default BahaPostCommentContent;

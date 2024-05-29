@@ -70,7 +70,7 @@ export const apiGetAllComments = async (gsn: string, sn: string) => {
 		});
 };
 
-export const apiGetComments = async (
+export const apiGetCommentsInPaginations = async (
 	gsn: string,
 	sn: string,
 	page?: number | null | 'all'
@@ -109,8 +109,6 @@ const mapComment = (comment: BahaComment) => {
 			newText.substring(0, offset) +
 			`@[${newText.substring(offset, offset + length)}](${mention.id})` +
 			newText.substring(offset + length);
-
-		console.log(newText);
 	}
 
 	return {

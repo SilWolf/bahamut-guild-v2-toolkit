@@ -20,7 +20,11 @@ export default defineConfig({
 						'ReactDOM',
 						'umd/react-dom.production.min.js'
 					),
-					axios: cdn.jsdelivr('Axios', 'dist/axios.min.js'),
+					axios: cdn.jsdelivr('axios', 'dist/axios.min.js'),
+					dayjs: cdn.jsdelivr('dayjs', 'dayjs.min.js'),
+					'dayjs/locale/zh-tw': cdn.jsdelivr('dayjs', 'locale/zh-tw.js'),
+					dayjsRelativeTime: cdn.jsdelivr('dayjs', 'plugin/relativeTime.js'),
+					useLocalStorage: cdn.jsdelivr('react-use', 'lib/useLocalStorage.js'),
 					// bootstrap: cdn.jsdelivr('Bootstrap', 'dist/js/bootstrap.min.js'),
 				},
 				// externalResource: {
