@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+
+	.btn-baha-primary,
+	.btn-baha-secondary {
+		@apply tw-shadow-none tw-border-none tw-tracking-[0.5px] tw-rounded-sm tw-px-2 tw-py-1 hover:tw-opacity-80;
+	}
+
+	.btn-baha-primary {
+		@apply tw-bg-baha tw-text-white;
+	}
+
+	.btn-baha-secondary {
+		@apply tw-bg-neutral-200;
+	}
+
+	.link-baha {
+		@apply tw-cursor-pointer tw-text-baha tw-underline tw-underline-offset-2 hover:tw-underline;
+	}
+}
+
 @layer components {
 	.bhgtv3-post {
 		line-height: 1.5;

@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
-import { BahaPostCommentsPagesList } from './components/BahaPostCommentDiv';
-import { BahaCommentsPaginationResult } from './helpers/api.helper';
+import { BahaPostCommentsPagesList } from '../components/BahaPostCommentDiv';
+import { BahaCommentsPaginationResult } from '../helpers/api.helper';
 import { FormEvent, useCallback } from 'react';
-import PostLayout, { PostLayoutOptions } from './layouts/post.layout';
+import PostLayout, { PostLayoutOptions } from '../layouts/post.layout';
 
 const COMMENTS_PAGES_SAMPLE: BahaCommentsPaginationResult[] = [
 	{

@@ -1,4 +1,4 @@
-import { CSSProperties, memo } from 'react';
+import React from 'react';
 import {
 	BahaComment,
 	BahaCommentsPaginationResult,
@@ -12,7 +12,7 @@ type Props = {
 	ctimeFormat?: PostLayoutOptions['ctime'];
 };
 
-const BahaPostCommentDiv = memo(({ comment, ctimeFormat }: Props) => {
+export default function BahaPostCommentDiv({ comment, ctimeFormat }: Props) {
 	return (
 		<div className='tw-flex tw-justify-start tw-items-start tw-gap-x-3'>
 			<img
@@ -41,9 +41,7 @@ const BahaPostCommentDiv = memo(({ comment, ctimeFormat }: Props) => {
 			</div>
 		</div>
 	);
-});
-
-export default BahaPostCommentDiv;
+}
 
 export const BahaPostCommentsPagesList = ({
 	commentsPages,
@@ -56,7 +54,7 @@ export const BahaPostCommentsPagesList = ({
 }) => {
 	return (
 		<div>
-			{(isDesc ? commentsPages.toReversed() : commentsPages).map((page, i) =>
+			{(isDesc ? commentsPages.toReversed() : commentsPages).map((page) =>
 				(isDesc ? page.comments.toReversed() : page.comments).map((comment) => (
 					<div key={comment.id} className='bhgtv3-pclist'>
 						<BahaPostCommentDiv comment={comment} ctimeFormat={ctimeFormat} />
