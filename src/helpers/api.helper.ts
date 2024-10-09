@@ -103,7 +103,12 @@ export const apiPostComment = async (
 	formData.append('content', content);
 	formData.append('legacy', '1');
 
-	return axiosInstance.post('/guild/v1/comment_new.php', formData);
+	return axiosInstance
+		.post<{ data: { commentData: BahaComment } }>(
+			'/guild/v1/comment_new.php',
+			formData
+		)
+		.then((res) => res.data.data.commentData);
 };
 
 const mapComment = (comment: BahaComment) => {

@@ -3,7 +3,9 @@ import './App.css';
 import { useCallback, useState } from 'react';
 import BahaPostCommentRenderer from './components/BahaPostCommentContent';
 import ConfigFormSection from './widgets/ConfigFormSection';
-import { BahaPostCommentsPagesList } from './components/BahaPostCommentDiv';
+import BahaPostCommentDiv, {
+	BahaPostCommentsPagesList,
+} from './components/BahaPostCommentDiv';
 import { LS_KEY_POST_LAYOUT_OPTIONS, LS_KEY_REFRESH_OPTIONS } from './constant';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
 import PostLayout, {
@@ -16,7 +18,8 @@ import RefreshConfigDialog, {
 } from './widgets/RefreshConfigDialog';
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
 import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
-import { apiPostComment } from './helpers/api.helper';
+import useMe from './hooks/useMe';
+import BahaPostCommentContent from './components/BahaPostCommentContent';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -70,42 +73,43 @@ function App() {
 	);
 
 	/**
-	 * Post and Comments
+	 * User, Post and Comments
 	 */
-	const { post, postMetadata, commentPages, isLoading } =
-		useBahaPostAndComments({
-			refreshInterval: refreshConfig?.enableRefresh
-				? refreshConfig.refreshInterval
-				: 0,
-		});
+	const me = useMe();
+	const {
+		post,
+		postMetadata,
+		commentPages,
+		isLoading,
+		createComment,
+		pendingNewComments,
+	} = useBahaPostAndComments({
+		refreshInterval: refreshConfig?.enableRefresh
+			? refreshConfig.refreshInterval
+			: 0,
+	});
 
 	/**
 	 * Textarea related.
 	 */
 	const handlePressEnterOnTextarea = useCallback(
 		(event: KeyboardEvent, text: string) => {
-			console.log('1');
 			if (!postMetadata) {
 				return false;
 			}
 
 			if (event.shiftKey) {
-				console.log('next line');
 				return false;
 			}
 
 			event.preventDefault();
 			event.stopImmediatePropagation();
 
-			console.log(text);
-
-			apiPostComment(postMetadata.gsn, postMetadata.sn, text).then((res) =>
-				console.log(res)
-			);
+			createComment(text);
 
 			return true;
 		},
-		[postMetadata]
+		[createComment, postMetadata]
 	);
 
 	return (
@@ -170,10 +174,36 @@ function App() {
 				</div>
 
 				<div className='tw-bg-white tw-shadow'>
-					<BahaPostCommentTextarea
-						id='baha-post-comment-textarea-master'
-						onPressEnter={handlePressEnterOnTextarea}
-					/>
+					<div className='bhgtv3-pclist'>
+						<BahaPostCommentDiv
+							avatar={
+								<img className='bhgtv3-pc-avatar' src={me.avatar} alt={me.id} />
+							}
+							title={me.nickname}
+						>
+							<BahaPostCommentTextarea
+								id='baha-post-comment-textarea-master'
+								onPressEnter={handlePressEnterOnTextarea}
+							/>
+						</BahaPostCommentDiv>
+					</div>
+
+					{pendingNewComments.map((comment) => (
+						<div key={comment.id} className='bhgtv3-pclist tw-opacity-50'>
+							<BahaPostCommentDiv
+								avatar={
+									<img
+										className='bhgtv3-pc-avatar'
+										src={me.avatar}
+										alt={me.id}
+									/>
+								}
+								title={me.nickname}
+							>
+								<BahaPostCommentContent content={comment.text as string} />
+							</BahaPostCommentDiv>
+						</div>
+					))}
 
 					<BahaPostCommentsPagesList
 						commentsPages={commentPages}

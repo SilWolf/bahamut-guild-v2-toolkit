@@ -224,7 +224,15 @@ export default function ControlAndWorkflowPlugin({
 				// 	return false;
 				// }
 
-				return onPressEnter(event, $convertToMarkdownString(BAHA_TRANSFORMERS));
+				const result = onPressEnter(
+					event,
+					$convertToMarkdownString(BAHA_TRANSFORMERS)
+				);
+				if (result) {
+					$getRoot().clear();
+				}
+
+				return result;
 			},
 			COMMAND_PRIORITY_LOW
 		);

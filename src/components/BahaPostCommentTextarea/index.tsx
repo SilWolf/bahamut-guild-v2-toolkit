@@ -17,7 +17,7 @@ import { MentionNode } from './nodes/MentionNode';
 import ControlAndWorkflowPlugin from './plugins/ControlAndWorkflowPlugin';
 import EditablePlugin from './plugins/EditablePlugin';
 import MentionPlugin from './plugins/MentionPlugin';
-import TreeViewPlugin from './plugins/TreeViewPlugin';
+// import TreeViewPlugin from './plugins/TreeViewPlugin';
 import { AutoLinkNode } from '@lexical/link';
 
 const placeholder = '輸入內容…';
@@ -115,7 +115,7 @@ export default function BahaPostCommentTextarea({
 					value={value}
 				/>
 
-				<TreeViewPlugin />
+				{/* <TreeViewPlugin /> */}
 			</div>
 		</LexicalComposer>
 	);

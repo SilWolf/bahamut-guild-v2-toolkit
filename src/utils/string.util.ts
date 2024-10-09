@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-tw';
 import dayjsRelativeTime from 'dayjs/plugin/relativeTime';
+import { nanoid } from 'nanoid';
 
 dayjs.extend(dayjsRelativeTime);
 dayjs.locale('zh-tw');
@@ -29,3 +30,5 @@ export const renderTime = (
 
 	return time;
 };
+
+export const generateRandomId = () => nanoid(12);

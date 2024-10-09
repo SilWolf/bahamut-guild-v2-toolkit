@@ -4,3 +4,12 @@ declare const Bahamut = {
 		getFetchHeaders(): Headers;
 	},
 };
+
+declare const guildPost: {
+	loginUser: {
+		login: boolean;
+		id: string;
+		nickname: string;
+		avatar: string;
+	};
+};
