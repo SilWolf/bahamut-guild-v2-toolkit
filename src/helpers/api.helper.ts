@@ -92,6 +92,20 @@ export const apiGetCommentsInPaginations = async (
 		});
 };
 
+export const apiPostComment = async (
+	gsn: string,
+	sn: string,
+	content: string
+) => {
+	const formData = new FormData();
+	formData.append('gsn', gsn);
+	formData.append('messageId', sn);
+	formData.append('content', content);
+	formData.append('legacy', '1');
+
+	return axiosInstance.post('/guild/v1/comment_new.php', formData);
+};
+
 const mapComment = (comment: BahaComment) => {
 	if (comment.mentions.length === 0) {
 		return comment;

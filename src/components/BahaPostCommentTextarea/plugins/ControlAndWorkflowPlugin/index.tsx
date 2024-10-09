@@ -12,6 +12,11 @@ import {
 	Point,
 } from 'lexical';
 import { useEffect } from 'react';
+import { $convertToMarkdownString } from '@lexical/markdown';
+import { MentionNodeTransformer } from '../../nodes/MentionNode';
+import { LinkNodeTransformer } from '../../nodes/AutoLinkNode';
+
+const BAHA_TRANSFORMERS = [MentionNodeTransformer, LinkNodeTransformer];
 
 function isAtNodeStart(point: Point): boolean {
 	return point.offset === 0;
@@ -187,7 +192,6 @@ export default function ControlAndWorkflowPlugin({
 		return editor.registerCommand(
 			KEY_ENTER_COMMAND,
 			(event: KeyboardEvent) => {
-				const root = $getRoot();
 				// const selection = $getSelection()?.getStartEndPoints();
 
 				// if (!selection) {
@@ -220,7 +224,7 @@ export default function ControlAndWorkflowPlugin({
 				// 	return false;
 				// }
 
-				return onPressEnter(event, root.getTextContent());
+				return onPressEnter(event, $convertToMarkdownString(BAHA_TRANSFORMERS));
 			},
 			COMMAND_PRIORITY_LOW
 		);

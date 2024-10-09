@@ -109,6 +109,7 @@ export default function useBahaPostAndComments(options?: {
 
 	return {
 		post,
+		postMetadata,
 		commentPages,
 		isLoading,
 	};

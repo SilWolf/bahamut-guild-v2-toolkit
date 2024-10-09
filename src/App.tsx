@@ -16,6 +16,7 @@ import RefreshConfigDialog, {
 } from './widgets/RefreshConfigDialog';
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
 import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
+import { apiPostComment } from './helpers/api.helper';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -69,10 +70,25 @@ function App() {
 	);
 
 	/**
+	 * Post and Comments
+	 */
+	const { post, postMetadata, commentPages, isLoading } =
+		useBahaPostAndComments({
+			refreshInterval: refreshConfig?.enableRefresh
+				? refreshConfig.refreshInterval
+				: 0,
+		});
+
+	/**
 	 * Textarea related.
 	 */
 	const handlePressEnterOnTextarea = useCallback(
 		(event: KeyboardEvent, text: string) => {
+			console.log('1');
+			if (!postMetadata) {
+				return false;
+			}
+
 			if (event.shiftKey) {
 				console.log('next line');
 				return false;
@@ -83,19 +99,14 @@ function App() {
 
 			console.log(text);
 
+			apiPostComment(postMetadata.gsn, postMetadata.sn, text).then((res) =>
+				console.log(res)
+			);
+
 			return true;
 		},
-		[]
+		[postMetadata]
 	);
-
-	/**
-	 * Post and Comments
-	 */
-	const { post, commentPages, isLoading } = useBahaPostAndComments({
-		refreshInterval: refreshConfig?.enableRefresh
-			? refreshConfig.refreshInterval
-			: 0,
-	});
 
 	return (
 		<div>
