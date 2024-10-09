@@ -14,7 +14,7 @@ import {
 } from '../helpers/api.helper';
 import { useEffect, useMemo, useState } from 'react';
 
-const COMMENT_PAGES_MAX = 3;
+const COMMENT_PAGES_MAX = 2;
 
 const fetchComments: QueryFunction<
 	Awaited<ReturnType<typeof apiGetCommentsInPaginations>>,
@@ -51,7 +51,9 @@ function combineResult(
 	return results.filter((result) => !!result.data).map((result) => result.data);
 }
 
-export default function useBahaPostAndComments() {
+export default function useBahaPostAndComments(options?: {
+	refreshInterval?: number;
+}) {
 	const postMetadata = useBahaPostMetadata();
 	const queryClient = useQueryClient();
 
@@ -66,7 +68,12 @@ export default function useBahaPostAndComments() {
 
 	const commentPages = useQueries({
 		queries: Array.from({ length: totalPagesCount }, (_, page) =>
-			commentPageQueryOptions(postMetadata, page, totalPagesCount, 0)
+			commentPageQueryOptions(
+				postMetadata,
+				page,
+				totalPagesCount,
+				options?.refreshInterval ?? 0
+			)
 		),
 		combine: combineResult,
 	});

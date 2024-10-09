@@ -15,18 +15,20 @@ import RefreshConfigDialog, {
 	renderRefreshConfig,
 } from './widgets/RefreshConfigDialog';
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
+import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
-	refreshRate: '0' | '3000' | '10000' | '30000' | '60000';
+	refreshInterval: number;
 	refreshDesktopNotification: '0' | '1';
 	refreshSound: '0' | '1' | '2' | '3';
 	slowRefreshIfInactive: '0' | '1';
 };
 
 function App() {
-	const { post, commentPages, isLoading } = useBahaPostAndComments();
-
+	/**
+	 * Plugin Config related.
+	 */
 	const [postLayoutOptions, setCommentOptions] = useLocalStorage(
 		LS_KEY_POST_LAYOUT_OPTIONS,
 		POST_LAYOUT_OPTIONS_DEFAULT_VALUES
@@ -44,6 +46,9 @@ function App() {
 		[setCommentOptions]
 	);
 
+	/**
+	 * Refresh Config related.
+	 */
 	const [refreshConfig, setRefreshConfig] = useLocalStorage<TRefreshConfig>(
 		LS_KEY_REFRESH_OPTIONS,
 		REFERSH_CONFIG_DEFAULT_VALUES
@@ -62,6 +67,35 @@ function App() {
 		},
 		[setRefreshConfig]
 	);
+
+	/**
+	 * Textarea related.
+	 */
+	const handlePressEnterOnTextarea = useCallback(
+		(event: KeyboardEvent, text: string) => {
+			if (event.shiftKey) {
+				console.log('next line');
+				return false;
+			}
+
+			event.preventDefault();
+			event.stopImmediatePropagation();
+
+			console.log(text);
+
+			return true;
+		},
+		[]
+	);
+
+	/**
+	 * Post and Comments
+	 */
+	const { post, commentPages, isLoading } = useBahaPostAndComments({
+		refreshInterval: refreshConfig?.enableRefresh
+			? refreshConfig.refreshInterval
+			: 0,
+	});
 
 	return (
 		<div>
@@ -116,12 +150,20 @@ function App() {
 							className='btn btn-primary tw-whitespace-nowrap'
 							onClick={handleClickStartConfig}
 						>
+							<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
+								settings
+							</i>{' '}
 							插件設定介面
 						</button>
 					</div>
 				</div>
 
 				<div className='tw-bg-white tw-shadow'>
+					<BahaPostCommentTextarea
+						id='baha-post-comment-textarea-master'
+						onPressEnter={handlePressEnterOnTextarea}
+					/>
+
 					<BahaPostCommentsPagesList
 						commentsPages={commentPages}
 						isDesc={postLayoutOptions?.order === 'desc'}

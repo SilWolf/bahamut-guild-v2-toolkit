@@ -4,7 +4,7 @@ import UISwitch from '../components/ui/UISwitch';
 
 export type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
-	refreshRate: '0' | '3000' | '10000' | '30000' | '60000';
+	refreshInterval: number;
 	refreshDesktopNotification: '0' | '1';
 	refreshSound: '0' | '1' | '2' | '3';
 	slowRefreshIfInactive: '0' | '1';
@@ -12,7 +12,7 @@ export type TRefreshConfig = {
 
 export const REFERSH_CONFIG_DEFAULT_VALUES: TRefreshConfig = {
 	enableRefresh: false,
-	refreshRate: '10000',
+	refreshInterval: 10000,
 	refreshDesktopNotification: '1',
 	refreshSound: '1',
 	slowRefreshIfInactive: '1',
@@ -56,8 +56,9 @@ export default function RefreshConfigDialog({
 							<div>
 								<div>
 									刷新頻率:{' '}
-									<select {...register('refreshRate')}>
-										<option value='0'>關閉</option>
+									<select
+										{...register('refreshInterval', { valueAsNumber: true })}
+									>
 										<option value='3000'>3秒 (*)</option>
 										<option value='10000'>10秒</option>
 										<option value='30000'>30秒</option>
@@ -140,7 +141,7 @@ export function renderRefreshConfig(config: TRefreshConfig | undefined) {
 	if (config.enableRefresh !== true) {
 		return '未啟用';
 	}
-	texts.push(`${Math.round(parseInt(config.refreshRate) / 1000)}秒`);
+	texts.push(`${Math.round(config.refreshInterval / 1000)}秒`);
 
 	if (config.refreshDesktopNotification === '1') {
 		texts.push('桌面通知');

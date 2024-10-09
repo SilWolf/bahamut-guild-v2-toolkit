@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { BahaPostCommentsPagesList } from '../components/BahaPostCommentDiv';
 import { BahaCommentsPaginationResult } from '../helpers/api.helper';
-import { FormEvent, useCallback } from 'react';
+import React, { FormEvent, useCallback } from 'react';
 import PostLayout, { PostLayoutOptions } from '../layouts/post.layout';
 
 const COMMENTS_PAGES_SAMPLE: BahaCommentsPaginationResult[] = [
@@ -223,7 +223,7 @@ const ConfigFormSection = ({
 							</div>
 						</div>
 
-						<div className='tw-text-center tw-space-x-1'>
+						<div className='tw-text-right tw-space-x-1'>
 							<button className='btn btn-primary' type='submit'>
 								儲存設定
 							</button>

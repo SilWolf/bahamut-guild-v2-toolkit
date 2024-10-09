@@ -1,12 +1,12 @@
-import { Fragment, ReactNode, memo } from 'react';
+import React, { Fragment, ReactNode } from 'react';
 
 type Props = {
 	content: string;
 };
 
-const NODE_REGEXP = /\!?\@?\[([^\]]*)\]\(([^\)]*)\)/g;
+const NODE_REGEXP = /!?@?\[([^\]]*)\]\(([^)]*)\)/g;
 
-const BahaPostCommentContent = memo(({ content }: Props) => {
+const BahaPostCommentContent = ({ content }: Props) => {
 	const splittedContent = content.split('\n');
 	const lines: ReactNode[][] = [];
 	let firstYoutubeUrl: string | null = null;
@@ -15,7 +15,7 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 		const matches = [...line.matchAll(NODE_REGEXP)];
 
 		if (matches.length === 0) {
-			lines.push([<span>{line || '　'}</span>]);
+			lines.push([<span key='empty'>{line || '　'}</span>]);
 			continue;
 		}
 
@@ -32,7 +32,7 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 			if (matches[i][0].startsWith('![](') && matches[i][2]) {
 				// image
 				nodes.push(
-					<a target='_blank' href={matches[i][2]}>
+					<a target='_blank' href={matches[i][2]} rel='noreferrer'>
 						<img
 							className='tw-h-auto tw-max-h-[164px] tw-rounded-lg'
 							src={matches[i][2]}
@@ -47,8 +47,10 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 				// url
 				nodes.push(
 					<a
+						className='bhgtv3-comment-mention'
 						target='_blank'
 						href={`https://home.gamer.com.tw/homeindex.php?owner=${matches[i][2]}`}
+						rel='noreferrer'
 					>
 						{matches[i][1]}
 					</a>
@@ -56,7 +58,7 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 			} else if (matches[i][0].startsWith('[') && matches[i][2]) {
 				// url
 				nodes.push(
-					<a target='_blank' href={matches[i][2]}>
+					<a target='_blank' href={matches[i][2]} rel='noreferrer'>
 						{matches[i][2]}
 					</a>
 				);
@@ -64,7 +66,7 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 				if (
 					!firstYoutubeUrl &&
 					matches[i][2].match(
-						/http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/
+						/http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-_]*)(&(amp;)?[\w?=]*)?/
 					)
 				) {
 					firstYoutubeUrl = matches[i][2];
@@ -88,7 +90,10 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 
 	if (firstYoutubeUrl) {
 		lines.push([
-			<div className='tw-aspect-video tw-relative tw-w-full'>
+			<div
+				key='youtube-frame'
+				className='tw-aspect-video tw-relative tw-w-full'
+			>
 				<iframe
 					loading='lazy'
 					style={{ position: 'absolute', width: '100%', height: '100%' }}
@@ -111,6 +116,6 @@ const BahaPostCommentContent = memo(({ content }: Props) => {
 			))}
 		</div>
 	);
-});
+};
 
 export default BahaPostCommentContent;
