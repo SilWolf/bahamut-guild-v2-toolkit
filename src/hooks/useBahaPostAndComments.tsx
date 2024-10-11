@@ -14,10 +14,10 @@ import {
 	apiGetCommentsInPaginations,
 	apiGetPostDetail,
 	apiPostComment,
-	BahaComment,
 } from '../helpers/api.helper';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { generateRandomId } from '../utils/string.util';
+import { TBahaComment } from '../types';
 
 const COMMENT_PAGES_MAX = 2;
 
@@ -123,7 +123,7 @@ export default function useBahaPostAndComments(options?: {
 	}, [isLoading, commentPages?.[0]?.totalPage]);
 
 	const [pendingNewComments, setPendingNewComments] = useState<
-		Partial<BahaComment>[]
+		Partial<TBahaComment>[]
 	>([]);
 
 	const createComment = useCallback((text: string) => {

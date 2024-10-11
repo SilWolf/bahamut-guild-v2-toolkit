@@ -1,86 +1,81 @@
 import { useForm } from 'react-hook-form';
-import { BahaPostCommentsPagesList } from '../components/BahaPostCommentDiv';
-import { BahaCommentsPaginationResult } from '../helpers/api.helper';
+import { BahaPostCommentsListingDiv } from '../components/BahaPostCommentDiv';
 import React, { FormEvent, useCallback } from 'react';
-import PostLayout, { PostLayoutOptions } from '../layouts/post.layout';
+import { TBahaComment, TBahaCommentConfig } from '../types';
 
-const COMMENTS_PAGES_SAMPLE: BahaCommentsPaginationResult[] = [
+const COMMENTS_SAMPLE: TBahaComment[] = [
 	{
-		nextPage: 0,
-		totalPage: 1,
-		commentCount: 3,
-		comments: [
-			{
-				text: '路過的平民看了青年一眼，開始交頭接耳：「這人好眼熟，是不是四災電影的角色啊，還是那位導演?」\n\n路過的龍套冒險者還一臉就是『呵呵，抽到破產了嗎~』，顯然也是歐洲人，令人欠揍。',
-				id: '14138825',
-				image: [],
-				mentions: [],
-				tags: [],
-				time: '3小時 編輯',
-				ctime: '2024-04-18 11:00:36',
-				name: '小元',
-				userid: 'a29719811',
-				propic:
-					'https://avatar2.bahamut.com.tw/avataruserpic/a/2/a29719811/a29719811_s.png?v=202404181447',
-				editable: false,
-				deletable: false,
-				position: 1,
-			},
-			{
-				text: '是的，他根本沒有理會。\n雷打不動窮鬼，就算現在有個鬼來纏上他。\n\n他也只會撒手一擺問說：\n\n「你死前沒半顆鑽石，太可悲了吧。」\n\n諸如此類的反向驅鬼法。',
-				id: '14138842',
-				image: [],
-				mentions: [],
-				tags: [],
-				time: '3小時',
-				ctime: '2024-04-18 11:05:00',
-				name: '賽菲洛斯',
-				userid: 'robinhoods91',
-				propic:
-					'https://avatar2.bahamut.com.tw/avataruserpic/r/o/robinhoods91/robinhoods91_s.png?v=202404181447',
-				editable: false,
-				deletable: false,
-				position: 2,
-			},
-			{
-				text: '　\n「你在幹什麼……」\n　\n一個政府再怎麼投入經費關注並改善公民福祉，\n依然多少還是會存在階級貧富問題，這很正常。\n\n只是蔥花蛋糕萬萬沒想到，會有一天看見自己還算朋友的朋友正坐在廣場上乞討。\n他並不認為同為冒險者的羅賓會缺錢缺到得乞討，故當前碗裡只收獲綠貓鄙視感。',
-				id: '14138868',
-				image: [],
-				mentions: [],
-				tags: [],
-				time: '3小時',
-				ctime: '2024-04-18 11:12:35',
-				name: '球羊',
-				userid: 'viviLOVE703',
-				propic:
-					'https://avatar2.bahamut.com.tw/avataruserpic/v/i/vivilove703/vivilove703_s.png?v=202404181447',
-				editable: false,
-				deletable: false,
-				position: 3,
-			},
-		],
+		text: '路過的平民看了青年一眼，開始交頭接耳：「這人好眼熟，是不是四災電影的角色啊，還是那位導演?」\n\n路過的龍套冒險者還一臉就是『呵呵，抽到破產了嗎~』，顯然也是歐洲人，令人欠揍。',
+		id: '14138825',
+		image: [],
+		mentions: [],
+		tags: [],
+		time: '3小時 編輯',
+		ctime: '2024-04-18 11:00:36',
+		name: '小元',
+		userid: 'a29719811',
+		propic:
+			'https://avatar2.bahamut.com.tw/avataruserpic/a/2/a29719811/a29719811_s.png?v=202404181447',
+		editable: false,
+		deletable: false,
+		position: 1,
+	},
+	{
+		text: '是的，他根本沒有理會。\n雷打不動窮鬼，就算現在有個鬼來纏上他。\n\n他也只會撒手一擺問說：\n\n「你死前沒半顆鑽石，太可悲了吧。」\n\n諸如此類的反向驅鬼法。',
+		id: '14138842',
+		image: [],
+		mentions: [],
+		tags: [],
+		time: '3小時',
+		ctime: '2024-04-18 11:05:00',
+		name: '賽菲洛斯',
+		userid: 'robinhoods91',
+		propic:
+			'https://avatar2.bahamut.com.tw/avataruserpic/r/o/robinhoods91/robinhoods91_s.png?v=202404181447',
+		editable: false,
+		deletable: false,
+		position: 2,
+	},
+	{
+		text: '　\n「你在幹什麼……」\n　\n一個政府再怎麼投入經費關注並改善公民福祉，\n依然多少還是會存在階級貧富問題，這很正常。\n\n只是蔥花蛋糕萬萬沒想到，會有一天看見自己還算朋友的朋友正坐在廣場上乞討。\n他並不認為同為冒險者的羅賓會缺錢缺到得乞討，故當前碗裡只收獲綠貓鄙視感。',
+		id: '14138868',
+		image: [],
+		mentions: [],
+		tags: [],
+		time: '3小時',
+		ctime: '2024-04-18 11:12:35',
+		name: '球羊',
+		userid: 'viviLOVE703',
+		propic:
+			'https://avatar2.bahamut.com.tw/avataruserpic/v/i/vivilove703/vivilove703_s.png?v=202404181447',
+		editable: false,
+		deletable: false,
+		position: 3,
 	},
 ];
 
 const ConfigFormSection = ({
-	defaultOptions,
+	defaultConfig,
 	onSubmit,
 }: {
-	defaultOptions: PostLayoutOptions;
-	onSubmit: (values: PostLayoutOptions) => void;
+	defaultConfig: TBahaCommentConfig;
+	onSubmit: (values: TBahaCommentConfig) => void;
 }) => {
-	const { register, watch } = useForm<PostLayoutOptions>({
-		defaultValues: defaultOptions,
+	const { register, watch } = useForm<TBahaCommentConfig>({
+		defaultValues: defaultConfig,
 	});
 
-	const handleSubmit = useCallback((e: FormEvent) => {
-		e.preventDefault();
-		const values = Object.fromEntries(
-			new FormData(e.currentTarget as HTMLFormElement)
-		);
+	const handleSubmit = useCallback(
+		(e: FormEvent) => {
+			e.preventDefault();
+			const values = Object.fromEntries(
+				new FormData(e.currentTarget as HTMLFormElement)
+			) as unknown as TBahaCommentConfig;
 
-		onSubmit(values);
-	}, []);
+			onSubmit(values);
+		},
+		[onSubmit]
+	);
 
 	return (
 		<div className='tw-fixed tw-top-0 tw-bottom-0 tw-left-0 tw-right-0 tw-bg-black tw-bg-opacity-70 tw-z-[9999]'>
@@ -91,13 +86,10 @@ const ConfigFormSection = ({
 
 						<div className='tw-border tw-border-solid tw-border-neutral-400 tw-aspect-video tw-overflow-y-scroll tw-relative tw-rounded tw-flex tw-justify-center tw-pt-2'>
 							<div className='tw-origin-top'>
-								<PostLayout options={watch()}>
-									<BahaPostCommentsPagesList
-										commentsPages={COMMENTS_PAGES_SAMPLE}
-										isDesc={watch('order') === 'desc'}
-										ctimeFormat={watch('ctime')}
-									/>
-								</PostLayout>
+								<BahaPostCommentsListingDiv
+									comments={COMMENTS_SAMPLE}
+									config={watch()}
+								/>
 							</div>
 						</div>
 

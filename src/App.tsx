@@ -1,17 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './App.css';
 import { useCallback, useState } from 'react';
 import BahaPostCommentRenderer from './components/BahaPostCommentContent';
 import ConfigFormSection from './widgets/ConfigFormSection';
-import BahaPostCommentDiv, {
-	BahaPostCommentsPagesList,
-} from './components/BahaPostCommentDiv';
-import { LS_KEY_POST_LAYOUT_OPTIONS, LS_KEY_REFRESH_OPTIONS } from './constant';
+import { LS_KEY_BAHA_COMMENT_CONFIG, LS_KEY_REFRESH_OPTIONS } from './constant';
 import useLocalStorage from 'react-use/lib/useLocalStorage';
-import PostLayout, {
-	POST_LAYOUT_OPTIONS_DEFAULT_VALUES,
-	PostLayoutOptions,
-} from './layouts/post.layout';
 import RefreshConfigDialog, {
 	REFERSH_CONFIG_DEFAULT_VALUES,
 	renderRefreshConfig,
@@ -20,6 +13,14 @@ import useBahaPostAndComments from './hooks/useBahaPostAndComments';
 import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
 import useMe from './hooks/useMe';
 import BahaPostCommentContent from './components/BahaPostCommentContent';
+import BahaPostCommentDiv, {
+	BahaPostCommentsListingDiv,
+} from './components/BahaPostCommentDiv';
+import {
+	BAHA_COMMENT_CONFIG_DEFAULT_VALUES,
+	TBahaCommentConfig,
+	TBahaCommentsPage,
+} from './types';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -33,9 +34,9 @@ function App() {
 	/**
 	 * Plugin Config related.
 	 */
-	const [postLayoutOptions, setCommentOptions] = useLocalStorage(
-		LS_KEY_POST_LAYOUT_OPTIONS,
-		POST_LAYOUT_OPTIONS_DEFAULT_VALUES
+	const [commentConfig, setCommentConfig] = useLocalStorage(
+		LS_KEY_BAHA_COMMENT_CONFIG,
+		BAHA_COMMENT_CONFIG_DEFAULT_VALUES
 	);
 	const [isOpenConfig, setIsOpenConfig] = useState<boolean>(false);
 	const handleClickStartConfig = useCallback(() => {
@@ -43,11 +44,11 @@ function App() {
 	}, []);
 
 	const handleSubmitConfig = useCallback(
-		(values: PostLayoutOptions) => {
-			setCommentOptions(values);
+		(values: TBahaCommentConfig) => {
+			setCommentConfig(values);
 			setIsOpenConfig(false);
 		},
-		[setCommentOptions]
+		[setCommentConfig]
 	);
 
 	/**
@@ -89,6 +90,21 @@ function App() {
 			: 0,
 	});
 
+	const sortedCommentPages = useMemo<TBahaCommentsPage[]>(() => {
+		if (!commentConfig || !commentPages) {
+			return [];
+		}
+
+		if (commentConfig.order === 'desc') {
+			return commentPages.toReversed().map((commentPage) => ({
+				...commentPage,
+				comments: commentPage.comments.toReversed(),
+			}));
+		}
+
+		return commentPages;
+	}, [commentConfig, commentPages]);
+
 	/**
 	 * Textarea related.
 	 */
@@ -114,104 +130,100 @@ function App() {
 
 	return (
 		<div>
-			<PostLayout options={postLayoutOptions!}>
-				{isLoading && (
-					<div className='tw-p-4 tw-bg-white tw-shadow'>
-						<p>插件初始化中…</p>
-					</div>
-				)}
+			{isLoading && (
+				<div className='tw-p-4 tw-bg-white tw-shadow'>
+					<p>插件初始化中…</p>
+				</div>
+			)}
 
-				{post && (
-					<div className='bhgtv3-post tw-p-4 tw-bg-white tw-shadow tw-space-y-2'>
-						<div className='tw-flex tw-items-center tw-gap-x-2'>
-							<div className='tw-shrink-0'>
-								<img
-									className='tw-rounded-full tw-w-10 tw-h-10'
-									src={post.publisher.propic}
-									alt={post.publisher.id}
-								/>
-							</div>
-							<div className='tw-flex-1 tw-space-y-1'>
-								<p className='tw-font-bold'>{post.publisher.name}</p>
-								<p className='tw-text-xs tw-text-neutral-400'>{post.time}</p>
-							</div>
+			{post && (
+				<div className='bhgtv3-post tw-p-4 tw-bg-white tw-shadow tw-space-y-2'>
+					<div className='tw-flex tw-items-center tw-gap-x-2'>
+						<div className='tw-shrink-0'>
+							<img
+								className='tw-rounded-full tw-w-10 tw-h-10'
+								src={post.publisher.propic}
+								alt={post.publisher.id}
+							/>
 						</div>
-						<div>
-							<BahaPostCommentRenderer content={post.content} />
+						<div className='tw-flex-1 tw-space-y-1'>
+							<p className='tw-font-bold'>{post.publisher.name}</p>
+							<p className='tw-text-xs tw-text-neutral-400'>{post.time}</p>
 						</div>
-					</div>
-				)}
-
-				<div className='tw-my-4 tw-flex tw-justify-between tw-items-center'>
-					<div className='tw-relative'>
-						<div className='tw-pl-2'>
-							<a onClick={handleClickStartRefreshConfig} className='link-baha'>
-								自動更新
-								<span className='material-icons tw-w-4 tw-h-4 tw-text-[1em] tw-align-text-bottom'>
-									settings
-								</span>
-							</a>
-							: <strong>{renderRefreshConfig(refreshConfig)}</strong>
-						</div>
-
-						<RefreshConfigDialog
-							value={refreshConfig}
-							open={isOpenRefreshConfig}
-							onSubmit={handleSubmitRefreshConfig}
-						/>
 					</div>
 					<div>
-						<button
-							className='btn btn-primary tw-whitespace-nowrap'
-							onClick={handleClickStartConfig}
-						>
-							<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
-								settings
-							</i>{' '}
-							插件設定介面
-						</button>
+						<BahaPostCommentRenderer content={post.content} />
 					</div>
 				</div>
+			)}
 
-				<div className='tw-bg-white tw-shadow'>
-					<div className='bhgtv3-pclist'>
+			<div className='tw-my-4 tw-flex tw-justify-between tw-items-center'>
+				<div className='tw-relative'>
+					<div className='tw-pl-2'>
+						<a onClick={handleClickStartRefreshConfig} className='link-baha'>
+							自動更新
+							<span className='material-icons tw-w-4 tw-h-4 tw-text-[1em] tw-align-text-bottom'>
+								settings
+							</span>
+						</a>
+						: <strong>{renderRefreshConfig(refreshConfig)}</strong>
+					</div>
+
+					<RefreshConfigDialog
+						value={refreshConfig}
+						open={isOpenRefreshConfig}
+						onSubmit={handleSubmitRefreshConfig}
+					/>
+				</div>
+				<div>
+					<button
+						className='btn btn-primary tw-whitespace-nowrap'
+						onClick={handleClickStartConfig}
+					>
+						<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
+							settings
+						</i>{' '}
+						插件設定介面
+					</button>
+				</div>
+			</div>
+
+			<div className='tw-bg-white tw-shadow tw-mb-4'>
+				<BahaPostCommentDiv
+					avatar={
+						<img className='bhgtv3-pc-avatar' src={me.avatar} alt={me.id} />
+					}
+					title={me.nickname}
+				>
+					<BahaPostCommentTextarea
+						id='baha-post-comment-textarea-master'
+						onPressEnter={handlePressEnterOnTextarea}
+					/>
+				</BahaPostCommentDiv>
+			</div>
+
+			<div className='tw-bg-white tw-shadow'>
+				{pendingNewComments.map((comment) => (
+					<div key={comment.id} className='tw-opacity-50'>
 						<BahaPostCommentDiv
 							avatar={
 								<img className='bhgtv3-pc-avatar' src={me.avatar} alt={me.id} />
 							}
 							title={me.nickname}
 						>
-							<BahaPostCommentTextarea
-								id='baha-post-comment-textarea-master'
-								onPressEnter={handlePressEnterOnTextarea}
-							/>
+							<BahaPostCommentContent content={comment.text as string} />
 						</BahaPostCommentDiv>
 					</div>
+				))}
 
-					{pendingNewComments.map((comment) => (
-						<div key={comment.id} className='bhgtv3-pclist tw-opacity-50'>
-							<BahaPostCommentDiv
-								avatar={
-									<img
-										className='bhgtv3-pc-avatar'
-										src={me.avatar}
-										alt={me.id}
-									/>
-								}
-								title={me.nickname}
-							>
-								<BahaPostCommentContent content={comment.text as string} />
-							</BahaPostCommentDiv>
-						</div>
-					))}
-
-					<BahaPostCommentsPagesList
-						commentsPages={commentPages}
-						isDesc={postLayoutOptions?.order === 'desc'}
-						ctimeFormat={postLayoutOptions?.ctime}
+				{sortedCommentPages.map((commentsPage, pageIndex) => (
+					<BahaPostCommentsListingDiv
+						key={pageIndex}
+						comments={commentsPage.comments}
+						config={commentConfig!}
 					/>
-				</div>
-			</PostLayout>
+				))}
+			</div>
 
 			<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>
 				<div className='tw-absolute tw-bottom-6 tw-right-24'></div>
@@ -219,9 +231,7 @@ function App() {
 
 			{isOpenConfig && (
 				<ConfigFormSection
-					defaultOptions={
-						postLayoutOptions! ?? POST_LAYOUT_OPTIONS_DEFAULT_VALUES
-					}
+					defaultConfig={commentConfig! ?? BAHA_COMMENT_CONFIG_DEFAULT_VALUES}
 					onSubmit={handleSubmitConfig}
 				/>
 			)}

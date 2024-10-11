@@ -1,41 +1,5 @@
 import axiosInstance from '../services/api.service';
-
-export type BahaPostDetail = {
-	time: string;
-	ctime: string;
-	id: string;
-	content: string;
-	publisher: {
-		name: string;
-		id: string;
-		propic: string;
-	};
-};
-
-export type BahaCommentsPaginationResult = {
-	nextPage: number;
-	totalPage: number;
-	commentCount: number;
-	comments: BahaComment[];
-};
-
-export type BahaComment = {
-	text: string;
-	id: string;
-	image: [];
-	mentions: BahaCommentMention[];
-	tags: [];
-	time: string;
-	ctime: string;
-	name: string;
-	userid: string;
-	propic: string;
-	editable: boolean;
-	deletable: boolean;
-	position: number;
-};
-
-export type BahaCommentMention = { id: string; offset: string; length: string };
+import { BahaPostDetail, TBahaComment, TBahaCommentsPage } from '../types';
 
 export const apiGetPostDetail = async (gsn: string, sn: string) => {
 	return axiosInstance
@@ -47,13 +11,13 @@ export const apiGetPostDetail = async (gsn: string, sn: string) => {
 
 export const apiGetAllComments = async (gsn: string, sn: string) => {
 	return axiosInstance
-		.get<{ data: BahaCommentsPaginationResult }>('/guild/v1/comment_list.php', {
+		.get<{ data: TBahaCommentsPage }>('/guild/v1/comment_list.php', {
 			params: { gsn, messageId: sn, all: 1 },
 		})
 		.then((res) => {
 			const result = res.data.data;
 			const comments = [...result.comments];
-			const finals: BahaCommentsPaginationResult[] = [];
+			const finals: TBahaCommentsPage[] = [];
 			const splitLength = 15;
 
 			let nextPage = 0;
@@ -79,7 +43,7 @@ export const apiGetCommentsInPaginations = async (
 	const _all = page === 'all' ? 1 : null;
 
 	return axiosInstance
-		.get<{ data: BahaCommentsPaginationResult }>('/guild/v1/comment_list.php', {
+		.get<{ data: TBahaCommentsPage }>('/guild/v1/comment_list.php', {
 			params: { gsn, messageId: sn, page: _page, all: _all },
 		})
 		.then((res) => {
@@ -104,14 +68,14 @@ export const apiPostComment = async (
 	formData.append('legacy', '1');
 
 	return axiosInstance
-		.post<{ data: { commentData: BahaComment } }>(
+		.post<{ data: { commentData: TBahaComment } }>(
 			'/guild/v1/comment_new.php',
 			formData
 		)
 		.then((res) => res.data.data.commentData);
 };
 
-const mapComment = (comment: BahaComment) => {
+const mapComment = (comment: TBahaComment) => {
 	if (comment.mentions.length === 0) {
 		return comment;
 	}
