@@ -1,8 +1,10 @@
 import {
 	keepPreviousData,
+	Mutation,
 	QueryFunction,
 	queryOptions,
 	useMutation,
+	useMutationState,
 	useQueries,
 	useQuery,
 	useQueryClient,
@@ -31,15 +33,6 @@ const fetchComments: QueryFunction<
 		queryKey[3]
 	);
 
-const createCommentFn = (variables: {
-	gsn: string;
-	sn: string;
-	text: string;
-	id: string;
-}) => {
-	return apiPostComment(variables.gsn, variables.sn, variables.text);
-};
-
 function commentPageQueryOptions(
 	postMetadata: ReturnType<typeof useBahaPostMetadata>,
 	page: number,
@@ -63,7 +56,36 @@ function combineResult(
 		Error
 	>[]
 ) {
-	return results.filter((result) => !!result.data).map((result) => result.data);
+	const allValidResuits = results.filter((result) => !!result.data);
+	console.log(results);
+	if (
+		allValidResuits.length === 0 ||
+		allValidResuits[0].data.commentCount === 0
+	) {
+		return {
+			fetchedComments: [],
+			latestCommentId: undefined,
+			totalPage: 0,
+			commentCount: 0,
+		};
+	}
+
+	const fetchedComments = allValidResuits
+		.map((result) =>
+			result.data.comments.map((comment) => ({
+				...comment,
+				_listingItemId: comment.id,
+			}))
+		)
+		.flat();
+	const latestCommentPage = allValidResuits.slice(-1)[0].data;
+
+	return {
+		fetchedComments,
+		latestCommentId: fetchedComments.slice(-1)[0].id,
+		totalPage: latestCommentPage.totalPage,
+		commentCount: latestCommentPage.commentCount,
+	};
 }
 
 export default function useBahaPostAndComments(options?: {
@@ -79,27 +101,27 @@ export default function useBahaPostAndComments(options?: {
 		enabled: !!postMetadata,
 	});
 
-	const [totalPagesCount, setTotalPagesCount] = useState<number>(0);
-
-	const commentPages = useQueries({
-		queries: Array.from({ length: totalPagesCount }, (_, page) =>
-			commentPageQueryOptions(
-				postMetadata,
-				page,
-				totalPagesCount,
-				options?.refreshInterval ?? 0
-			)
-		),
-		combine: combineResult,
-	});
+	const [cachedTotalPage, setCachedTotalPage] = useState<number>(0);
+	const { fetchedComments, totalPage, latestCommentId, commentCount } =
+		useQueries({
+			queries: Array.from({ length: cachedTotalPage }, (_, page) =>
+				commentPageQueryOptions(
+					postMetadata,
+					page,
+					cachedTotalPage,
+					options?.refreshInterval ?? 0
+				)
+			),
+			combine: combineResult,
+		});
 
 	const isLoading = useMemo(
-		() => isLoadingPost || totalPagesCount === 0,
-		[isLoadingPost, totalPagesCount]
+		() => isLoadingPost || cachedTotalPage === 0,
+		[isLoadingPost, cachedTotalPage]
 	);
 
 	useEffect(() => {
-		if (postMetadata && totalPagesCount === 0) {
+		if (postMetadata && cachedTotalPage === 0) {
 			apiGetAllComments(postMetadata.gsn, postMetadata.sn).then(
 				(commentPages) => {
 					commentPages.forEach((commentPage, page) => {
@@ -109,94 +131,101 @@ export default function useBahaPostAndComments(options?: {
 						);
 					});
 
-					setTotalPagesCount(commentPages?.[0]?.totalPage ?? 1);
+					setCachedTotalPage(commentPages[0]?.totalPage ?? 1);
 				}
 			);
 		}
-	}, [postMetadata, queryClient, totalPagesCount]);
+	}, [postMetadata, queryClient, cachedTotalPage]);
 
 	useEffect(() => {
-		if (!isLoading && commentPages[0]) {
-			setTotalPagesCount(commentPages[0].totalPage ?? 1);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isLoading, commentPages?.[0]?.totalPage]);
+		setCachedTotalPage(totalPage);
+	}, [totalPage]);
 
-	const [pendingNewComments, setPendingNewComments] = useState<
-		Partial<TBahaComment>[]
-	>([]);
+	const createCommentFn = useCallback(
+		(variables: Pick<TBahaComment, 'id' | 'text' | '_listingItemId'>) => {
+			return apiPostComment(
+				postMetadata!.gsn,
+				postMetadata!.sn,
+				variables.text
+			);
+		},
+		[postMetadata]
+	);
 
-	const createComment = useCallback((text: string) => {
-		setPendingNewComments((prev) => [
-			...prev,
-			{ text, id: generateRandomId() },
-		]);
-	}, []);
+	/**
+	 * Mutations
+	 */
+	const createCommentMutationKey = useMemo(
+		() => ['post', postMetadata, 'createComment'] as const,
+		[postMetadata]
+	);
+	const createCommentMutationFilter = useMemo(
+		() => ({
+			mutationKey: createCommentMutationKey,
+		}),
+		[createCommentMutationKey]
+	);
+	const createCommentSelect = useCallback(
+		(mutation: Mutation) => ({
+			variables: mutation.state.variables,
+			status: mutation.state.status,
+			error: mutation.state.error,
+		}),
+		[]
+	);
+
+	const allMutationComments = useMutationState({
+		filters: createCommentMutationFilter,
+		select: createCommentSelect,
+	});
+	const pendingMutations = useMemo(
+		() => allMutationComments.filter(({ status }) => status !== 'success'),
+		[allMutationComments]
+	);
 
 	const {
 		mutateAsync: createCommentInternal,
 		status: createCommentStatus,
 		error: createCommentError,
-		reset: resetMutation,
 	} = useMutation({
 		mutationFn: createCommentFn,
+		mutationKey: createCommentMutationKey,
 		onSuccess: (newComment, variables) => {
 			queryClient.setQueryData(
-				['post', postMetadata, 'comments', totalPagesCount],
+				['post', postMetadata, 'comments', totalPage],
 				(prev: Awaited<ReturnType<typeof apiGetCommentsInPaginations>>) => ({
 					...prev,
-					comments: [...prev.comments, newComment],
+					comments: [
+						...prev.comments,
+						{
+							...newComment,
+							_listingItemId: variables._listingItemId,
+						},
+					],
 				})
 			);
-			setPendingNewComments((prev) => {
-				const indexOfRemoval = prev.findIndex(({ id }) => variables.id === id);
-				if (indexOfRemoval !== -1) {
-					prev.splice(indexOfRemoval, 1);
-				}
-
-				return [...prev];
-			});
-
-			return queryClient.invalidateQueries({
-				queryKey: ['post', postMetadata, 'comments'],
-			});
+		},
+		scope: {
+			id: 'createComment',
 		},
 	});
 
-	useEffect(() => {
-		if (!postMetadata) {
-			return;
-		}
-
-		if (
-			pendingNewComments.length > 0 &&
-			createCommentStatus !== 'pending' &&
-			createCommentStatus !== 'error'
-		) {
-			const creatingComment = pendingNewComments[0];
-			console.log(creatingComment);
-			createCommentInternal({
-				gsn: postMetadata.gsn,
-				sn: postMetadata.sn,
-				text: creatingComment.text as string,
-				id: creatingComment.id as string,
-			});
-		}
-	}, [
-		createComment,
-		createCommentInternal,
-		createCommentStatus,
-		postMetadata,
-		pendingNewComments,
-		resetMutation,
-	]);
+	const createComment = useCallback(
+		(text: string) => {
+			const newId = generateRandomId();
+			createCommentInternal({ id: newId, _listingItemId: newId, text });
+		},
+		[createCommentInternal]
+	);
 
 	return {
 		post,
 		postMetadata,
-		commentPages,
+		fetchedComments,
+		latestCommentId,
+		commentCount,
+		pendingMutations,
 		isLoading,
-		pendingNewComments,
 		createComment,
 		createCommentStatus,
 		createCommentError,

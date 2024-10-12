@@ -7,7 +7,7 @@ dayjs.extend(dayjsRelativeTime);
 dayjs.locale('zh-tw');
 
 export const renderTime = (
-	time: string,
+	time: string | undefined,
 	format: 'full' | 'short' | 'relative' | 'hidden' | undefined
 ) => {
 	/**

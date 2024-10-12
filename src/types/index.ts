@@ -18,19 +18,22 @@ export type TBahaCommentsPage = {
 };
 
 export type TBahaComment = {
-	text: string;
 	id: string;
-	image: [];
-	mentions: BahaCommentMention[];
-	tags: [];
-	time: string;
-	ctime: string;
 	name: string;
 	userid: string;
 	propic: string;
-	editable: boolean;
-	deletable: boolean;
-	position: number;
+	text: string;
+	image?: [];
+	mentions?: BahaCommentMention[];
+	tags?: [];
+	time?: string;
+	ctime?: string;
+	editable?: boolean;
+	deletable?: boolean;
+	position?: number;
+
+	_isPending?: boolean;
+	_listingItemId?: string;
 };
 
 export type BahaCommentMention = {

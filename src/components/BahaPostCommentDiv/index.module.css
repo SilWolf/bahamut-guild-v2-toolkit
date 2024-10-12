@@ -4,6 +4,7 @@
 	align-items: flex-start;
 	font-size: var(--bpc-font-size, '15px');
 	background: var(--bpc-bgcolor, var{--bpc-bgcolor-odd, 'transparent'});
+	width: 100%;
 }
 
 .baha-post-comment:nth-child(even) {
@@ -12,12 +13,12 @@
 
 .baha-post-comment :global(.bpc-side-left) {
 	margin-right: 0.75em;
-	display: var('--bpc-side-left-display', 'block');
+	display: var(--bpc-side-left-display, 'block');
 }
 
 .baha-post-comment :global(.bpc-avatar) {
-	width: var(--bpc-avatar-size, 34px);
-	height: var(--bpc-avatar-size, 34px);
+	width: var(--bpc-avatar-size, 36px);
+	height: var(--bpc-avatar-size, 36px);
 	transition-property: width, height;
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	transition-duration: 150ms;
@@ -30,7 +31,8 @@
 	transition-property: width;
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	transition-duration: 150ms;
-	max-width: var(--bpc-main-max-width, 100%);
+	max-width: 100%;
+	width: var(--bpc-main-max-width, 100%);
 }
 
 .baha-post-comment :global(.bpc-main-header) {
@@ -54,9 +56,10 @@
 }
 
 .baha-post-comments-listing {
-	@apply tw-flex tw-justify-start tw-items-start tw-gap-x-3;
 }
-
 .baha-post-comments-listing :global(.bpcl-item) {
-	@apply tw-border-0 tw-border-t tw-border-solid tw-border-neutral-200 tw-px-4 tw-pt-3 tw-pb-4;
+	border: 0;
+	border-top: 1px solid #f00;
+	padding: 0.75em 1em;
+	width: 100%;
 }

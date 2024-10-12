@@ -12,14 +12,14 @@ import RefreshConfigDialog, {
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
 import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
 import useMe from './hooks/useMe';
-import BahaPostCommentContent from './components/BahaPostCommentContent';
-import BahaPostCommentDiv, {
+import {
 	BahaPostCommentsListingDiv,
+	BahaPostCommentsListingDivForEditor,
 } from './components/BahaPostCommentDiv';
 import {
 	BAHA_COMMENT_CONFIG_DEFAULT_VALUES,
+	TBahaComment,
 	TBahaCommentConfig,
-	TBahaCommentsPage,
 } from './types';
 
 type TRefreshConfig = {
@@ -80,30 +80,45 @@ function App() {
 	const {
 		post,
 		postMetadata,
-		commentPages,
+		fetchedComments,
+		latestCommentId,
+		pendingMutations,
 		isLoading,
 		createComment,
-		pendingNewComments,
 	} = useBahaPostAndComments({
 		refreshInterval: refreshConfig?.enableRefresh
 			? refreshConfig.refreshInterval
 			: 0,
 	});
 
-	const sortedCommentPages = useMemo<TBahaCommentsPage[]>(() => {
-		if (!commentConfig || !commentPages) {
-			return [];
+	const comments = useMemo(() => {
+		const result = [
+			...fetchedComments,
+			...pendingMutations.map(
+				(mutation): TBahaComment => ({
+					...(mutation.variables as { id: string; text: string }),
+					name: me.nickname,
+					userid: me.id,
+					propic: me.avatar,
+					_isPending: true,
+				})
+			),
+		];
+
+		if (commentConfig?.order === 'desc') {
+			result.reverse();
 		}
 
-		if (commentConfig.order === 'desc') {
-			return commentPages.toReversed().map((commentPage) => ({
-				...commentPage,
-				comments: commentPage.comments.toReversed(),
-			}));
-		}
-
-		return commentPages;
-	}, [commentConfig, commentPages]);
+		return result;
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		commentConfig?.order,
+		latestCommentId,
+		me.avatar,
+		me.id,
+		me.nickname,
+		pendingMutations.length,
+	]);
 
 	/**
 	 * Textarea related.
@@ -121,6 +136,10 @@ function App() {
 			event.preventDefault();
 			event.stopImmediatePropagation();
 
+			if (!text) {
+				return true;
+			}
+
 			createComment(text);
 
 			return true;
@@ -129,7 +148,10 @@ function App() {
 	);
 
 	return (
-		<div>
+		<div
+			className='tw-flex tw-flex-col tw-mx-auto'
+			style={{ width: 'min-content' }}
+		>
 			{isLoading && (
 				<div className='tw-p-4 tw-bg-white tw-shadow'>
 					<p>插件初始化中…</p>
@@ -157,7 +179,7 @@ function App() {
 				</div>
 			)}
 
-			<div className='tw-my-4 tw-flex tw-justify-between tw-items-center'>
+			<div className='tw-self-stretch tw-my-4 tw-flex tw-justify-between tw-items-center'>
 				<div className='tw-relative'>
 					<div className='tw-pl-2'>
 						<a onClick={handleClickStartRefreshConfig} className='link-baha'>
@@ -189,40 +211,22 @@ function App() {
 			</div>
 
 			<div className='tw-bg-white tw-shadow tw-mb-4'>
-				<BahaPostCommentDiv
-					avatar={
-						<img className='bhgtv3-pc-avatar' src={me.avatar} alt={me.id} />
-					}
-					title={me.nickname}
+				<BahaPostCommentsListingDivForEditor
+					avatarSrc={me.avatar}
+					config={commentConfig!}
 				>
 					<BahaPostCommentTextarea
 						id='baha-post-comment-textarea-master'
 						onPressEnter={handlePressEnterOnTextarea}
 					/>
-				</BahaPostCommentDiv>
+				</BahaPostCommentsListingDivForEditor>
 			</div>
 
 			<div className='tw-bg-white tw-shadow'>
-				{pendingNewComments.map((comment) => (
-					<div key={comment.id} className='tw-opacity-50'>
-						<BahaPostCommentDiv
-							avatar={
-								<img className='bhgtv3-pc-avatar' src={me.avatar} alt={me.id} />
-							}
-							title={me.nickname}
-						>
-							<BahaPostCommentContent content={comment.text as string} />
-						</BahaPostCommentDiv>
-					</div>
-				))}
-
-				{sortedCommentPages.map((commentsPage, pageIndex) => (
-					<BahaPostCommentsListingDiv
-						key={pageIndex}
-						comments={commentsPage.comments}
-						config={commentConfig!}
-					/>
-				))}
+				<BahaPostCommentsListingDiv
+					comments={comments}
+					config={commentConfig!}
+				/>
 			</div>
 
 			<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>

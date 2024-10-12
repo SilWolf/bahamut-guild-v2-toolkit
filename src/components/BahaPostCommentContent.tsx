@@ -7,7 +7,7 @@ type Props = {
 const NODE_REGEXP = /!?@?\[([^\]]*)\]\(([^)]*)\)/g;
 
 const BahaPostCommentContent = ({ content }: Props) => {
-	const splittedContent = content.split('\n');
+	const splittedContent = content.replace(/&amp;/g, '&').split('\n');
 	const lines: ReactNode[][] = [];
 	let firstYoutubeUrl: string | null = null;
 

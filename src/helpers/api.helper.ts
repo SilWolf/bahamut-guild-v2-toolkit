@@ -26,6 +26,8 @@ export const apiGetAllComments = async (gsn: string, sn: string) => {
 					...result,
 					comments: comments.splice(0, splitLength).map(mapComment),
 					nextPage,
+					totalPage: result.totalPage,
+					commentCount: result.commentCount,
 				});
 				nextPage += 1;
 			}
@@ -76,7 +78,7 @@ export const apiPostComment = async (
 };
 
 const mapComment = (comment: TBahaComment) => {
-	if (comment.mentions.length === 0) {
+	if (!comment.mentions || comment.mentions?.length === 0) {
 		return comment;
 	}
 
