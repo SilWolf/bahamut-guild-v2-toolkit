@@ -47,16 +47,31 @@
 }
 
 .baha-post-comment :global(.bpc-main-header-metadata) {
-	font-size: 0.8em;
-	opacity: 0.9;
 }
 
 .baha-post-comment :global(.bpc-main-body) {
 	line-height: 1.5;
 }
 
+@keyframes bpcl-item-animator-fadein {
+	0% {
+		opacity: 0;
+		top: -2em;
+	}
+	100% {
+		opacity: 1;
+		top: 0;
+	}
+}
+
 .baha-post-comments-listing {
 }
+
+.baha-post-comments-listing :global(.bpcl-item-animator) {
+	position: relative;
+	animation: bpcl-item-animator-fadein 0.35s;
+}
+
 .baha-post-comments-listing :global(.bpcl-item) {
 	border: 0;
 	border-top: 1px solid #f00;

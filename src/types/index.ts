@@ -23,6 +23,7 @@ export type TBahaComment = {
 	userid: string;
 	propic: string;
 	text: string;
+	position: number;
 	image?: [];
 	mentions?: BahaCommentMention[];
 	tags?: [];
@@ -30,10 +31,8 @@ export type TBahaComment = {
 	ctime?: string;
 	editable?: boolean;
 	deletable?: boolean;
-	position?: number;
 
 	_isPending?: boolean;
-	_listingItemId?: string;
 };
 
 export type BahaCommentMention = {

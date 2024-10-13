@@ -57,7 +57,6 @@ function combineResult(
 	>[]
 ) {
 	const allValidResuits = results.filter((result) => !!result.data);
-	console.log(results);
 	if (
 		allValidResuits.length === 0 ||
 		allValidResuits[0].data.commentCount === 0
@@ -74,7 +73,6 @@ function combineResult(
 		.map((result) =>
 			result.data.comments.map((comment) => ({
 				...comment,
-				_listingItemId: comment.id,
 			}))
 		)
 		.flat();
@@ -142,7 +140,7 @@ export default function useBahaPostAndComments(options?: {
 	}, [totalPage]);
 
 	const createCommentFn = useCallback(
-		(variables: Pick<TBahaComment, 'id' | 'text' | '_listingItemId'>) => {
+		(variables: Pick<TBahaComment, 'id' | 'text'>) => {
 			return apiPostComment(
 				postMetadata!.gsn,
 				postMetadata!.sn,
@@ -190,17 +188,15 @@ export default function useBahaPostAndComments(options?: {
 	} = useMutation({
 		mutationFn: createCommentFn,
 		mutationKey: createCommentMutationKey,
-		onSuccess: (newComment, variables) => {
+		onSuccess: (newComment) => {
 			queryClient.setQueryData(
 				['post', postMetadata, 'comments', totalPage],
 				(prev: Awaited<ReturnType<typeof apiGetCommentsInPaginations>>) => ({
 					...prev,
+					commentCount: prev.commentCount + 1,
 					comments: [
 						...prev.comments,
-						{
-							...newComment,
-							_listingItemId: variables._listingItemId,
-						},
+						{ ...newComment, position: prev.commentCount + 1 },
 					],
 				})
 			);
@@ -212,8 +208,7 @@ export default function useBahaPostAndComments(options?: {
 
 	const createComment = useCallback(
 		(text: string) => {
-			const newId = generateRandomId();
-			createCommentInternal({ id: newId, _listingItemId: newId, text });
+			createCommentInternal({ id: generateRandomId(), text });
 		},
 		[createCommentInternal]
 	);

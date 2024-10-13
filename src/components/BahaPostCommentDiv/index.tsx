@@ -1,4 +1,11 @@
-import React, { CSSProperties, memo, PropsWithChildren, useMemo } from 'react';
+import React, {
+	CSSProperties,
+	memo,
+	PropsWithChildren,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react';
 import BahaPostCommentContent from '../BahaPostCommentContent';
 import { renderTime } from '../../utils/string.util';
 
@@ -70,11 +77,11 @@ export const BahaPostCommentDiv = memo(
 				avatar={<BahaPostCommentAvatar src={comment.propic} />}
 				title={comment.name}
 				metadata={
-					<div className='tw-space-x-4'>
-						{comment.position && <span>#{comment.position || '???'}</span>}
+					<div className='tw-space-x-4 tw-opacity-80 tw-text-xs'>
 						{comment.ctime && (
 							<span>{renderTime(comment.ctime, ctimeFormat)}</span>
 						)}
+						{comment.position && <span>#{comment.position || '???'}</span>}
 					</div>
 				}
 			>
@@ -222,19 +229,19 @@ export const BahaPostCommentsListingDiv = ({
 	const listingStyle = useMemo(() => listingCSSProperties(config), [config]);
 
 	const commentAndStyles = useMemo(() => {
-		return comments.map(commentMapFn(config));
+		return (config.order === 'desc' ? comments.toReversed() : comments).map(
+			commentMapFn(config)
+		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [comments[0]?.id, comments[comments.length - 1]?.id, config]);
+	}, [comments[comments.length - 1]?.id, config]);
 
 	return (
 		<div className={styles['baha-post-comments-listing']} style={listingStyle}>
 			{commentAndStyles.map(({ comment, cssVariables }) => (
-				<div
-					key={comment._listingItemId}
-					className='bpcl-item'
-					style={cssVariables}
-				>
-					<BahaPostCommentDiv comment={comment} />
+				<div key={comment.position} className='bpcl-item-animator'>
+					<div className='bpcl-item' style={cssVariables}>
+						<BahaPostCommentDiv comment={comment} />
+					</div>
 				</div>
 			))}
 		</div>

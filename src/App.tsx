@@ -92,33 +92,21 @@ function App() {
 	});
 
 	const comments = useMemo(() => {
-		const result = [
+		return [
 			...fetchedComments,
 			...pendingMutations.map(
-				(mutation): TBahaComment => ({
+				(mutation, pi): TBahaComment => ({
 					...(mutation.variables as { id: string; text: string }),
 					name: me.nickname,
 					userid: me.id,
 					propic: me.avatar,
+					position: fetchedComments.length + pi + 1,
 					_isPending: true,
 				})
 			),
 		];
-
-		if (commentConfig?.order === 'desc') {
-			result.reverse();
-		}
-
-		return result;
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		commentConfig?.order,
-		latestCommentId,
-		me.avatar,
-		me.id,
-		me.nickname,
-		pendingMutations.length,
-	]);
+	}, [latestCommentId, me.avatar, me.id, me.nickname, pendingMutations.length]);
 
 	/**
 	 * Textarea related.
