@@ -32,9 +32,16 @@ function App() {
 	 * Plugin Config related.
 	 */
 	const [bgtV3Config, setBGTV3Config] = useBGTV3Config();
-	const [, setIsOpenConfig] = useState<boolean>(false);
-	const handleClickStartConfig = useCallback(() => {
-		setIsOpenConfig(true);
+	const [isOpenBGTV3Config, setIsOpenBGTV3Config] = useState<boolean>(false);
+	const handleClickToggleConfig = useCallback(() => {
+		setIsOpenBGTV3Config((prev) => !prev);
+
+		const rightSideEle = document.querySelector(
+			'.main-sidebar_right'
+		) as HTMLDivElement;
+		if (rightSideEle && !rightSideEle.classList.contains('is-collapsed')) {
+			Guild.toggleRightSidebar();
+		}
 	}, []);
 
 	/**
@@ -172,7 +179,7 @@ function App() {
 					<div>
 						<button
 							className='btn btn-primary tw-whitespace-nowrap'
-							onClick={handleClickStartConfig}
+							onClick={handleClickToggleConfig}
 						>
 							<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
 								settings
@@ -206,9 +213,11 @@ function App() {
 				</div>
 			</div>
 
-			<div className='tw-flex-1 tw-bg-white tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)]'>
-				<BGTV3ConfigDiv config={bgtV3Config!} setFn={setBGTV3Config} />
-			</div>
+			{isOpenBGTV3Config && (
+				<div className='tw-flex-1 tw-bg-white tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)]'>
+					<BGTV3ConfigDiv config={bgtV3Config!} setFn={setBGTV3Config} />
+				</div>
+			)}
 		</div>
 	);
 }

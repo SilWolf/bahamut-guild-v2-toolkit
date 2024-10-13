@@ -1,6 +1,8 @@
 import React, { ChangeEvent, useCallback } from 'react';
 import { TBGTV3Config } from '../../types';
 
+import styles from './index.module.css';
+
 const FIELDS: {
 	field: keyof TBGTV3Config['comment'];
 	label: string;
@@ -11,8 +13,33 @@ const FIELDS: {
 		label: '寬度',
 		options: [
 			{ value: 'unlimited', label: '不限' },
-			{ value: 'guildV2', label: '31全型字（巴哈公會2.0）' },
-			{ value: 'guildV1', label: '37全型字（飛鳥完美排版）' },
+			{ value: 'guildV2', label: '31全型字 - 巴哈公會2.0' },
+			{ value: 'guildV1', label: '37全型字 - 飛鳥完美排版' },
+		],
+	},
+	{
+		field: 'order',
+		label: '留言排序',
+		options: [
+			{ value: 'asc', label: '正序(由最舊到最新)' },
+			{ value: 'desc', label: '倒序(由最新到最舊)' },
+		],
+	},
+	{
+		field: 'nameColor',
+		label: '名稱顏色',
+		options: [
+			{ value: 'none', label: '正常' },
+			{ value: 'userColor', label: '依玩家顏色' },
+		],
+	},
+	{
+		field: 'bgColor',
+		label: '背景顏色',
+		options: [
+			{ value: 'none', label: '無' },
+			{ value: 'striped', label: '黑白相間' },
+			{ value: 'userColor', label: '依玩家顏色' },
 		],
 	},
 	{
@@ -41,31 +68,6 @@ const FIELDS: {
 			{ value: 'small', label: '小 (12px)' },
 			{ value: 'medium', label: '預設 (15px)' },
 			{ value: 'large', label: '大 (18px)' },
-		],
-	},
-	{
-		field: 'nameColor',
-		label: '名稱顏色',
-		options: [
-			{ value: 'none', label: '正常' },
-			{ value: 'userColor', label: '依玩家顏色' },
-		],
-	},
-	{
-		field: 'bgColor',
-		label: '背景顏色',
-		options: [
-			{ value: 'none', label: '無' },
-			{ value: 'striped', label: '黑白相間' },
-			{ value: 'userColor', label: '依玩家顏色' },
-		],
-	},
-	{
-		field: 'order',
-		label: '留言排序',
-		options: [
-			{ value: 'asc', label: '正序(由最舊到最新)' },
-			{ value: 'desc', label: '倒序(由最新到最舊)' },
 		],
 	},
 	{
@@ -98,9 +100,9 @@ function FieldSelect({
 	);
 
 	return (
-		<div className='tw-flex tw-justify-between'>
-			<div>{field.label}</div>
-			<div>
+		<div className='cd-field'>
+			<div className='cd-field-label'>{field.label}</div>
+			<div className='cd-field-select'>
 				<select
 					value={value}
 					onChange={handleChange}
@@ -127,7 +129,6 @@ export function ConfigFormCommentLayoutSection({
 }) {
 	const handleChangeValue = useCallback(
 		(field: string, value: string) => {
-			console.log(field, value);
 			setFn(() => {
 				return {
 					...config,
@@ -145,7 +146,7 @@ export function ConfigFormCommentLayoutSection({
 		<form className='tw-space-y-6'>
 			<h2 className='tw-text-xl tw-font-bold'>外觀設定</h2>
 
-			<div>
+			<div className={styles['bgtv3-config-div']}>
 				{FIELDS.map((field) => (
 					<FieldSelect
 						key={field.field}

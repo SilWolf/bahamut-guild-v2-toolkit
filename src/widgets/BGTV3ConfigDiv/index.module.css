@@ -1,0 +1,40 @@
+.bgtv3-config-div {
+	padding: 1em;
+}
+
+.bgtv3-config-div :global(.cd-field) {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.5em;
+}
+
+.bgtv3-config-div :global(.cd-field-label) {
+	opacity: 0.75;
+}
+
+.bgtv3-config-div :global(.cd-field-select) {
+	background: rgba(0, 0, 0, 0.03);
+	border-radius: 4px;
+	padding-right: 0.5em;
+	cursor: pointer;
+}
+
+.bgtv3-config-div :global(.cd-field-select:hover) {
+	background: rgba(0, 0, 0, 0.06);
+}
+
+.bgtv3-config-div :global(.cd-field-select select) {
+	font-size: 1em;
+	appearance: none;
+	background-color: transparent;
+	border: none;
+	padding: 0.5em 0 0.5em 0.5em;
+	margin: 0;
+	width: 100%;
+	font-family: inherit;
+	font-size: inherit;
+	cursor: inherit;
+	line-height: inherit;
+	text-align: right;
+}

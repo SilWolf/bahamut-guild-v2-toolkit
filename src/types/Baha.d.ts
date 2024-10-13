@@ -13,3 +13,7 @@ declare const guildPost: {
 		avatar: string;
 	};
 };
+
+declare const Guild: {
+	toggleRightSidebar: () => void;
+};
