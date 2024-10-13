@@ -149,9 +149,9 @@ const listingCSSProperties = (config: TBGTV3Config) => {
 			break;
 		case 'striped':
 			cssVariables['--bpc-light-bgcolor-odd'] = 'transparent';
-			cssVariables['--bpc-light-bgcolor-even'] = 'rgba(0, 0, 0, 0.1)';
+			cssVariables['--bpc-light-bgcolor-even'] = 'rgba(0, 0, 0, 0.03)';
 			cssVariables['--bpc-dark-bgcolor-odd'] = 'transparent';
-			cssVariables['--bpc-dark-bgcolor-even'] = 'rgba(255, 255, 255, 0.1)';
+			cssVariables['--bpc-dark-bgcolor-even'] = 'rgba(255, 255, 255, 0.03)';
 			break;
 	}
 
@@ -247,8 +247,12 @@ export const BahaPostCommentsListingDiv = ({
 	return (
 		<div className={styles['baha-post-comments-listing']} style={listingStyle}>
 			{commentAndStyles.map(({ comment, cssVariables }) => (
-				<div key={comment.position} className='bpcl-item-animator'>
-					<div className='bpcl-item' style={cssVariables}>
+				<div
+					key={comment.position}
+					className='bpcl-item-animator'
+					style={cssVariables}
+				>
+					<div className='bpcl-item'>
 						<BahaPostCommentDiv comment={comment} />
 					</div>
 				</div>

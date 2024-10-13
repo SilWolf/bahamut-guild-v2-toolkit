@@ -29,7 +29,7 @@
 	appearance: none;
 	background-color: transparent;
 	border: none;
-	padding: 0.5em 0 0.5em 0.5em;
+	padding: 0.5em 0.5em 0.5em 0.5em;
 	margin: 0;
 	width: 100%;
 	font-family: inherit;
@@ -37,4 +37,9 @@
 	cursor: inherit;
 	line-height: inherit;
 	text-align: right;
+}
+
+[data-theme='dark'] .bgtv3-config-div :global(.cd-field-select select) {
+	color: #ffffff;
+	background: #555555;
 }

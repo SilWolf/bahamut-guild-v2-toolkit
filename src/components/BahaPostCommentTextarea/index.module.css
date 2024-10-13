@@ -1,6 +1,14 @@
 .editor-container {
 	width: 100%;
 	margin: 0 auto;
+	background: rgba(0, 0, 0, 0.03);
+	margin: -2px -8px;
+	padding: 2px 8px;
+	border-radius: 8px;
+}
+
+.editor-container:hover {
+	background: rgba(0, 0, 0, 0.06);
 }
 
 .editor-inner {
@@ -14,6 +22,7 @@
 	tab-size: 1;
 	outline: 0;
 	padding: 0;
+	min-height: 6em;
 }
 
 .editor-placeholder {

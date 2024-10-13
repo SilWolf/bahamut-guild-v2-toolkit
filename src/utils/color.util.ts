@@ -1,4 +1,4 @@
-import { average, prominent } from 'color.js';
+import { average } from 'color.js';
 import { lightness, saturation } from 'simpler-color';
 
 const PROXY_IMAGE_SERVER = 'https://getproxyimage-wzh6dbfidq-de.a.run.app';

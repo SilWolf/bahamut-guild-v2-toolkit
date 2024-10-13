@@ -16,7 +16,7 @@
 :global([data-theme='dark']) .baha-post-comment:nth-child(even) {
 	background: var(
 		--bpc-dark-bgcolor,
-		var(--bpc-dark-bgcolor-odd, 'transparent')
+		var(--bpc-dark-bgcolor-even, 'transparent')
 	);
 }
 
@@ -98,8 +98,7 @@
 	width: 100%;
 	background: var(
 		--bpc-light-bgcolor,
-		var{--bpc-light-bgcolor-odd,
-		'transparent'}
+		var(--bpc-light-bgcolor-odd, 'transparent')
 	);
 }
 
@@ -107,7 +106,23 @@
 	border-bottom: 1px solid var(--bpc-dark-main-header-title-color, #c6c6ca);
 	background: var(
 		--bpc-dark-bgcolor,
-		var{--bpc-dark-bgcolor-odd,
-		'transparent'}
+		var(--bpc-dark-bgcolor-odd, 'transparent')
+	);
+}
+
+.baha-post-comments-listing
+	:global(.bpcl-item-animator:nth-child(even) .bpcl-item) {
+	background: var(
+		--bpc-light-bgcolor,
+		var(--bpc-light-bgcolor-even, 'transparent')
+	);
+}
+
+:global([data-theme='dark'])
+	.baha-post-comments-listing
+	:global(.bpcl-item-animator:nth-child(even) .bpcl-item) {
+	background: var(
+		--bpc-dark-bgcolor,
+		var(--bpc-dark-bgcolor-even, 'transparent')
 	);
 }

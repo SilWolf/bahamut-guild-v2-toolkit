@@ -22,7 +22,6 @@ import {
 	BGTV3ConfigForUsersBot,
 	BGTV3ConfigForUsersDiv,
 } from './widgets/BGTV3ConfigDiv';
-import { generateColorSchemaFromUrl } from './utils/color.util';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -209,6 +208,11 @@ function App() {
 							id='baha-post-comment-textarea-master'
 							onPressEnter={handlePressEnterOnTextarea}
 						/>
+						<div className='tw-opacity-80 tw-text-xs tw-mt-2 tw-space-x-2'>
+							<span>Enter: 發送</span>
+							<span>Shift+Enter: 換行</span>
+							<span>黏貼圖片: 上傳</span>
+						</div>
 					</BahaPostCommentsListingDivForEditor>
 				</div>
 
@@ -220,17 +224,7 @@ function App() {
 				</div>
 
 				<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>
-					<div className='tw-absolute tw-bottom-6 tw-right-24'>
-						<button
-							onClick={() =>
-								generateColorSchemaFromUrl(me.avatar).then((res) =>
-									console.log(JSON.stringify(res, null, 2))
-								)
-							}
-						>
-							測試
-						</button>
-					</div>
+					<div className='tw-absolute tw-bottom-6 tw-right-24'></div>
 				</div>
 			</div>
 
