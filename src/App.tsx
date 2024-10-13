@@ -16,8 +16,13 @@ import {
 	BahaPostCommentsListingDivForEditor,
 } from './components/BahaPostCommentDiv';
 import { TBahaComment } from './types';
-import useBGTV3Config from './hooks/useBahaMasterConfig';
-import BGTV3ConfigDiv from './widgets/BGTV3ConfigDiv';
+import useBGTV3Configs from './hooks/useBahaMasterConfig';
+import {
+	BGTV3ConfigForCommentDiv,
+	BGTV3ConfigForUsersBot,
+	BGTV3ConfigForUsersDiv,
+} from './widgets/BGTV3ConfigDiv';
+import { generateColorSchemaFromUrl } from './utils/color.util';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -31,7 +36,13 @@ function App() {
 	/**
 	 * Plugin Config related.
 	 */
-	const [bgtV3Config, setBGTV3Config] = useBGTV3Config();
+	const {
+		bgtV3Config,
+		commentConfig,
+		usersConfig,
+		setCommentConfig,
+		setUsersConfig,
+	} = useBGTV3Configs();
 	const [isOpenBGTV3Config, setIsOpenBGTV3Config] = useState<boolean>(false);
 	const handleClickToggleConfig = useCallback(() => {
 		setIsOpenBGTV3Config((prev) => !prev);
@@ -132,13 +143,13 @@ function App() {
 		<div className='tw-flex tw-gap-4 tw-items-start'>
 			<div className='tw-mx-auto' style={{ width: 'min-content' }}>
 				{isLoading && (
-					<div className='tw-p-4 tw-bg-white tw-shadow'>
+					<div className='tw-p-4 tw-bg-bg1 tw-shadow'>
 						<p>插件初始化中…</p>
 					</div>
 				)}
 
 				{post && (
-					<div className='bhgtv3-post tw-p-4 tw-bg-white tw-shadow tw-space-y-2'>
+					<div className='bhgtv3-post tw-p-4 tw-bg-bg1 tw-shadow tw-space-y-2'>
 						<div className='tw-flex tw-items-center tw-gap-x-2'>
 							<div className='tw-shrink-0'>
 								<img
@@ -189,7 +200,7 @@ function App() {
 					</div>
 				</div>
 
-				<div className='tw-bg-white tw-shadow tw-mb-4'>
+				<div className='tw-bg-bg1 tw-shadow tw-mb-4'>
 					<BahaPostCommentsListingDivForEditor
 						avatarSrc={me.avatar}
 						config={bgtV3Config!}
@@ -201,7 +212,7 @@ function App() {
 					</BahaPostCommentsListingDivForEditor>
 				</div>
 
-				<div className='tw-bg-white tw-shadow'>
+				<div className='tw-bg-bg1 tw-shadow'>
 					<BahaPostCommentsListingDiv
 						comments={comments}
 						config={bgtV3Config!}
@@ -209,15 +220,38 @@ function App() {
 				</div>
 
 				<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>
-					<div className='tw-absolute tw-bottom-6 tw-right-24'></div>
+					<div className='tw-absolute tw-bottom-6 tw-right-24'>
+						<button
+							onClick={() =>
+								generateColorSchemaFromUrl(me.avatar).then((res) =>
+									console.log(JSON.stringify(res, null, 2))
+								)
+							}
+						>
+							測試
+						</button>
+					</div>
 				</div>
 			</div>
 
 			{isOpenBGTV3Config && (
-				<div className='tw-flex-1 tw-bg-white tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)]'>
-					<BGTV3ConfigDiv config={bgtV3Config!} setFn={setBGTV3Config} />
+				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll'>
+					<BGTV3ConfigForCommentDiv
+						commentConfig={commentConfig!}
+						onChangeValue={setCommentConfig}
+					/>
+					<BGTV3ConfigForUsersDiv
+						usersConfig={usersConfig!}
+						onChangeValue={setUsersConfig}
+					/>
 				</div>
 			)}
+
+			<BGTV3ConfigForUsersBot
+				comments={fetchedComments}
+				usersConfig={usersConfig!}
+				onChangeValue={setUsersConfig}
+			/>
 		</div>
 	);
 }

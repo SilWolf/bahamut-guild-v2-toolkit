@@ -43,11 +43,11 @@ export type BahaCommentMention = {
 
 export type TBGTV3Config = {
 	version: 1;
-	comment: TBGTV3ConfigCommentV1;
-	userColorMap: Record<string, { light: TBahaUserColor; dark: TBahaUserColor }>;
+	comment: TBGTV3ConfigForCommentV1;
+	users: TBGTV3ConfigForUsersV1;
 };
 
-export type TBGTV3ConfigCommentV1 = {
+export type TBGTV3ConfigForCommentV1 = {
 	mainWidth: 'unlimited' | 'guildV2' | 'guildV1';
 	avatarSize: 'small' | 'medium' | 'large' | 'hidden';
 	avatarShape: 'circle' | 'rounded' | 'square';
@@ -60,24 +60,39 @@ export type TBGTV3ConfigCommentV1 = {
 	gpbpButtons: 'visible' | 'hidden';
 };
 
-export type TBahaUserColor = {
+export type TBGTV3ConfigForUsersV1 = Record<
+	string,
+	TBGTV3ConfigForUsersV1Value
+>;
+
+export type TBGTV3ConfigForUsersV1Value = {
+	id: string;
+	name: string;
+	avatarSrc: string;
+	characterName?: string;
+	primaryColor: string;
+	colors: {
+		light: TBGTV3ConfigForUsersColor;
+		dark: TBGTV3ConfigForUsersColor;
+	};
+};
+
+export type TBGTV3ConfigForUsersColor = {
 	textColor: string;
 	bgColor: string;
 };
 
-export const BGT_V3_DEFAULT_VALUES: TBGTV3Config = {
-	version: 1,
-	comment: {
-		mainWidth: 'guildV2',
-		avatarSize: 'medium',
-		avatarShape: 'circle',
-		avatarRingColor: 'none',
-		fontSize: 'medium',
-		nameColor: 'none',
-		bgColor: 'none',
-		order: 'asc',
-		ctime: 'full',
-		gpbpButtons: 'hidden',
-	},
-	userColorMap: {},
+export const BGT_V3_COMMENT_CONFIG_DEFAULT_VALUE: TBGTV3ConfigForCommentV1 = {
+	mainWidth: 'guildV2',
+	avatarSize: 'medium',
+	avatarShape: 'circle',
+	avatarRingColor: 'none',
+	fontSize: 'medium',
+	nameColor: 'none',
+	bgColor: 'none',
+	order: 'asc',
+	ctime: 'full',
+	gpbpButtons: 'hidden',
 };
+
+export const BGT_V3_USERS_CONFIG_DEFAULT_VALUE: TBGTV3ConfigForUsersV1 = {};

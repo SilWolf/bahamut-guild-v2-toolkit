@@ -25,6 +25,8 @@ export default defineConfig({
 					'dayjs/locale/zh-tw': cdn.jsdelivr('dayjs', 'locale/zh-tw.js'),
 					dayjsRelativeTime: cdn.jsdelivr('dayjs', 'plugin/relativeTime.js'),
 					useLocalStorage: cdn.jsdelivr('react-use', 'lib/useLocalStorage.js'),
+					'simpler-color': cdn.jsdelivr('simpler-color', 'lib/index.min.js'),
+					'color.js': cdn.jsdelivr('color.js', 'dist/color.cjs.min.js'),
 					// bootstrap: cdn.jsdelivr('Bootstrap', 'dist/js/bootstrap.min.js'),
 				},
 				// externalResource: {

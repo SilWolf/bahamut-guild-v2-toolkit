@@ -29,10 +29,12 @@ type Props = PropsWithChildren<{
 
 export function BahaPostCommentAvatar({
 	src,
+	userId,
 }: {
 	src: HTMLImageElement['src'];
+	userId: string;
 }) {
-	return <img className='bpc-avatar' src={src} />;
+	return <img className={`bpc-avatar bpc-avatar-${userId}`} src={src} />;
 }
 
 export default function BahaPostCommentDivLayout({
@@ -67,7 +69,9 @@ export const BahaPostCommentDiv = memo(
 	}) {
 		return (
 			<BahaPostCommentDivLayout
-				avatar={<BahaPostCommentAvatar src={comment.propic} />}
+				avatar={
+					<BahaPostCommentAvatar src={comment.propic} userId={comment.userid} />
+				}
 				title={comment.name}
 				metadata={
 					<div className='tw-space-x-4 tw-opacity-80 tw-text-xs'>
@@ -163,28 +167,35 @@ const listingCSSProperties = (config: TBGTV3Config) => {
 
 const commentMapFn = (config: TBGTV3Config) => (comment: TBahaComment) => {
 	const cssVariables: BahaCommentCSSProperties = {};
-	const colorConfig = config.userColorMap[comment.userid];
 
-	switch (config.comment.bgColor) {
-		case 'userColor':
-			if (colorConfig) {
-				cssVariables['--bpc-light-bgcolor'] =
-					colorConfig.light.bgColor ?? 'transparent';
-				cssVariables['--bpc-dark-bgcolor'] =
-					colorConfig.dark.bgColor ?? 'transparent';
+	if (
+		config.comment.bgColor === 'userColor' ||
+		config.comment.nameColor === 'userColor'
+	) {
+		const colorConfig = config.users[comment.userid]?.colors;
+		if (colorConfig) {
+			switch (config.comment.bgColor) {
+				case 'userColor':
+					if (colorConfig) {
+						cssVariables['--bpc-light-bgcolor'] =
+							colorConfig.light.bgColor ?? 'transparent';
+						cssVariables['--bpc-dark-bgcolor'] =
+							colorConfig.dark.bgColor ?? 'transparent';
+					}
+					break;
 			}
-			break;
-	}
 
-	switch (config.comment.nameColor) {
-		case 'userColor':
-			if (colorConfig) {
-				cssVariables['--bpc-light-main-header-title-color'] =
-					colorConfig.light.textColor ?? 'inherit';
-				cssVariables['--bpc-dark-main-header-title-color'] =
-					colorConfig.dark.textColor ?? 'inherit';
+			switch (config.comment.nameColor) {
+				case 'userColor':
+					if (colorConfig) {
+						cssVariables['--bpc-light-main-header-title-color'] =
+							colorConfig.light.textColor ?? 'inherit';
+						cssVariables['--bpc-dark-main-header-title-color'] =
+							colorConfig.dark.textColor ?? 'inherit';
+					}
+					break;
 			}
-			break;
+		}
 	}
 
 	if (comment._isPending) {
@@ -208,7 +219,7 @@ export const BahaPostCommentsListingDivForEditor = ({
 		<div className={styles['baha-post-comments-listing']} style={listingStyle}>
 			<div className='bpcl-item'>
 				<BahaPostCommentDivLayout
-					avatar={<BahaPostCommentAvatar src={avatarSrc} />}
+					avatar={<BahaPostCommentAvatar src={avatarSrc} userId='me' />}
 				>
 					{children}
 				</BahaPostCommentDivLayout>

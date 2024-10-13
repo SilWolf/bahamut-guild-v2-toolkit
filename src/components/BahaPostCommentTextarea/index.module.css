@@ -4,23 +4,19 @@
 }
 
 .editor-inner {
-	background: #fff;
 	position: relative;
 }
 
 .editor-input {
 	resize: none;
 	font-size: 15px;
-	caret-color: rgb(5, 5, 5);
 	position: relative;
 	tab-size: 1;
 	outline: 0;
 	padding: 0;
-	caret-color: #444;
 }
 
 .editor-placeholder {
-	color: #999;
 	overflow: hidden;
 	position: absolute;
 	text-overflow: ellipsis;
@@ -53,7 +49,7 @@
 }
 
 .editor-text-code {
-	background-color: rgb(240, 242, 245);
+	background-color: rgb(240, 242, 245, 0.05);
 	padding: 1px 0.25rem;
 	font-family: Menlo, Consolas, Monaco, monospace;
 	font-size: 94%;
@@ -65,7 +61,7 @@
 }
 
 .editor-code {
-	background-color: rgb(240, 242, 245);
+	background-color: rgb(240, 242, 245, 0.05);
 	font-family: Menlo, Consolas, Monaco, monospace;
 	display: block;
 	padding: 8px 8px 8px 52px;

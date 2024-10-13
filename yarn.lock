@@ -14,7 +14,7 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@babel/runtime@^7.12.5":
+"@babel/runtime@^7.12.5", "@babel/runtime@^7.17.8":
   version "7.25.7"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.25.7.tgz#7ffb53c37a8f247c8c4d335e89cdf16a2e0d0fb6"
   integrity sha512-FjoyLe754PMiYsFaN5C94ttGiOmBNYTf6pLr4xXHAT5uctHb092PBszndLDR5XA/jghQvn4n7JMHl7dmTgbm9w==
@@ -1193,6 +1193,11 @@ color-name@~1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
+
+color.js@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/color.js/-/color.js-1.2.0.tgz#18d9f55545111730d25ccf18ea8b6933c71440d7"
+  integrity sha512-0ajlNgWWOR7EK9N6l2h0YKsZPzMCLQG5bheCoTGpGfhkR8tB5eQNItdua1oFHDTeq9JKgSzQJqo+Gp3V/xW+Lw==
 
 combined-stream@^1.0.8:
   version "1.0.8"
@@ -3581,6 +3586,13 @@ signal-exit@^4.0.1:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-4.1.0.tgz#952188c1cbd546070e2dd20d0f41c0ae0530cb04"
   integrity sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==
+
+simpler-color@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/simpler-color/-/simpler-color-1.0.2.tgz#c9925eafa8ed92d43b0c5691873cc940d7effbc5"
+  integrity sha512-yeWyWL3pIrGiZHQuU9JLeq526CjWr4BrHYYMzh4MbbwgIzAWFMlbxZoGfq7pykFnGvhqY/6CsnXzr0ccavbbcQ==
+  dependencies:
+    "@babel/runtime" "^7.17.8"
 
 source-map-js@^1.2.0:
   version "1.2.0"

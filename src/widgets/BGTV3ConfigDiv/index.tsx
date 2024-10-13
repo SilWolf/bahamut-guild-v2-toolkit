@@ -1,7 +1,14 @@
-import React, { ChangeEvent, useCallback } from 'react';
-import { TBGTV3Config } from '../../types';
+import React, { ChangeEvent, useCallback, useEffect, useRef } from 'react';
+import {
+	TBahaComment,
+	TBGTV3Config,
+	TBGTV3ConfigForCommentV1,
+	TBGTV3ConfigForUsersV1,
+	TBGTV3ConfigForUsersV1Value,
+} from '../../types';
 
 import styles from './index.module.css';
+import { generateColorSchemaFromUrl } from '../../utils/color.util';
 
 const FIELDS: {
 	field: keyof TBGTV3Config['comment'];
@@ -120,26 +127,23 @@ function FieldSelect({
 	);
 }
 
-export function ConfigFormCommentLayoutSection({
-	config,
-	setFn,
+export function BGTV3ConfigForCommentDiv({
+	commentConfig,
+	onChangeValue,
 }: {
-	config: TBGTV3Config;
-	setFn: React.Dispatch<React.SetStateAction<TBGTV3Config | undefined>>;
+	commentConfig: TBGTV3ConfigForCommentV1;
+	onChangeValue: React.Dispatch<
+		React.SetStateAction<TBGTV3ConfigForCommentV1 | undefined>
+	>;
 }) {
 	const handleChangeValue = useCallback(
 		(field: string, value: string) => {
-			setFn(() => {
-				return {
-					...config,
-					comment: {
-						...config.comment,
-						[field]: value,
-					},
-				};
-			});
+			onChangeValue(() => ({
+				...commentConfig,
+				[field]: value,
+			}));
 		},
-		[config, setFn]
+		[commentConfig, onChangeValue]
 	);
 
 	return (
@@ -151,7 +155,7 @@ export function ConfigFormCommentLayoutSection({
 					<FieldSelect
 						key={field.field}
 						field={field}
-						value={config.comment[field.field]}
+						value={commentConfig[field.field]}
 						onChangeValue={handleChangeValue}
 					/>
 				))}
@@ -160,12 +164,70 @@ export function ConfigFormCommentLayoutSection({
 	);
 }
 
-export default function BGTV3ConfigDiv({
-	config,
-	setFn,
+export function BGTV3ConfigForUsersDiv({
+	usersConfig,
+	onChangeValue,
 }: {
-	config: TBGTV3Config;
-	setFn: React.Dispatch<React.SetStateAction<TBGTV3Config | undefined>>;
+	usersConfig: TBGTV3ConfigForUsersV1;
+	onChangeValue: React.Dispatch<
+		React.SetStateAction<TBGTV3ConfigForUsersV1 | undefined>
+	>;
 }) {
-	return <ConfigFormCommentLayoutSection config={config} setFn={setFn} />;
+	return <></>;
+}
+
+export function BGTV3ConfigForUsersBot({
+	comments,
+	usersConfig,
+	onChangeValue,
+}: {
+	comments: TBahaComment[];
+	usersConfig: TBGTV3ConfigForUsersV1;
+	onChangeValue: React.Dispatch<
+		React.SetStateAction<TBGTV3ConfigForUsersV1 | undefined>
+	>;
+}) {
+	const lastSeenCommentId = useRef<string>('');
+
+	useEffect(() => {
+		const payloadMap: Record<
+			string,
+			Pick<TBGTV3ConfigForUsersV1Value, 'id' | 'name' | 'avatarSrc'>
+		> = {};
+
+		let i = comments.length - 1;
+		while (i >= 0 && comments[i].id > lastSeenCommentId.current) {
+			if (!usersConfig[comments[i].userid] && !payloadMap[comments[i].userid]) {
+				payloadMap[comments[i].userid] = {
+					id: comments[i].userid,
+					name: comments[i].name,
+					avatarSrc: comments[i].propic,
+				};
+			}
+
+			i--;
+		}
+
+		if (Object.values(payloadMap).length > 0) {
+			Promise.all(
+				Object.values(payloadMap).map(async (payload) => {
+					return {
+						...payload,
+						...(await generateColorSchemaFromUrl(payload.avatarSrc)),
+					};
+				})
+			).then((newUsers) => {
+				onChangeValue((prevUserMap) =>
+					newUsers.reduce((prev, curr) => {
+						prev[curr.id] = curr;
+						return prev;
+					}, prevUserMap ?? {})
+				);
+			});
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [comments.length]);
+
+	return <></>;
 }

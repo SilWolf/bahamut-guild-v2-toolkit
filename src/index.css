@@ -5,6 +5,14 @@
 @layer base {
 	@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
+	html {
+		--color-bg-default: #ffffff;
+	}
+
+	html[data-theme='dark'] {
+		--color-bg-default: #272728;
+	}
+
 	.btn-baha-primary,
 	.btn-baha-secondary {
 		@apply tw-shadow-none tw-border-none tw-tracking-[0.5px] tw-rounded-sm tw-px-2 tw-py-1 hover:tw-opacity-80;
@@ -33,6 +41,14 @@
 	}
 
 	.bhgtv3-comment-mention {
-		@apply tw-text-baha tw-bg-baha tw-bg-opacity-10 tw-inline-block tw-mb-1;
+		color: rgb(17, 126, 150);
+		background: rgba(17, 126, 150, 0.1);
+		display: inline-block;
+		margin-bottom: 0.25em;
+	}
+
+	[data-theme='dark'] .bhgtv3-comment-mention {
+		color: rgb(64, 200, 230);
+		background: rgba(64, 200, 230, 0.1);
 	}
 }

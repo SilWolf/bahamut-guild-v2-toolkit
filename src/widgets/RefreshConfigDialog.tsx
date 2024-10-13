@@ -43,7 +43,7 @@ export default function RefreshConfigDialog({
 	return (
 		<>
 			<div className='tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-20 tw-z-[9990]'></div>
-			<div className='tw-z-[9999] tw-absolute tw-top-[1.5em] tw-bg-white tw-shadow-lg tw-p-3 tw-rounded tw-whitespace-nowrap'>
+			<div className='tw-z-[9999] tw-absolute tw-top-[1.5em] tw-bg-bg1 tw-shadow-lg tw-p-3 tw-rounded tw-whitespace-nowrap'>
 				<form className='tw-space-y-6' onSubmit={handleSubmitRefreshConfig}>
 					<div className='tw-mt-4'>
 						<UISwitch label='啟用自動刷新' {...register('enableRefresh')} />
@@ -65,7 +65,7 @@ export default function RefreshConfigDialog({
 										<option value='60000'>1分鐘</option>
 									</select>
 								</div>
-								<div className='tw-text-blue-700'>
+								<div className='tw-opacity-70'>
 									(*) 為減少刷新失敗的可能性，對急速刷新的人數設限。
 									<br />
 									你需符合以下情況才能以3秒刷新：
@@ -113,7 +113,7 @@ export default function RefreshConfigDialog({
 										<option value='0'>關閉</option>
 									</select>
 								</div>
-								<div className='tw-text-blue-700'>
+								<div className='tw-opacity-70'>
 									* 當一定時間後仍沒有新回覆，就會改為1分鐘刷新一次。
 								</div>
 							</div>
