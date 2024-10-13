@@ -1,16 +1,9 @@
-import React, {
-	CSSProperties,
-	memo,
-	PropsWithChildren,
-	useEffect,
-	useMemo,
-	useRef,
-} from 'react';
+import React, { CSSProperties, memo, PropsWithChildren, useMemo } from 'react';
 import BahaPostCommentContent from '../BahaPostCommentContent';
 import { renderTime } from '../../utils/string.util';
 
 import styles from './index.module.css';
-import { TBahaComment, TBahaCommentConfig } from '../../types';
+import { TBahaComment, TBGTV3Config } from '../../types';
 
 type BahaCommentCSSProperties = CSSProperties & {
 	'--bpc-font-size'?: string;
@@ -70,7 +63,7 @@ export const BahaPostCommentDiv = memo(
 		ctimeFormat,
 	}: {
 		comment: TBahaComment;
-		ctimeFormat?: TBahaCommentConfig['ctime'];
+		ctimeFormat?: TBGTV3Config['comment']['ctime'];
 	}) {
 		return (
 			<BahaPostCommentDivLayout
@@ -92,11 +85,11 @@ export const BahaPostCommentDiv = memo(
 	(a, b) => a.comment.id === b.comment.id && a.comment.ctime === b.comment.ctime
 );
 
-const listingCSSProperties = (config: TBahaCommentConfig) => {
+const listingCSSProperties = (config: TBGTV3Config) => {
 	const cssVariables: BahaCommentCSSProperties = {};
-	switch (config.avatarShape) {
+	switch (config.comment.avatarShape) {
 		case 'circle':
-			cssVariables['--bpc-avatar-border-radius'] = '9999px';
+			cssVariables['--bpc-avatar-border-radius'] = '24px';
 			break;
 		case 'rounded':
 			cssVariables['--bpc-avatar-border-radius'] = '6px';
@@ -106,7 +99,7 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 			break;
 	}
 
-	switch (config.avatarSize) {
+	switch (config.comment.avatarSize) {
 		case 'small':
 			cssVariables['--bpc-avatar-size'] = '28px';
 			break;
@@ -121,7 +114,7 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 			break;
 	}
 
-	switch (config.fontSize) {
+	switch (config.comment.fontSize) {
 		case 'small':
 			cssVariables['--bpc-font-size'] = '12px';
 			break;
@@ -133,7 +126,7 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 			break;
 	}
 
-	switch (config.mainWidth) {
+	switch (config.comment.mainWidth) {
 		case 'unlimited':
 			cssVariables['--bpc-main-max-width'] = '100%';
 			break;
@@ -145,7 +138,7 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 			break;
 	}
 
-	switch (config.bgColor) {
+	switch (config.comment.bgColor) {
 		case 'none':
 			cssVariables['--bpc-light-bgcolor'] = 'transparent';
 			cssVariables['--bpc-dark-bgcolor'] = 'transparent';
@@ -158,7 +151,7 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 			break;
 	}
 
-	switch (config.nameColor) {
+	switch (config.comment.nameColor) {
 		case 'none':
 			cssVariables['--bpc-light-main-header-title-color'] = 'inherit';
 			cssVariables['--bpc-dark-main-header-title-color'] = 'inherit';
@@ -168,40 +161,45 @@ const listingCSSProperties = (config: TBahaCommentConfig) => {
 	return cssVariables;
 };
 
-const commentMapFn =
-	(config: TBahaCommentConfig) => (comment: TBahaComment) => {
-		const cssVariables: BahaCommentCSSProperties = {};
-		switch (config.bgColor) {
-			case 'userColor':
+const commentMapFn = (config: TBGTV3Config) => (comment: TBahaComment) => {
+	const cssVariables: BahaCommentCSSProperties = {};
+	const colorConfig = config.userColorMap[comment.userid];
+
+	switch (config.comment.bgColor) {
+		case 'userColor':
+			if (colorConfig) {
 				cssVariables['--bpc-light-bgcolor'] =
-					config.userColorMap[comment.userid].light.bgColor ?? 'transparent';
+					colorConfig.light.bgColor ?? 'transparent';
 				cssVariables['--bpc-dark-bgcolor'] =
-					config.userColorMap[comment.userid].dark.bgColor ?? 'transparent';
-				break;
-		}
+					colorConfig.dark.bgColor ?? 'transparent';
+			}
+			break;
+	}
 
-		switch (config.nameColor) {
-			case 'userColor':
+	switch (config.comment.nameColor) {
+		case 'userColor':
+			if (colorConfig) {
 				cssVariables['--bpc-light-main-header-title-color'] =
-					config.userColorMap[comment.userid].light.textColor ?? 'inherit';
+					colorConfig.light.textColor ?? 'inherit';
 				cssVariables['--bpc-dark-main-header-title-color'] =
-					config.userColorMap[comment.userid].dark.textColor ?? 'inherit';
-				break;
-		}
+					colorConfig.dark.textColor ?? 'inherit';
+			}
+			break;
+	}
 
-		if (comment._isPending) {
-			cssVariables.opacity = '0.5';
-		}
+	if (comment._isPending) {
+		cssVariables.opacity = '0.5';
+	}
 
-		return { comment, cssVariables };
-	};
+	return { comment, cssVariables };
+};
 
 export const BahaPostCommentsListingDivForEditor = ({
 	config,
 	children,
 	avatarSrc,
 }: PropsWithChildren<{
-	config: TBahaCommentConfig;
+	config: TBGTV3Config;
 	avatarSrc: string;
 }>) => {
 	const listingStyle = useMemo(() => listingCSSProperties(config), [config]);
@@ -224,14 +222,14 @@ export const BahaPostCommentsListingDiv = ({
 	config,
 }: {
 	comments: TBahaComment[];
-	config: TBahaCommentConfig;
+	config: TBGTV3Config;
 }) => {
 	const listingStyle = useMemo(() => listingCSSProperties(config), [config]);
 
 	const commentAndStyles = useMemo(() => {
-		return (config.order === 'desc' ? comments.toReversed() : comments).map(
-			commentMapFn(config)
-		);
+		return (
+			config.comment.order === 'desc' ? comments.toReversed() : comments
+		).map(commentMapFn(config));
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [comments[comments.length - 1]?.id, config]);
 

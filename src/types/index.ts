@@ -41,8 +41,13 @@ export type BahaCommentMention = {
 	length: string;
 };
 
-export type TBahaCommentConfig = {
+export type TBGTV3Config = {
 	version: 1;
+	comment: TBGTV3ConfigCommentV1;
+	userColorMap: Record<string, { light: TBahaUserColor; dark: TBahaUserColor }>;
+};
+
+export type TBGTV3ConfigCommentV1 = {
 	mainWidth: 'unlimited' | 'guildV2' | 'guildV1';
 	avatarSize: 'small' | 'medium' | 'large' | 'hidden';
 	avatarShape: 'circle' | 'rounded' | 'square';
@@ -53,7 +58,6 @@ export type TBahaCommentConfig = {
 	order: 'asc' | 'desc';
 	ctime: 'full' | 'short' | 'relative' | 'hidden';
 	gpbpButtons: 'visible' | 'hidden';
-	userColorMap: Record<string, { light: TBahaUserColor; dark: TBahaUserColor }>;
 };
 
 export type TBahaUserColor = {
@@ -61,17 +65,19 @@ export type TBahaUserColor = {
 	bgColor: string;
 };
 
-export const BAHA_COMMENT_CONFIG_DEFAULT_VALUES: TBahaCommentConfig = {
+export const BGT_V3_DEFAULT_VALUES: TBGTV3Config = {
 	version: 1,
-	mainWidth: 'guildV2',
-	avatarSize: 'medium',
-	avatarShape: 'circle',
-	avatarRingColor: 'none',
-	fontSize: 'medium',
-	nameColor: 'none',
-	bgColor: 'none',
-	order: 'asc',
-	ctime: 'full',
-	gpbpButtons: 'hidden',
+	comment: {
+		mainWidth: 'guildV2',
+		avatarSize: 'medium',
+		avatarShape: 'circle',
+		avatarRingColor: 'none',
+		fontSize: 'medium',
+		nameColor: 'none',
+		bgColor: 'none',
+		order: 'asc',
+		ctime: 'full',
+		gpbpButtons: 'hidden',
+	},
 	userColorMap: {},
 };

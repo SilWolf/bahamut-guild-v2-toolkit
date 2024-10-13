@@ -23,16 +23,19 @@
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	transition-duration: 150ms;
 	border-radius: var(--bpc-avatar-border-radius, 0px);
+	transition-property: border-radius;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
 }
 
 .baha-post-comment :global(.bpc-main) {
 	display: inline-block;
 	flex: 1;
-	transition-property: width;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	transition-duration: 150ms;
 	max-width: 100%;
 	width: var(--bpc-main-max-width, 100%);
+	transition-property: font-size, width;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
 }
 
 .baha-post-comment :global(.bpc-main-header) {
