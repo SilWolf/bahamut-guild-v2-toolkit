@@ -9,7 +9,10 @@ import RefreshConfigDialog, {
 	renderRefreshConfig,
 } from './widgets/RefreshConfigDialog';
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
-import BahaPostCommentTextarea from './components/BahaPostCommentTextarea';
+import BahaPostCommentTextarea, {
+	insertTextFn,
+	useCommentEditorRef,
+} from './components/BahaPostCommentTextarea';
 import useMe from './hooks/useMe';
 import {
 	BahaPostCommentsListingDiv,
@@ -22,6 +25,7 @@ import {
 	BGTV3ConfigForUsersBot,
 	BGTV3ConfigForUsersDiv,
 } from './widgets/BGTV3ConfigDiv';
+import GalleryDialog from './widgets/GalleryDialog';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -138,6 +142,23 @@ function App() {
 		[createComment, postMetadata]
 	);
 
+	/**
+	 * Editor Extra Actions
+	 */
+	const editorRef = useCommentEditorRef();
+
+	const [isOpenGallery, setIsOpenGallery] = useState<boolean>(false);
+	const handleClickOpenGallery = useCallback(() => {
+		setIsOpenGallery(true);
+	}, []);
+
+	const handleInsertTextToEditor = useCallback(
+		(newText: string) => {
+			editorRef.current?.update(insertTextFn(newText));
+		},
+		[editorRef]
+	);
+
 	return (
 		<div className='tw-flex tw-gap-4 tw-items-start'>
 			<div className='tw-mx-auto' style={{ width: 'min-content' }}>
@@ -205,13 +226,20 @@ function App() {
 						config={bgtV3Config!}
 					>
 						<BahaPostCommentTextarea
+							editorRef={editorRef}
 							id='baha-post-comment-textarea-master'
 							onPressEnter={handlePressEnterOnTextarea}
 						/>
-						<div className='tw-opacity-80 tw-text-xs tw-mt-2 tw-space-x-2'>
-							<span>Enter: 發送</span>
-							<span>Shift+Enter: 換行</span>
-							<span>黏貼圖片: 上傳</span>
+
+						<div className='tw-mt-2 tw-flex tw-justify-between'>
+							<div className='tw-opacity-80 tw-text-xs tw-space-x-2'>
+								<span>Enter: 發送</span>
+								<span>Shift+Enter: 換行</span>
+								<span>黏貼圖片: 上傳</span>
+							</div>
+							<div className='tw-space-x-2 tw-text-xs'>
+								<span onClick={handleClickOpenGallery}>圖片</span>
+							</div>
 						</div>
 					</BahaPostCommentsListingDivForEditor>
 				</div>
@@ -238,6 +266,12 @@ function App() {
 						usersConfig={usersConfig!}
 						onChangeValue={setUsersConfig}
 					/>
+				</div>
+			)}
+
+			{isOpenGallery && (
+				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll'>
+					<GalleryDialog insertTextFn={handleInsertTextToEditor} />
 				</div>
 			)}
 

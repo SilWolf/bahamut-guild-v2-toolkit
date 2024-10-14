@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 import { $convertToMarkdownString } from '@lexical/markdown';
 import { MentionNodeTransformer } from '../../nodes/MentionNode';
 import { LinkNodeTransformer } from '../../nodes/AutoLinkNode';
+import { BahaPostCommentTextareaController } from '../..';
 
 const BAHA_TRANSFORMERS = [MentionNodeTransformer, LinkNodeTransformer];
 
@@ -42,6 +43,7 @@ export default function ControlAndWorkflowPlugin({
 	onBlur,
 	value,
 }: {
+	controller?: BahaPostCommentTextareaController;
 	onPressEsc?: (e: KeyboardEvent) => void;
 	onPressArrowUp?: (e: KeyboardEvent) => void;
 	onPressArrowDown?: (e: KeyboardEvent) => void;

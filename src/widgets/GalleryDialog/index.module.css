@@ -1,0 +1,11 @@
+.home-image-section :global(.home-image-section-body) {
+	@apply tw-max-h-[calc(100%+32px)] tw-overflow-y-scroll;
+}
+
+.home-image-section :global(.home-image-grid-container) {
+	@apply tw-grid tw-grid-cols-4 tw-gap-2;
+}
+
+.home-image-section :global(.home-image-grid-container-item) {
+	@apply tw-border tw-border-solid tw-border-neutral-400 hover:tw-border-neutral-600 tw-aspect-square tw-bg-contain tw-bg-center tw-bg-no-repeat tw-cursor-pointer;
+}

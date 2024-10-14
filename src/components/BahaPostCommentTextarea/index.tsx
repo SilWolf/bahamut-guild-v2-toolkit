@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { HashtagNode } from '@lexical/hashtag';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import {
@@ -11,6 +11,7 @@ import { HashtagPlugin } from '@lexical/react/LexicalHashtagPlugin';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { AutoLinkPlugin } from '@lexical/react/LexicalAutoLinkPlugin';
+import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
 
 import styles from './index.module.css';
 import { MentionNode } from './nodes/MentionNode';
@@ -19,6 +20,8 @@ import EditablePlugin from './plugins/EditablePlugin';
 import MentionPlugin from './plugins/MentionPlugin';
 // import TreeViewPlugin from './plugins/TreeViewPlugin';
 import { AutoLinkNode } from '@lexical/link';
+import { $createParagraphNode, $createTextNode, LexicalEditor } from 'lexical';
+import { $insertNodeToNearestRoot } from '@lexical/utils';
 
 const placeholder = '輸入內容…';
 
@@ -55,16 +58,28 @@ const MATCHERS = [
 	},
 ];
 
-export default function BahaPostCommentTextarea({
-	id,
-	active,
-	value,
-	onPressArrowUp,
-	onPressArrowDown,
-	onPressEsc,
-	onPressEnter,
-	onBlur,
-}: {
+export class BahaPostCommentTextareaController {
+	_editor: LexicalEditor | null;
+
+	constructor() {
+		this._editor = null;
+	}
+
+	getEditor() {
+		return this._editor;
+	}
+
+	setEditor(newEditor: LexicalEditor) {
+		this._editor = newEditor;
+	}
+}
+
+export const useCommentEditorRef = () => {
+	return useRef<LexicalEditor>();
+};
+
+type Props = {
+	controller?: BahaPostCommentTextareaController;
 	id: string;
 	active?: boolean;
 	value?: string;
@@ -73,7 +88,21 @@ export default function BahaPostCommentTextarea({
 	onPressEsc?: (e: KeyboardEvent) => void;
 	onPressEnter?: (e: KeyboardEvent, text: string) => boolean;
 	onBlur?: (value: string) => void;
-}) {
+	editorRef?: React.MutableRefObject<LexicalEditor | null | undefined>;
+};
+
+export default function BahaPostCommentTextarea({
+	controller,
+	id,
+	active,
+	value,
+	onPressArrowUp,
+	onPressArrowDown,
+	onPressEsc,
+	onPressEnter,
+	onBlur,
+	editorRef,
+}: Props) {
 	const initialConfig: InitialConfigType = {
 		namespace: id,
 		theme,
@@ -107,6 +136,7 @@ export default function BahaPostCommentTextarea({
 				<AutoLinkPlugin matchers={MATCHERS} />
 				<EditablePlugin active={active} />
 				<ControlAndWorkflowPlugin
+					controller={controller}
 					onPressArrowUp={onPressArrowUp}
 					onPressArrowDown={onPressArrowDown}
 					onPressEsc={onPressEsc}
@@ -115,8 +145,19 @@ export default function BahaPostCommentTextarea({
 					value={value}
 				/>
 
+				{typeof editorRef !== 'undefined' && (
+					<EditorRefPlugin editorRef={editorRef} />
+				)}
+
 				{/* <TreeViewPlugin /> */}
 			</div>
 		</LexicalComposer>
 	);
 }
+
+export const insertTextFn = (newText: string) => () => {
+	const paragraphNode = $createParagraphNode();
+	const textNode = $createTextNode(newText);
+	paragraphNode.append(textNode);
+	$insertNodeToNearestRoot(paragraphNode);
+};

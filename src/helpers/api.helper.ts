@@ -101,3 +101,11 @@ const mapComment = (comment: TBahaComment) => {
 		text: newText,
 	};
 };
+
+export const apiGetHomeImagesByPage = (p = 1) =>
+	axiosInstance
+		.get<{ index: number; thumb_url: string; url: string }[]>(
+			'https://api.gamer.com.tw/ajax/common/truth_image_list.php',
+			{ params: { p } }
+		)
+		.then((res) => res.data);

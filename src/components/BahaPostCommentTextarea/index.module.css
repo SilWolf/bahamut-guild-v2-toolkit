@@ -1,10 +1,10 @@
 .editor-container {
 	width: 100%;
-	margin: 0 auto;
 	background: rgba(0, 0, 0, 0.03);
-	margin: -2px -8px;
-	padding: 2px 8px;
+	margin: -4px -8px;
+	padding: 4px 8px;
 	border-radius: 8px;
+	width: calc(100% + 16px);
 }
 
 .editor-container:hover {
