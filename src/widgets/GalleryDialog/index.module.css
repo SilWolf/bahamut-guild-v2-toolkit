@@ -12,7 +12,7 @@
 }
 
 .gallery-container {
-	@apply tw-h-full tw-flex tw-flex-col;
+	@apply tw-h-full tw-flex tw-flex-col tw-relative;
 }
 
 .gallery-container :global(.gallery-container-body) {
@@ -25,4 +25,5 @@
 
 .gallery-container :global(.gallery-grid-item) {
 	@apply tw-border tw-border-solid tw-border-neutral-400 hover:tw-border-neutral-600 tw-aspect-square tw-bg-contain tw-bg-center tw-bg-no-repeat tw-cursor-pointer;
+	@apply data-[selected=true]:tw-border-4 data-[selected=true]:tw-border-red-500;
 }

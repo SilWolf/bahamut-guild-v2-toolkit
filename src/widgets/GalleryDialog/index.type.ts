@@ -1,6 +1,6 @@
 export type TGalleryConfig = {
 	version: 1;
-	folders: TGalleryItemTag[];
+	folders: string[];
 	items: TGalleryItem[];
 };
 
@@ -9,11 +9,6 @@ export type TGalleryItem = {
 	name: string;
 	content: string;
 	type: 'image' | 'text' | 'url';
-	tags: TGalleryItemTag[];
+	tags: string[];
 	createdAt: string;
-};
-
-export type TGalleryItemTag = {
-	id: string;
-	name: string;
 };

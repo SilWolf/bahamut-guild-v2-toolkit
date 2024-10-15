@@ -1,9 +1,18 @@
 import { QueryFunction, useInfiniteQuery } from '@tanstack/react-query';
-import React, { MouseEvent, useCallback, useState } from 'react';
+import React, {
+	createContext,
+	MouseEvent,
+	useCallback,
+	useContext,
+	useMemo,
+	useState,
+} from 'react';
 import { apiGetHomeImagesByPage } from '../../helpers/api.helper';
 
 import styles from './index.module.css';
-import { TGalleryItem } from './index.type';
+import { TGalleryConfig, TGalleryItem } from './index.type';
+import { useLocalStorage, useSet } from 'react-use';
+import { LS_KEY_BGT_V3_GALLERY_CONFIG } from '../../constant';
 
 const fetchImagesFn: QueryFunction<
 	Awaited<ReturnType<typeof apiGetHomeImagesByPage>>,
@@ -11,16 +20,88 @@ const fetchImagesFn: QueryFunction<
 	number
 > = async ({ pageParam }) => apiGetHomeImagesByPage(pageParam);
 
+export const BGT_V3_GALLERY_CONFIG_DEFAULT_VALUE: TGalleryConfig = {
+	version: 1,
+	folders: [],
+	items: [],
+};
+
+const GalleryDialogConfigContext = createContext<TGalleryConfig>(
+	BGT_V3_GALLERY_CONFIG_DEFAULT_VALUE
+);
+const useGalleryConfig = () => useContext(GalleryDialogConfigContext);
+
+type TActionFn = (
+	actionItem: (
+		| {
+				action: 'addToFolder';
+				payload: { targetFolderName: string; items: TGalleryItem[] };
+		  }
+		| {
+				action: 'switchFolder';
+				payload: string;
+		  }
+		| {
+				action: 'upsertFolder';
+				payload: string;
+		  }
+	)[]
+) => void;
+
 export default function GalleryDialog({
 	insertTextFn,
 }: {
 	insertTextFn: (newText: string) => void;
 }) {
+	/**
+	 * Gallery Config
+	 */
+	const [galleryConfig, setGalleryConfig] = useLocalStorage<TGalleryConfig>(
+		LS_KEY_BGT_V3_GALLERY_CONFIG,
+		BGT_V3_GALLERY_CONFIG_DEFAULT_VALUE
+	);
+
 	const handleClickGalleryItem = (item: TGalleryItem) =>
 		insertTextFn(item.content);
 
+	const handleAction = useCallback<TActionFn>(
+		(actionItems) => {
+			const newGalleryConfig = { ...galleryConfig! };
+
+			for (const { action, payload } of actionItems) {
+				if (action === 'addToFolder') {
+					for (const newItem of payload.items) {
+						const itemIndex = newGalleryConfig.items.findIndex(
+							({ id }) => id === newItem.id
+						);
+						if (itemIndex !== -1) {
+							const targetItem = newGalleryConfig.items[itemIndex];
+							if (!targetItem.tags.includes(payload.targetFolderName)) {
+								targetItem.tags.push(payload.targetFolderName);
+							}
+						} else {
+							newGalleryConfig.items.unshift({
+								...newItem,
+								tags: [payload.targetFolderName],
+							});
+						}
+					}
+				} else if (action === 'switchFolder') {
+					setActiveFolder(payload);
+				} else if (action === 'upsertFolder') {
+					if (!newGalleryConfig.folders.includes(payload)) {
+						newGalleryConfig.folders.push(payload);
+					}
+				}
+			}
+
+			setGalleryConfig(newGalleryConfig);
+		},
+		[galleryConfig, setGalleryConfig]
+	);
+
 	/**
-	 * Action Folder
+	 * Active Folder
 	 */
 	const [activeFolder, setActiveFolder] = useState<string>('home');
 	const handleClickFolder = useCallback((e: MouseEvent) => {
@@ -30,63 +111,107 @@ export default function GalleryDialog({
 	}, []);
 
 	return (
-		<div>
-			<h2>圖庫</h2>
-			<div className='tw-flex tw-gap-x-1 tw-items-stretch tw-h-[50vh]'>
-				<div className='tw-w-32 tw-text-sm tw-flex tw-flex-col tw-gap-y-1'>
-					<div className='tw-flex-1 tw-overflow-y-scroll hide-scrollbar'>
+		<GalleryDialogConfigContext.Provider value={galleryConfig!}>
+			<div>
+				<h2>圖庫</h2>
+				<div className='tw-flex tw-gap-x-1 tw-items-stretch tw-h-[50vh]'>
+					<div className='tw-w-32 tw-text-sm tw-flex tw-flex-col tw-gap-y-1'>
+						<div className='tw-flex-1 tw-overflow-y-scroll hide-scrollbar'>
+							<ul className={styles['gallery-folders']}>
+								<li
+									className='gallery-folders-item'
+									onClick={handleClickFolder}
+									data-id='_all'
+									data-active={activeFolder === '_all'}
+								>
+									<i className='material-icons gallery-folders-icon'>
+										photo_library
+									</i>
+									全部
+								</li>
+								<li
+									className='gallery-folders-item'
+									onClick={handleClickFolder}
+									data-id='_history'
+									data-active={activeFolder === '_history'}
+								>
+									<i className='material-icons gallery-folders-icon'>history</i>
+									最近使用
+								</li>
+								<li
+									className='gallery-folders-item'
+									onClick={handleClickFolder}
+									data-id='_favorite'
+									data-active={activeFolder === '_favorite'}
+								>
+									<i className='material-icons gallery-folders-icon'>star</i>
+									我的最愛
+								</li>
+								{galleryConfig?.folders.map((name) => (
+									<li
+										key={name}
+										className='gallery-folders-item'
+										onClick={handleClickFolder}
+										data-id={name}
+										data-active={activeFolder === name}
+									>
+										<i className='material-icons gallery-folders-icon'>tag</i>
+										{name}
+									</li>
+								))}
+							</ul>
+						</div>
 						<ul className={styles['gallery-folders']}>
 							<li
 								className='gallery-folders-item'
 								onClick={handleClickFolder}
-								data-id='history'
-								data-active={activeFolder === 'history'}
+								data-id='_home'
+								data-active={activeFolder === '_home'}
 							>
-								<i className='material-icons gallery-folders-icon'>history</i>
-								最近使用
-							</li>
-							<li
-								className='gallery-folders-item'
-								onClick={handleClickFolder}
-								data-id='favourite'
-								data-active={activeFolder === 'favourite'}
-							>
-								<i className='material-icons gallery-folders-icon'>star</i>
-								我的最愛
+								<i className='material-icons gallery-folders-icon'>house</i>
+								小屋圖庫
 							</li>
 						</ul>
+						<div>編輯</div>
 					</div>
-					<ul className={styles['gallery-folders']}>
-						<li
-							className='gallery-folders-item'
-							onClick={handleClickFolder}
-							data-id='home'
-							data-active={activeFolder === 'home'}
+					<div className='tw-flex-1'>
+						<div
+							className={
+								activeFolder === '_home' ? 'tw-h-full tw-block' : 'tw-hidden'
+							}
 						>
-							<i className='material-icons gallery-folders-icon'>house</i>
-							小屋圖庫
-						</li>
-					</ul>
-					<div>編輯</div>
-				</div>
-				<div className='tw-flex-1'>
-					<div
-						className={
-							activeFolder === 'home' ? 'tw-h-full tw-block' : 'tw-hidden'
-						}
-					>
-						<GalleryForHomeImage onClickItem={handleClickGalleryItem} />
+							<GalleryForHomeImage
+								onClickItem={handleClickGalleryItem}
+								onAction={handleAction}
+							/>
+						</div>
+						<div
+							className={
+								activeFolder !== '_home' ? 'tw-h-full tw-block' : 'tw-hidden'
+							}
+						>
+							<GalleryForFolder
+								folderName={activeFolder}
+								onClickItem={handleClickGalleryItem}
+							/>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</GalleryDialogConfigContext.Provider>
 	);
+
+	/**
+	 * Control Panel
+	 */
 }
 
 export function GalleryForHomeImage({
 	onClickItem,
+	onAction,
 }: {
 	onClickItem: (item: TGalleryItem) => void;
+	onAction: TActionFn;
 }) {
 	const {
 		data: homeImagesData,
@@ -102,10 +227,23 @@ export function GalleryForHomeImage({
 			lastPage.length > 0 ? lastPageParam + 1 : null,
 	});
 
+	/**
+	 * Selected Items
+	 */
+	const [
+		selectedSet,
+		{ has: isSelected, toggle: toggleSelected, clear: clearSelected },
+	] = useSet<string>();
+
 	const handleClickItem = useCallback(
 		(e: MouseEvent<HTMLDivElement>) => {
 			const url = e.currentTarget.getAttribute('data-url');
 			if (!url) {
+				return;
+			}
+
+			if (e.shiftKey || e.ctrlKey) {
+				toggleSelected(url);
 				return;
 			}
 
@@ -118,8 +256,66 @@ export function GalleryForHomeImage({
 				createdAt: '',
 			});
 		},
-		[onClickItem]
+		[onClickItem, toggleSelected]
 	);
+
+	const handleClickAddToFavorites = () => {
+		onAction([
+			{
+				action: 'addToFolder',
+				payload: {
+					targetFolderName: '_favorite',
+					items: [...selectedSet].map((url) => ({
+						id: url,
+						content: url,
+						name: url,
+						type: 'image',
+						tags: ['_favorite'],
+						createdAt: new Date().toISOString(),
+					})),
+				},
+			},
+			{
+				action: 'switchFolder',
+				payload: '_favorite',
+			},
+		]);
+		clearSelected();
+	};
+
+	const handleClickAddToNewFolder = () => {
+		const newFolderName = prompt('請輸入資料夾名稱');
+		if (!newFolderName) {
+			return;
+		}
+
+		onAction([
+			{
+				action: 'upsertFolder',
+				payload: newFolderName,
+			},
+			{
+				action: 'addToFolder',
+				payload: {
+					targetFolderName: newFolderName,
+					items: [...selectedSet].map((url) => ({
+						id: url,
+						content: url,
+						name: url,
+						type: 'image',
+						tags: [newFolderName],
+						createdAt: new Date().toISOString(),
+					})),
+				},
+			},
+			{
+				action: 'switchFolder',
+				payload: newFolderName,
+			},
+		]);
+
+		clearSelected();
+	};
 
 	return (
 		<div className={styles['gallery-container']}>
@@ -136,6 +332,7 @@ export function GalleryForHomeImage({
 								onClick={handleClickItem}
 								style={{ backgroundImage: `url(${image.url})` }}
 								data-url={image.url}
+								data-selected={isSelected(image.url)}
 							/>
 						))
 					)}
@@ -151,6 +348,103 @@ export function GalleryForHomeImage({
 						</button>
 					</div>
 				)}
+			</section>
+
+			{selectedSet.size > 0 && (
+				<div className='tw-absolute tw-bottom-2 tw-left-2 tw-right-2 tw-p-4 tw-bg-bg1 tw-rounded tw-shadow-lg'>
+					<div>
+						<div>已選取 {selectedSet.size} 項</div>
+						<div className='tw-space-x-2 tw-text-right'>
+							<span
+								onClick={handleClickAddToFavorites}
+								className='tw-text-baha tw-underline tw-cursor-pointer'
+							>
+								加入最愛
+							</span>
+							<span
+								onClick={handleClickAddToNewFolder}
+								className='tw-text-baha tw-underline tw-cursor-pointer'
+							>
+								加至新資料夾
+							</span>
+							<span className='tw-text-baha tw-underline tw-cursor-pointer'>
+								操作
+							</span>
+							<span
+								className='tw-text-baha tw-underline tw-cursor-pointer'
+								onClick={clearSelected}
+							>
+								取消選擇
+							</span>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+export function GalleryForFolder({
+	onClickItem,
+	folderName,
+}: {
+	onClickItem: (item: TGalleryItem) => void;
+	folderName: string;
+}) {
+	const { items } = useGalleryConfig();
+	const filteredItems = useMemo(
+		() =>
+			folderName !== '_all'
+				? items.filter(({ tags }) => tags.includes(folderName))
+				: items,
+		[folderName, items]
+	);
+
+	/**
+	 * Selected Items
+	 */
+	const [set, { has, toggle: toggleSelected, clear }] = useSet<string>();
+
+	const handleClickItem = useCallback(
+		(e: MouseEvent<HTMLDivElement>) => {
+			const targetId = e.currentTarget.getAttribute('data-id');
+			if (!targetId) {
+				return;
+			}
+			const item = items.find(({ id }) => id === targetId);
+			if (!item) {
+				return;
+			}
+
+			if (e.shiftKey || e.ctrlKey) {
+				toggleSelected(item.id);
+			}
+
+			onClickItem(item);
+		},
+		[items, onClickItem, toggleSelected]
+	);
+
+	return (
+		<div className={styles['gallery-container']}>
+			<div className='tw-text-right tw-mb-2'>
+				<button className='btn btn-primary'>上傳圖片</button>
+			</div>
+			<section className='gallery-container-body'>
+				<div className='gallery-grid'>
+					{filteredItems.map((item) => (
+						<div
+							key={item.id}
+							className='gallery-grid-item'
+							onClick={handleClickItem}
+							style={{
+								backgroundImage:
+									item.type === 'image' ? `url(${item.content})` : 'none',
+							}}
+							data-id={item.id}
+						/>
+					))}
+				</div>
 			</section>
 		</div>
 	);
