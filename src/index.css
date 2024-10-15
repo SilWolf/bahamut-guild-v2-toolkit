@@ -29,6 +29,14 @@
 	.link-baha {
 		@apply tw-cursor-pointer tw-text-baha tw-underline tw-underline-offset-2 hover:tw-underline;
 	}
+	.hide-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.hide-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 @layer components {

@@ -1,11 +1,28 @@
-.home-image-section :global(.home-image-section-body) {
-	@apply tw-max-h-[calc(100%+32px)] tw-overflow-y-scroll;
+.gallery-folders {
 }
 
-.home-image-section :global(.home-image-grid-container) {
-	@apply tw-grid tw-grid-cols-4 tw-gap-2;
+.gallery-folders :global(.gallery-folders-item) {
+	@apply tw-p-2 tw-cursor-pointer tw-bg-baha tw-bg-opacity-0 hover:tw-bg-opacity-20 data-[active=true]:tw-bg-opacity-20;
 }
 
-.home-image-section :global(.home-image-grid-container-item) {
+.gallery-folders :global(.gallery-folders-icon) {
+	font-size: 1.25em;
+	vertical-align: text-bottom;
+	margin-right: 0.25em;
+}
+
+.gallery-container {
+	@apply tw-h-full tw-flex tw-flex-col;
+}
+
+.gallery-container :global(.gallery-container-body) {
+	@apply tw-flex-1 tw-overflow-y-scroll;
+}
+
+.gallery-container :global(.gallery-grid) {
+	@apply tw-grid tw-grid-cols-4 tw-gap-1;
+}
+
+.gallery-container :global(.gallery-grid-item) {
 	@apply tw-border tw-border-solid tw-border-neutral-400 hover:tw-border-neutral-600 tw-aspect-square tw-bg-contain tw-bg-center tw-bg-no-repeat tw-cursor-pointer;
 }

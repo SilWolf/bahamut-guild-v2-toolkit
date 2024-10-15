@@ -257,7 +257,7 @@ function App() {
 			</div>
 
 			{isOpenBGTV3Config && (
-				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll'>
+				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll hide-scrollbar'>
 					<BGTV3ConfigForCommentDiv
 						commentConfig={commentConfig!}
 						onChangeValue={setCommentConfig}
@@ -270,7 +270,7 @@ function App() {
 			)}
 
 			{isOpenGallery && (
-				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll'>
+				<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-bg-bg1 tw-rounded tw-p-4 tw-shadow'>
 					<GalleryDialog insertTextFn={handleInsertTextToEditor} />
 				</div>
 			)}
