@@ -1,7 +1,12 @@
-import { QueryFunction, useInfiniteQuery } from '@tanstack/react-query';
+import {
+	InfiniteData,
+	QueryFunction,
+	useInfiniteQuery,
+} from '@tanstack/react-query';
 import React, {
 	createContext,
 	MouseEvent,
+	MouseEventHandler,
 	useCallback,
 	useContext,
 	useEffect,
@@ -38,11 +43,17 @@ const useGalleryConfig = () => useContext(GalleryDialogConfigContext);
 type TActionItem =
 	| {
 			action: 'addToFolder';
-			payload: { targetFolderName: string; items: TGalleryItem[] };
+			payload: {
+				targetFolderName: string;
+				items: (TGalleryItem | undefined)[];
+			};
 	  }
 	| {
 			action: 'removeFromFolder';
-			payload: { targetFolderName: string; items: TGalleryItem[] };
+			payload: {
+				targetFolderName: string;
+				items: (TGalleryItem | undefined)[];
+			};
 	  }
 	| {
 			action: 'switchFolder';
@@ -92,6 +103,10 @@ export default function GalleryDialog({
 			for (const { action, payload } of actionItems) {
 				if (action === 'addToFolder') {
 					for (const newItem of payload.items) {
+						if (!newItem) {
+							continue;
+						}
+
 						const itemIndex = newGalleryConfig.items.findIndex(
 							({ id }) => id === newItem.id
 						);
@@ -109,6 +124,10 @@ export default function GalleryDialog({
 					}
 				} else if (action === 'removeFromFolder') {
 					for (const newItem of payload.items) {
+						if (!newItem) {
+							continue;
+						}
+
 						const targetItem = newGalleryConfig.items.find(
 							({ id }) => id === newItem.id
 						);
@@ -305,6 +324,33 @@ export default function GalleryDialog({
 	 */
 }
 
+const homeImagesSelectFn = (
+	data: InfiniteData<
+		{
+			index: number;
+			thumb_url: string;
+			url: string;
+		}[],
+		number
+	>
+) =>
+	data.pages
+		.map((page) =>
+			page
+				.map(
+					(image): TGalleryItem => ({
+						id: `_homeImage_${image.index.toString()}`,
+						name: image.url,
+						content: image.url,
+						type: 'image',
+						createdAt: '',
+						tags: [],
+					})
+				)
+				.flat()
+		)
+		.flat();
+
 export function GalleryForHomeImage({
 	onClickItem,
 	onAction,
@@ -313,7 +359,7 @@ export function GalleryForHomeImage({
 	onAction: TActionFn;
 }) {
 	const {
-		data: homeImagesData,
+		data: items,
 		fetchNextPage,
 		isFetchingNextPage,
 		hasNextPage,
@@ -324,6 +370,7 @@ export function GalleryForHomeImage({
 		initialPageParam: 1,
 		getNextPageParam: (lastPage, __, lastPageParam) =>
 			lastPage.length > 0 ? lastPageParam + 1 : null,
+		select: homeImagesSelectFn,
 	});
 
 	/**
@@ -336,26 +383,23 @@ export function GalleryForHomeImage({
 
 	const handleClickItem = useCallback(
 		(e: MouseEvent<HTMLDivElement>) => {
-			const url = e.currentTarget.getAttribute('data-url');
-			if (!url) {
+			const targetId = e.currentTarget.getAttribute('data-id');
+			if (!targetId) {
+				return;
+			}
+			const item = items?.find(({ id }) => id === targetId);
+			if (!item) {
 				return;
 			}
 
 			if (selectedSet.size > 0 || e.shiftKey || e.ctrlKey) {
-				toggleSelected(url);
+				toggleSelected(item.id);
 				return;
 			}
 
-			onClickItem({
-				id: url,
-				name: url,
-				content: url,
-				type: 'image',
-				tags: [],
-				createdAt: '',
-			});
+			onClickItem(item);
 		},
-		[onClickItem, selectedSet.size, toggleSelected]
+		[items, onClickItem, selectedSet.size, toggleSelected]
 	);
 
 	const handleClickAddToFavorites = () => {
@@ -364,14 +408,9 @@ export function GalleryForHomeImage({
 				action: 'addToFolder',
 				payload: {
 					targetFolderName: '_favorite',
-					items: [...selectedSet].map((url) => ({
-						id: url,
-						content: url,
-						name: url,
-						type: 'image',
-						tags: ['_favorite'],
-						createdAt: new Date().toISOString(),
-					})),
+					items: [...selectedSet].map((selectedId) =>
+						items?.find(({ id }) => id === selectedId)
+					),
 				},
 			},
 			{
@@ -383,6 +422,10 @@ export function GalleryForHomeImage({
 	};
 
 	const handleClickAddToNewFolder = () => {
+		if (!items) {
+			return;
+		}
+
 		const newFolderName = prompt(
 			'請輸入資料夾名稱（如果資料夾不存在，會一併創建）'
 		);
@@ -399,14 +442,9 @@ export function GalleryForHomeImage({
 				action: 'addToFolder',
 				payload: {
 					targetFolderName: newFolderName,
-					items: [...selectedSet].map((url) => ({
-						id: url,
-						content: url,
-						name: url,
-						type: 'image',
-						tags: [newFolderName],
-						createdAt: new Date().toISOString(),
-					})),
+					items: [...selectedSet].map((selectedId) =>
+						items?.find(({ id }) => id === selectedId)
+					),
 				},
 			},
 			{
@@ -425,18 +463,14 @@ export function GalleryForHomeImage({
 			</div>
 			<section className='gallery-container-body'>
 				<div className='gallery-grid'>
-					{homeImagesData?.pages.map((page) =>
-						page.map((image) => (
-							<div
-								key={image.index}
-								className='gallery-grid-item'
-								onClick={handleClickItem}
-								style={{ backgroundImage: `url(${image.url})` }}
-								data-url={image.url}
-								data-selected={isSelected(image.url)}
-							/>
-						))
-					)}
+					{items?.map((item) => (
+						<GalleryItem
+							key={item.id}
+							item={item}
+							onClick={handleClickItem}
+							isSelected={isSelected(item.id)}
+						/>
+					))}
 				</div>
 				{hasNextPage && (
 					<div className='tw-py-4 tw-text-center'>
@@ -535,14 +569,9 @@ export function GalleryForFolder({
 				action: 'addToFolder',
 				payload: {
 					targetFolderName: '_favorite',
-					items: [...selectedSet].map((url) => ({
-						id: url,
-						content: url,
-						name: url,
-						type: 'image',
-						tags: ['_favorite'],
-						createdAt: new Date().toISOString(),
-					})),
+					items: [...selectedSet].map((selectedId) =>
+						items?.find(({ id }) => id === selectedId)
+					),
 				},
 			},
 			{
@@ -570,14 +599,9 @@ export function GalleryForFolder({
 				action: 'addToFolder',
 				payload: {
 					targetFolderName: newFolderName,
-					items: [...selectedSet].map((url) => ({
-						id: url,
-						content: url,
-						name: url,
-						type: 'image',
-						tags: [newFolderName],
-						createdAt: new Date().toISOString(),
-					})),
+					items: [...selectedSet].map((selectedId) =>
+						items?.find(({ id }) => id === selectedId)
+					),
 				},
 			},
 			{
@@ -600,14 +624,9 @@ export function GalleryForFolder({
 					action: 'removeFromFolder',
 					payload: {
 						targetFolderName: folderName,
-						items: [...selectedSet].map((url) => ({
-							id: url,
-							content: url,
-							name: url,
-							type: 'image',
-							tags: [],
-							createdAt: new Date().toISOString(),
-						})),
+						items: [...selectedSet].map((selectedId) =>
+							items?.find(({ id }) => id === selectedId)
+						),
 					},
 				},
 			]);
@@ -638,16 +657,11 @@ export function GalleryForFolder({
 			<section className='gallery-container-body'>
 				<div className='gallery-grid'>
 					{filteredItems.map((item) => (
-						<div
+						<GalleryItem
 							key={item.id}
-							className='gallery-grid-item'
+							item={item}
 							onClick={handleClickItem}
-							style={{
-								backgroundImage:
-									item.type === 'image' ? `url(${item.content})` : 'none',
-							}}
-							data-id={item.id}
-							data-selected={isSelected(item.id)}
+							isSelected={isSelected(item.id)}
 						/>
 					))}
 				</div>
@@ -691,5 +705,29 @@ export function GalleryForFolder({
 				)}
 			</section>
 		</div>
+	);
+}
+
+export function GalleryItem({
+	item,
+	isSelected,
+	onClick,
+}: {
+	item: TGalleryItem;
+	isSelected: boolean;
+	onClick: MouseEventHandler;
+}) {
+	return (
+		<div
+			key={item.id}
+			className='gallery-grid-item'
+			onClick={onClick}
+			style={{
+				backgroundImage:
+					item.type === 'image' ? `url(${item.content})` : 'none',
+			}}
+			data-id={item.id}
+			data-selected={isSelected}
+		/>
 	);
 }
