@@ -37,6 +37,10 @@
 	.hide-scrollbar::-webkit-scrollbar {
 		display: none;
 	}
+
+	button:disabled {
+		@apply tw-opacity-50;
+	}
 }
 
 @layer components {

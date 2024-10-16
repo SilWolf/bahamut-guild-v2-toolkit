@@ -138,9 +138,7 @@ export default function GalleryAddItemsDialog({
 														className='tw-mt-1.5'
 														accept='image/*'
 													/>
-													<p className='tw-text-sm'>
-														圖片將上傳至 Imgur 圖床。
-													</p>
+													<p className='tw-text-sm'>圖片將上傳至 Imgur 圖床</p>
 													<p className='tw-text-sm'>
 														{errors.items?.[index]?.file?.message}
 													</p>
