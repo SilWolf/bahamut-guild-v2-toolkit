@@ -32,3 +32,5 @@ export const renderTime = (
 };
 
 export const generateRandomId = () => nanoid(12);
+
+export const getNowDateString = () => new Date().toISOString();

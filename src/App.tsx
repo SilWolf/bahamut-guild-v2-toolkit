@@ -149,7 +149,7 @@ function App() {
 
 	const [isOpenGallery, setIsOpenGallery] = useState<boolean>(false);
 	const handleClickOpenGallery = useCallback(() => {
-		setIsOpenGallery(true);
+		setIsOpenGallery((prev) => !prev);
 	}, []);
 
 	const handleInsertTextToEditor = useCallback(
@@ -270,7 +270,7 @@ function App() {
 			)}
 
 			{isOpenGallery && (
-				<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-bg-bg1 tw-rounded tw-p-4 tw-shadow'>
+				<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-bg-bg1 tw-rounded tw-p-4 tw-shadow tw-z-[1000]'>
 					<GalleryDialog insertTextFn={handleInsertTextToEditor} />
 				</div>
 			)}

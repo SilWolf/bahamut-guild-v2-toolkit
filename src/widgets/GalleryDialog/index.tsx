@@ -4,6 +4,7 @@ import React, {
 	MouseEvent,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
 	useState,
 } from 'react';
@@ -13,6 +14,9 @@ import styles from './index.module.css';
 import { TGalleryConfig, TGalleryItem } from './index.type';
 import { useLocalStorage, useSet } from 'react-use';
 import { LS_KEY_BGT_V3_GALLERY_CONFIG } from '../../constant';
+import { postImgurImage } from '../../helpers/imgur.helper';
+import { generateRandomId, getNowDateString } from '../../utils/string.util';
+import GalleryAddItemsDialog from './GalleryAddItemsDialog';
 
 const fetchImagesFn: QueryFunction<
 	Awaited<ReturnType<typeof apiGetHomeImagesByPage>>,
@@ -31,22 +35,29 @@ const GalleryDialogConfigContext = createContext<TGalleryConfig>(
 );
 const useGalleryConfig = () => useContext(GalleryDialogConfigContext);
 
-type TActionFn = (
-	actionItem: (
-		| {
-				action: 'addToFolder';
-				payload: { targetFolderName: string; items: TGalleryItem[] };
-		  }
-		| {
-				action: 'switchFolder';
-				payload: string;
-		  }
-		| {
-				action: 'upsertFolder';
-				payload: string;
-		  }
-	)[]
-) => void;
+type TActionItem =
+	| {
+			action: 'addToFolder';
+			payload: { targetFolderName: string; items: TGalleryItem[] };
+	  }
+	| {
+			action: 'removeFromFolder';
+			payload: { targetFolderName: string; items: TGalleryItem[] };
+	  }
+	| {
+			action: 'switchFolder';
+			payload: string;
+	  }
+	| {
+			action: 'upsertFolder';
+			payload: string;
+	  }
+	| {
+			action: 'toggleAddNewItemsDialog';
+			payload: string;
+	  };
+
+type TActionFn = (actionItem: TActionItem[]) => void;
 
 export default function GalleryDialog({
 	insertTextFn,
@@ -63,6 +74,16 @@ export default function GalleryDialog({
 
 	const handleClickGalleryItem = (item: TGalleryItem) =>
 		insertTextFn(item.content);
+
+	/**
+	 * Active Folder
+	 */
+	const [activeFolder, setActiveFolder] = useState<string>('_home');
+	const handleClickFolder = useCallback((e: MouseEvent) => {
+		setActiveFolder(
+			(e.currentTarget as HTMLElement).getAttribute('data-id') as string
+		);
+	}, []);
 
 	const handleAction = useCallback<TActionFn>(
 		(actionItems) => {
@@ -86,12 +107,28 @@ export default function GalleryDialog({
 							});
 						}
 					}
+				} else if (action === 'removeFromFolder') {
+					for (const newItem of payload.items) {
+						const targetItem = newGalleryConfig.items.find(
+							({ id }) => id === newItem.id
+						);
+						if (targetItem) {
+							const targetTagIndex = targetItem.tags.indexOf(
+								payload.targetFolderName
+							);
+							if (targetTagIndex !== -1) {
+								targetItem.tags.splice(targetTagIndex, 1);
+							}
+						}
+					}
 				} else if (action === 'switchFolder') {
 					setActiveFolder(payload);
 				} else if (action === 'upsertFolder') {
 					if (!newGalleryConfig.folders.includes(payload)) {
 						newGalleryConfig.folders.push(payload);
 					}
+				} else if (action === 'toggleAddNewItemsDialog') {
+					setAddItemsDialogPayload(payload);
 				}
 			}
 
@@ -101,14 +138,67 @@ export default function GalleryDialog({
 	);
 
 	/**
-	 * Active Folder
+	 * Gallery Add Items Dialog
 	 */
-	const [activeFolder, setActiveFolder] = useState<string>('home');
-	const handleClickFolder = useCallback((e: MouseEvent) => {
-		setActiveFolder(
-			(e.currentTarget as HTMLElement).getAttribute('data-id') as string
-		);
-	}, []);
+	const [addItemsDialogPayload, setAddItemsDialogPayload] = useState<
+		string | null
+	>(null);
+	const handleSubmitGalleryAddItemsDialog = useCallback(
+		async (
+			targetFolderName: string,
+			newValue: {
+				items: (Pick<TGalleryItem, 'name' | 'content'> & {
+					type: 'text' | 'image-url' | 'image-upload';
+					file?: FileList;
+				})[];
+			}
+		) => {
+			const promises = newValue.items.map((item): Promise<TGalleryItem> => {
+				if (item.type === 'image-upload') {
+					return postImgurImage(item.file![0]).then(({ link }) => ({
+						id: generateRandomId(),
+						name: item.name,
+						type: 'image',
+						content: link,
+						tags: [],
+						createdAt: getNowDateString(),
+					}));
+				}
+
+				return Promise.resolve({
+					id: generateRandomId(),
+					name: item.name,
+					type: item.type === 'image-url' ? 'image' : 'text',
+					content: item.content,
+					tags: [],
+					createdAt: getNowDateString(),
+				});
+			});
+
+			return Promise.allSettled(promises).then((results) => {
+				handleAction([
+					{
+						action: 'addToFolder',
+						payload: {
+							targetFolderName: 'targetFolderName',
+							items: results
+								.filter(({ status }) => status === 'fulfilled')
+								.map(
+									(results) =>
+										(results as PromiseFulfilledResult<TGalleryItem>).value
+								),
+						},
+					},
+				]);
+
+				return results.map((result) => ({
+					success: result.status === 'fulfilled',
+					message: (result as PromiseRejectedResult).reason,
+				}));
+			});
+		},
+		[handleAction]
+	);
 
 	return (
 		<GalleryDialogConfigContext.Provider value={galleryConfig!}>
@@ -193,11 +283,20 @@ export default function GalleryDialog({
 							<GalleryForFolder
 								folderName={activeFolder}
 								onClickItem={handleClickGalleryItem}
+								onAction={handleAction}
 							/>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			{addItemsDialogPayload && (
+				<GalleryAddItemsDialog
+					onSubmit={handleSubmitGalleryAddItemsDialog}
+					onCancel={() => setAddItemsDialogPayload(null)}
+					targetFolderName={addItemsDialogPayload}
+				/>
+			)}
 		</GalleryDialogConfigContext.Provider>
 	);
 
@@ -242,7 +341,7 @@ export function GalleryForHomeImage({
 				return;
 			}
 
-			if (e.shiftKey || e.ctrlKey) {
+			if (selectedSet.size > 0 || e.shiftKey || e.ctrlKey) {
 				toggleSelected(url);
 				return;
 			}
@@ -256,7 +355,7 @@ export function GalleryForHomeImage({
 				createdAt: '',
 			});
 		},
-		[onClickItem, toggleSelected]
+		[onClickItem, selectedSet.size, toggleSelected]
 	);
 
 	const handleClickAddToFavorites = () => {
@@ -284,7 +383,9 @@ export function GalleryForHomeImage({
 	};
 
 	const handleClickAddToNewFolder = () => {
-		const newFolderName = prompt('請輸入資料夾名稱');
+		const newFolderName = prompt(
+			'請輸入資料夾名稱（如果資料夾不存在，會一併創建）'
+		);
 		if (!newFolderName) {
 			return;
 		}
@@ -367,9 +468,6 @@ export function GalleryForHomeImage({
 							>
 								加至新資料夾
 							</span>
-							<span className='tw-text-baha tw-underline tw-cursor-pointer'>
-								操作
-							</span>
 							<span
 								className='tw-text-baha tw-underline tw-cursor-pointer'
 								onClick={clearSelected}
@@ -387,9 +485,11 @@ export function GalleryForHomeImage({
 export function GalleryForFolder({
 	onClickItem,
 	folderName,
+	onAction,
 }: {
 	onClickItem: (item: TGalleryItem) => void;
 	folderName: string;
+	onAction: TActionFn;
 }) {
 	const { items } = useGalleryConfig();
 	const filteredItems = useMemo(
@@ -403,7 +503,10 @@ export function GalleryForFolder({
 	/**
 	 * Selected Items
 	 */
-	const [set, { has, toggle: toggleSelected, clear }] = useSet<string>();
+	const [
+		selectedSet,
+		{ has: isSelected, toggle: toggleSelected, clear: clearSelected },
+	] = useSet<string>();
 
 	const handleClickItem = useCallback(
 		(e: MouseEvent<HTMLDivElement>) => {
@@ -416,19 +519,121 @@ export function GalleryForFolder({
 				return;
 			}
 
-			if (e.shiftKey || e.ctrlKey) {
+			if (selectedSet.size > 0 || e.shiftKey || e.ctrlKey) {
 				toggleSelected(item.id);
+				return;
 			}
 
 			onClickItem(item);
 		},
-		[items, onClickItem, toggleSelected]
+		[items, onClickItem, selectedSet.size, toggleSelected]
 	);
+
+	const handleClickAddToFavorites = () => {
+		onAction([
+			{
+				action: 'addToFolder',
+				payload: {
+					targetFolderName: '_favorite',
+					items: [...selectedSet].map((url) => ({
+						id: url,
+						content: url,
+						name: url,
+						type: 'image',
+						tags: ['_favorite'],
+						createdAt: new Date().toISOString(),
+					})),
+				},
+			},
+			{
+				action: 'switchFolder',
+				payload: '_favorite',
+			},
+		]);
+		clearSelected();
+	};
+
+	const handleClickAddToNewFolder = () => {
+		const newFolderName = prompt(
+			'請輸入資料夾名稱（如果資料夾不存在，會一併創建）'
+		);
+		if (!newFolderName) {
+			return;
+		}
+
+		onAction([
+			{
+				action: 'upsertFolder',
+				payload: newFolderName,
+			},
+			{
+				action: 'addToFolder',
+				payload: {
+					targetFolderName: newFolderName,
+					items: [...selectedSet].map((url) => ({
+						id: url,
+						content: url,
+						name: url,
+						type: 'image',
+						tags: [newFolderName],
+						createdAt: new Date().toISOString(),
+					})),
+				},
+			},
+			{
+				action: 'switchFolder',
+				payload: newFolderName,
+			},
+		]);
+
+		clearSelected();
+	};
+
+	const handleClickRemoveFromFolder = () => {
+		if (
+			confirm(
+				'確定要移出資料夾嗎？\n（* 這不是永久刪除，你依然能在其他資料夾／「全部」中找到它們）'
+			)
+		) {
+			onAction([
+				{
+					action: 'removeFromFolder',
+					payload: {
+						targetFolderName: folderName,
+						items: [...selectedSet].map((url) => ({
+							id: url,
+							content: url,
+							name: url,
+							type: 'image',
+							tags: [],
+							createdAt: new Date().toISOString(),
+						})),
+					},
+				},
+			]);
+			clearSelected();
+		}
+	};
+
+	const handleClickAddItems = () => {
+		onAction([
+			{
+				action: 'toggleAddNewItemsDialog',
+				payload: folderName,
+			},
+		]);
+	};
+
+	useEffect(() => {
+		clearSelected();
+	}, [clearSelected, folderName]);
 
 	return (
 		<div className={styles['gallery-container']}>
 			<div className='tw-text-right tw-mb-2'>
-				<button className='btn btn-primary'>上傳圖片</button>
+				<button className='btn btn-primary' onClick={handleClickAddItems}>
+					新增項目
+				</button>
 			</div>
 			<section className='gallery-container-body'>
 				<div className='gallery-grid'>
@@ -442,9 +647,48 @@ export function GalleryForFolder({
 									item.type === 'image' ? `url(${item.content})` : 'none',
 							}}
 							data-id={item.id}
+							data-selected={isSelected(item.id)}
 						/>
 					))}
 				</div>
+
+				{selectedSet.size > 0 && (
+					<div className='tw-absolute tw-bottom-2 tw-left-2 tw-right-2 tw-p-4 tw-bg-bg1 tw-rounded tw-shadow-lg'>
+						<div>
+							<div>已選取 {selectedSet.size} 項</div>
+							<div className='tw-space-x-2 tw-text-right'>
+								{folderName !== '_favorite' && (
+									<span
+										onClick={handleClickAddToFavorites}
+										className='tw-text-baha tw-underline tw-cursor-pointer'
+									>
+										加入最愛
+									</span>
+								)}
+								<span
+									onClick={handleClickAddToNewFolder}
+									className='tw-text-baha tw-underline tw-cursor-pointer'
+								>
+									加至新資料夾
+								</span>
+								<span
+									className='tw-text-baha tw-underline tw-cursor-pointer'
+									onClick={clearSelected}
+								>
+									取消選擇
+								</span>
+							</div>
+							<div className='tw-space-x-2 tw-text-right tw-mt-1'>
+								<span
+									onClick={handleClickRemoveFromFolder}
+									className='tw-text-red-500 tw-underline tw-cursor-pointer'
+								>
+									移出資料夾
+								</span>
+							</div>
+						</div>
+					</div>
+				)}
 			</section>
 		</div>
 	);

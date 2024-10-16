@@ -16,7 +16,7 @@
 }
 
 .gallery-container :global(.gallery-container-body) {
-	@apply tw-flex-1 tw-overflow-y-scroll;
+	@apply tw-flex-1 tw-overflow-y-scroll tw-pb-32;
 }
 
 .gallery-container :global(.gallery-grid) {
