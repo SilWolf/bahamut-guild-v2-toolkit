@@ -80,6 +80,15 @@ export default function DiceRollDialog({
 		});
 	}, [fetchedComments, me.id, me.nickname, reset]);
 
+	const handleClickQuickRollCOC = useCallback(() => {
+		reset({
+			count: 1,
+			size: 100,
+			addnumber: 0,
+			reason: '技能檢定（５０以下＝＞成功）',
+		});
+	}, [reset]);
+
 	const handleSubmit = useCallback(
 		(
 			newValue: Omit<TDiceRollPostBody, 'pool' | 'isrepeat'> & {
@@ -207,7 +216,9 @@ export default function DiceRollDialog({
 						劇本抽玩家
 					</button>
 					<span>|</span>
-					<button className='btn-text'>COC檢定</button>
+					<button className='btn-text' onClick={handleClickQuickRollCOC}>
+						COC檢定
+					</button>
 				</div>
 				<form className='tw-space-y-4' onSubmit={handleRhfSubmit(handleSubmit)}>
 					<div className='tw-grid tw-grid-cols-3 tw-gap-2'>

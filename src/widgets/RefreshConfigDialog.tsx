@@ -1,6 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import UISwitch from '../components/ui/UISwitch';
+import { TBahaComment } from '../types';
+import useMe from '../hooks/useMe';
+import { GM_notification } from '$';
 
 export type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -152,4 +155,43 @@ export function renderRefreshConfig(config: TRefreshConfig | undefined) {
 	}
 
 	return texts.join(', ');
+}
+
+const notifyAudio = new Audio(
+	'https://github.com/SilWolf/bahamut-guild-v2-toolkit/blob/main/src/plugins/bhgv2-auto-refresh/notify_2.mp3?raw=true'
+);
+
+export function useRefreshSideEffectBot(
+	latestComment: TBahaComment | undefined,
+	refreshConfig: TRefreshConfig | undefined
+) {
+	const me = useMe();
+
+	useEffect(() => {
+		if (!latestComment || !refreshConfig) {
+			return;
+		}
+
+		if (latestComment.userid === me.id) {
+			return;
+		}
+
+		console.log('notify');
+
+		if (refreshConfig.refreshDesktopNotification) {
+			GM_notification({
+				title: '巴哈RPG對串回覆',
+				text: `${latestComment.name}：${latestComment.text}`,
+				silent: true,
+				timeout: 10000,
+				image: 'https://p2.bahamut.com.tw/B/GUILD/c/4/0000003014.PNG',
+			});
+		}
+
+		if (refreshConfig.refreshSound === '1') {
+			notifyAudio.play();
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [latestComment?.id, refreshConfig?.refreshDesktopNotification]);
 }

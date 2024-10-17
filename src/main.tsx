@@ -15,13 +15,18 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(
 	(() => {
-		const originalApp = document.querySelector(
-			'.main-container_wall'
-		) as HTMLDivElement;
+		const oldApp = document.getElementsByClassName('inboxfeed')[0];
+		if (!oldApp) {
+			throw new Error('初始化失敗：找不到原有介面');
+		}
+
+		const appContainer = oldApp.parentElement;
+		oldApp.remove();
 
 		const app = document.createElement('div');
 		app.classList.add('tw-w-full');
-		originalApp.prepend(app);
+		appContainer!.prepend(app);
+
 		return app;
 	})()
 ).render(

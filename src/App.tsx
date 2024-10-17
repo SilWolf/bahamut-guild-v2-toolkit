@@ -7,6 +7,7 @@ import useLocalStorage from 'react-use/lib/useLocalStorage';
 import RefreshConfigDialog, {
 	REFERSH_CONFIG_DEFAULT_VALUES,
 	renderRefreshConfig,
+	useRefreshSideEffectBot,
 } from './widgets/RefreshConfigDialog';
 import useBahaPostAndComments from './hooks/useBahaPostAndComments';
 import BahaPostCommentTextarea, {
@@ -90,15 +91,13 @@ function App() {
 		post,
 		postMetadata,
 		fetchedComments,
-		latestCommentId,
+		latestComment,
 		pendingMutations,
 		isLoading,
 		createComment,
-	} = useBahaPostAndComments({
-		refreshInterval: refreshConfig?.enableRefresh
-			? refreshConfig.refreshInterval
-			: 0,
-	});
+	} = useBahaPostAndComments(refreshConfig);
+
+	useRefreshSideEffectBot(latestComment, refreshConfig);
 
 	const comments = useMemo(() => {
 		return [
@@ -115,7 +114,13 @@ function App() {
 			),
 		];
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [latestCommentId, me.avatar, me.id, me.nickname, pendingMutations.length]);
+	}, [
+		latestComment?.id,
+		me.avatar,
+		me.id,
+		me.nickname,
+		pendingMutations.length,
+	]);
 
 	/**
 	 * Textarea related.
@@ -167,148 +172,156 @@ function App() {
 	const [isOpenDiceRoll, toggleDiceRoll] = useBoolean(false);
 
 	return (
-		<div className='tw-flex tw-gap-4 tw-items-start'>
-			<div className='tw-mx-auto' style={{ width: 'min-content' }}>
-				{isLoading && (
-					<div className='tw-p-4 tw-bg-bg1 tw-shadow'>
-						<p>插件初始化中…</p>
-					</div>
-				)}
+		<>
+			<div className='tw-flex tw-gap-4 tw-items-start'>
+				<div
+					className='tw-mx-auto tw-relative'
+					style={{ width: 'min-content' }}
+				>
+					{isLoading && (
+						<div className='tw-p-4 tw-bg-bg1 tw-shadow'>
+							<p>插件初始化中…</p>
+						</div>
+					)}
 
-				{post && (
-					<div className='bhgtv3-post tw-p-4 tw-bg-bg1 tw-shadow tw-space-y-2'>
-						<div className='tw-flex tw-items-center tw-gap-x-2'>
-							<div className='tw-shrink-0'>
-								<img
-									className='tw-rounded-full tw-w-10 tw-h-10'
-									src={post.publisher.propic}
-									alt={post.publisher.id}
-								/>
+					{post && (
+						<div className='bhgtv3-post tw-p-4 tw-bg-bg1 tw-shadow tw-space-y-2'>
+							<div className='tw-flex tw-items-center tw-gap-x-2'>
+								<div className='tw-shrink-0'>
+									<img
+										className='tw-rounded-full tw-w-10 tw-h-10'
+										src={post.publisher.propic}
+										alt={post.publisher.id}
+									/>
+								</div>
+								<div className='tw-flex-1 tw-space-y-1'>
+									<p className='tw-font-bold'>{post.publisher.name}</p>
+									<p className='tw-text-xs tw-text-neutral-400'>{post.time}</p>
+								</div>
 							</div>
-							<div className='tw-flex-1 tw-space-y-1'>
-								<p className='tw-font-bold'>{post.publisher.name}</p>
-								<p className='tw-text-xs tw-text-neutral-400'>{post.time}</p>
+							<div>
+								<BahaPostCommentRenderer content={post.content} />
 							</div>
+						</div>
+					)}
+
+					<div className='tw-self-stretch tw-my-4 tw-flex tw-justify-between tw-items-center'>
+						<div className='tw-relative'>
+							<div className='tw-pl-2'>
+								<a
+									onClick={handleClickStartRefreshConfig}
+									className='link-baha'
+								>
+									自動更新
+									<span className='material-icons tw-w-4 tw-h-4 tw-text-[1em] tw-align-text-bottom'>
+										settings
+									</span>
+								</a>
+								: <strong>{renderRefreshConfig(refreshConfig)}</strong>
+							</div>
+
+							<RefreshConfigDialog
+								value={refreshConfig}
+								open={isOpenRefreshConfig}
+								onSubmit={handleSubmitRefreshConfig}
+							/>
 						</div>
 						<div>
-							<BahaPostCommentRenderer content={post.content} />
-						</div>
-					</div>
-				)}
-
-				<div className='tw-self-stretch tw-my-4 tw-flex tw-justify-between tw-items-center'>
-					<div className='tw-relative'>
-						<div className='tw-pl-2'>
-							<a onClick={handleClickStartRefreshConfig} className='link-baha'>
-								自動更新
-								<span className='material-icons tw-w-4 tw-h-4 tw-text-[1em] tw-align-text-bottom'>
+							<button
+								className='btn btn-primary tw-whitespace-nowrap'
+								onClick={handleClickToggleConfig}
+							>
+								<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
 									settings
-								</span>
-							</a>
-							: <strong>{renderRefreshConfig(refreshConfig)}</strong>
+								</i>{' '}
+								插件設定
+							</button>
 						</div>
-
-						<RefreshConfigDialog
-							value={refreshConfig}
-							open={isOpenRefreshConfig}
-							onSubmit={handleSubmitRefreshConfig}
-						/>
 					</div>
-					<div>
-						<button
-							className='btn btn-primary tw-whitespace-nowrap'
-							onClick={handleClickToggleConfig}
+
+					<div className='tw-bg-bg1 tw-shadow tw-mb-4 tw-sticky tw-top-[100px] tw-z-10 tw-pt-2'>
+						<BahaPostCommentsListingDivForEditor
+							avatarSrc={me.avatar}
+							config={bgtV3Config!}
 						>
-							<i className='material-icons tw-align-middle tw-w-2 tw-text-[1em]'>
-								settings
-							</i>{' '}
-							插件設定
-						</button>
+							<BahaPostCommentTextarea
+								editorRef={editorRef}
+								id='baha-post-comment-textarea-master'
+								onPressEnter={handlePressEnterOnTextarea}
+							/>
+
+							<div className='tw-mt-2 tw-flex tw-justify-between'>
+								<div className='tw-opacity-80 tw-text-xs tw-space-x-2'>
+									<span>Enter: 發送</span>
+									<span>Shift+Enter: 換行</span>
+									<span>黏貼圖片: 上傳</span>
+								</div>
+								<div className='tw-space-x-2 tw-text-xs'>
+									<span
+										className='tw-underline tw-cursor-pointer'
+										onClick={toggleDiceRoll}
+									>
+										擲骰
+									</span>
+									<span
+										className='tw-underline tw-cursor-pointer'
+										onClick={handleClickOpenGallery}
+									>
+										素材庫
+									</span>
+								</div>
+							</div>
+						</BahaPostCommentsListingDivForEditor>
+					</div>
+
+					<div className='tw-bg-bg1 tw-shadow'>
+						<BahaPostCommentsListingDiv
+							comments={comments}
+							config={bgtV3Config!}
+						/>
+					</div>
+
+					<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>
+						<div className='tw-absolute tw-bottom-6 tw-right-24'></div>
 					</div>
 				</div>
 
-				<div className='tw-bg-bg1 tw-shadow tw-mb-4'>
-					<BahaPostCommentsListingDivForEditor
-						avatarSrc={me.avatar}
-						config={bgtV3Config!}
+				<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-max-h-[90vh] tw-overflow-y-scroll hide-scrollbar tw-space-y-4 empty:tw-hidden'>
+					<DialogWrapper
+						title='插件設定'
+						isActive={isOpenBGTV3Config}
+						onClose={() => setIsOpenBGTV3Config(false)}
 					>
-						<BahaPostCommentTextarea
-							editorRef={editorRef}
-							id='baha-post-comment-textarea-master'
-							onPressEnter={handlePressEnterOnTextarea}
+						<BGTV3ConfigForCommentDiv
+							commentConfig={commentConfig!}
+							onChangeValue={setCommentConfig}
 						/>
+					</DialogWrapper>
 
-						<div className='tw-mt-2 tw-flex tw-justify-between'>
-							<div className='tw-opacity-80 tw-text-xs tw-space-x-2'>
-								<span>Enter: 發送</span>
-								<span>Shift+Enter: 換行</span>
-								<span>黏貼圖片: 上傳</span>
-							</div>
-							<div className='tw-space-x-2 tw-text-xs'>
-								<span
-									className='tw-underline tw-cursor-pointer'
-									onClick={toggleDiceRoll}
-								>
-									擲骰
-								</span>
-								<span
-									className='tw-underline tw-cursor-pointer'
-									onClick={handleClickOpenGallery}
-								>
-									素材庫
-								</span>
-							</div>
-						</div>
-					</BahaPostCommentsListingDivForEditor>
+					<DialogWrapper
+						title='素材庫'
+						isActive={isOpenGallery}
+						onClose={() => setIsOpenGallery(false)}
+					>
+						<GalleryDialog insertTextFn={handleInsertTextToEditor} />
+					</DialogWrapper>
+
+					<DialogWrapper
+						title='擲骰'
+						isActive={isOpenDiceRoll}
+						onClose={toggleDiceRoll}
+					>
+						<DiceRollDialog insertTextFn={handleInsertTextToEditor} />
+					</DialogWrapper>
 				</div>
 
-				<div className='tw-bg-bg1 tw-shadow'>
-					<BahaPostCommentsListingDiv
-						comments={comments}
-						config={bgtV3Config!}
-					/>
-				</div>
-
-				<div className='tw-fixed tw-bottom-0 tw-right-0 tw-z-10'>
-					<div className='tw-absolute tw-bottom-6 tw-right-24'></div>
-				</div>
+				<BGTV3ConfigForUsersBot
+					comments={fetchedComments}
+					usersConfig={usersConfig!}
+					onChangeValue={setUsersConfig}
+				/>
 			</div>
-
-			<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-max-h-[90vh] tw-overflow-y-scroll hide-scrollbar tw-space-y-4 empty:tw-hidden'>
-				<DialogWrapper
-					title='插件設定'
-					isActive={isOpenBGTV3Config}
-					onClose={() => setIsOpenBGTV3Config(false)}
-				>
-					<BGTV3ConfigForCommentDiv
-						commentConfig={commentConfig!}
-						onChangeValue={setCommentConfig}
-					/>
-				</DialogWrapper>
-
-				<DialogWrapper
-					title='素材庫'
-					isActive={isOpenGallery}
-					onClose={() => setIsOpenGallery(false)}
-				>
-					<GalleryDialog insertTextFn={handleInsertTextToEditor} />
-				</DialogWrapper>
-
-				<DialogWrapper
-					title='擲骰'
-					isActive={isOpenDiceRoll}
-					onClose={toggleDiceRoll}
-				>
-					<DiceRollDialog insertTextFn={handleInsertTextToEditor} />
-				</DialogWrapper>
-			</div>
-
-			<BGTV3ConfigForUsersBot
-				comments={fetchedComments}
-				usersConfig={usersConfig!}
-				onChangeValue={setUsersConfig}
-			/>
-		</div>
+		</>
 	);
 }
 

@@ -80,7 +80,7 @@ function combineResult(
 
 	return {
 		fetchedComments,
-		latestCommentId: fetchedComments.slice(-1)[0].id,
+		latestComment: fetchedComments.slice(-1)[0],
 		totalPage: latestCommentPage.totalPage,
 		commentCount: latestCommentPage.commentCount,
 	};
@@ -100,7 +100,7 @@ export default function useBahaPostAndComments(options?: {
 	});
 
 	const [cachedTotalPage, setCachedTotalPage] = useState<number>(0);
-	const { fetchedComments, totalPage, latestCommentId, commentCount } =
+	const { fetchedComments, totalPage, latestComment, commentCount } =
 		useQueries({
 			queries: Array.from({ length: cachedTotalPage }, (_, page) =>
 				commentPageQueryOptions(
@@ -217,7 +217,7 @@ export default function useBahaPostAndComments(options?: {
 		post,
 		postMetadata,
 		fetchedComments,
-		latestCommentId,
+		latestComment,
 		commentCount,
 		pendingMutations,
 		isLoading,
