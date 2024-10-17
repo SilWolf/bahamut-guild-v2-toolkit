@@ -1,0 +1,9 @@
+.dice-roll-dialog :global(input[type='text']),
+.dice-roll-dialog :global(textarea) {
+	@apply tw-text-[inherit] tw-bg-white tw-bg-opacity-10 tw-text-[1em] tw-w-full tw-border tw-border-neutral-400 tw-border-solid tw-p-2 tw-rounded;
+	resize: vertical;
+}
+
+.dice-roll-dialog :global(textarea) {
+	min-height: 3em;
+}

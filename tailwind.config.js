@@ -13,6 +13,9 @@ export default {
 				bg1: {
 					DEFAULT: 'var(--color-bg-default, #FFFFFF)',
 				},
+				bg2: {
+					DEFAULT: 'var(--color-bg2-default, #F0F0F0)',
+				},
 			},
 		},
 	},

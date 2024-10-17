@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { PropsWithChildren, useMemo } from 'react';
 import './App.css';
 import { useCallback, useState } from 'react';
 import BahaPostCommentRenderer from './components/BahaPostCommentContent';
@@ -26,6 +26,8 @@ import {
 	BGTV3ConfigForUsersDiv,
 } from './widgets/BGTV3ConfigDiv';
 import GalleryDialog from './widgets/GalleryDialog';
+import { useBoolean } from 'react-use';
+import DiceRollDialog from './widgets/DiceRollDialog';
 
 type TRefreshConfig = {
 	enableRefresh: 'on' | boolean;
@@ -146,18 +148,23 @@ function App() {
 	 * Editor Extra Actions
 	 */
 	const editorRef = useCommentEditorRef();
-
-	const [isOpenGallery, setIsOpenGallery] = useState<boolean>(false);
-	const handleClickOpenGallery = useCallback(() => {
-		setIsOpenGallery((prev) => !prev);
-	}, []);
-
 	const handleInsertTextToEditor = useCallback(
 		(newText: string) => {
 			editorRef.current?.update(insertTextFn(newText));
 		},
 		[editorRef]
 	);
+
+	/**
+	 * Gallery
+	 */
+	const [isOpenGallery, setIsOpenGallery] = useState<boolean>(false);
+	const handleClickOpenGallery = useCallback(() => {
+		setIsOpenGallery((prev) => !prev);
+	}, []);
+
+	/** Dice Roll */
+	const [isOpenDiceRoll, toggleDiceRoll] = useBoolean(false);
 
 	return (
 		<div className='tw-flex tw-gap-4 tw-items-start'>
@@ -238,7 +245,18 @@ function App() {
 								<span>黏貼圖片: 上傳</span>
 							</div>
 							<div className='tw-space-x-2 tw-text-xs'>
-								<span onClick={handleClickOpenGallery}>圖片</span>
+								<span
+									className='tw-underline tw-cursor-pointer'
+									onClick={toggleDiceRoll}
+								>
+									擲骰
+								</span>
+								<span
+									className='tw-underline tw-cursor-pointer'
+									onClick={handleClickOpenGallery}
+								>
+									素材庫
+								</span>
 							</div>
 						</div>
 					</BahaPostCommentsListingDivForEditor>
@@ -256,24 +274,34 @@ function App() {
 				</div>
 			</div>
 
-			{isOpenBGTV3Config && (
-				<div className='tw-flex-1 tw-bg-bg1 tw-sticky tw-top-[100px] tw-h-[calc(100vh-116px)] tw-overflow-y-scroll hide-scrollbar'>
+			<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-max-h-[90vh] tw-overflow-y-scroll hide-scrollbar tw-space-y-4 empty:tw-hidden'>
+				<DialogWrapper
+					title='插件設定'
+					isActive={isOpenBGTV3Config}
+					onClose={() => setIsOpenBGTV3Config(false)}
+				>
 					<BGTV3ConfigForCommentDiv
 						commentConfig={commentConfig!}
 						onChangeValue={setCommentConfig}
 					/>
-					<BGTV3ConfigForUsersDiv
-						usersConfig={usersConfig!}
-						onChangeValue={setUsersConfig}
-					/>
-				</div>
-			)}
+				</DialogWrapper>
 
-			{isOpenGallery && (
-				<div className='tw-flex-1 tw-sticky tw-top-[100px] tw-bg-bg1 tw-rounded tw-p-4 tw-shadow tw-z-[1000]'>
+				<DialogWrapper
+					title='素材庫'
+					isActive={isOpenGallery}
+					onClose={() => setIsOpenGallery(false)}
+				>
 					<GalleryDialog insertTextFn={handleInsertTextToEditor} />
-				</div>
-			)}
+				</DialogWrapper>
+
+				<DialogWrapper
+					title='擲骰'
+					isActive={isOpenDiceRoll}
+					onClose={toggleDiceRoll}
+				>
+					<DiceRollDialog insertTextFn={handleInsertTextToEditor} />
+				</DialogWrapper>
+			</div>
 
 			<BGTV3ConfigForUsersBot
 				comments={fetchedComments}
@@ -285,3 +313,33 @@ function App() {
 }
 
 export default App;
+
+function DialogWrapper({
+	title,
+	onClose,
+	isActive,
+	children,
+}: PropsWithChildren<{
+	title: React.ReactNode;
+	onClose: () => void;
+	isActive: boolean;
+}>) {
+	if (!isActive) {
+		return undefined;
+	}
+
+	return (
+		<div className='tw-bg-bg1 tw-rounded tw-p-4 tw-shadow tw-z-[99]'>
+			<div className='tw-flex tw-justify-between'>
+				<h2 className='tw-text-lg tw-font-bold tw-mb-2'>{title}</h2>
+				<span
+					className='tw-cursor-pointer tw-underline tw-text-sm'
+					onClick={onClose}
+				>
+					X 關閉
+				</span>
+			</div>
+			<div>{children}</div>
+		</div>
+	);
+}

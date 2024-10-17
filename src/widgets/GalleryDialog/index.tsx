@@ -618,13 +618,12 @@ export function GalleryMainForHomeImage({
 		getNextPageParam: (lastPage, __, lastPageParam) =>
 			lastPage.length > 0 ? lastPageParam + 1 : null,
 		select: homeImagesSelectFn,
-		initialData: { pages: [], pageParams: [] },
 	});
 
 	return (
 		<GalleryMain
 			folderName='_home'
-			items={items}
+			items={items ?? []}
 			onAction={onAction}
 			onClickItem={onClickItem}
 			onClickLoadMore={fetchNextPage}

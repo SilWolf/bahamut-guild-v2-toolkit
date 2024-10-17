@@ -1,8 +1,36 @@
-import axiosInstance from '../services/api.service';
+import axios from 'axios';
 import { BahaPostDetail, TBahaComment, TBahaCommentsPage } from '../types';
 
+const bahaAxiosInstance = axios.create({
+	baseURL: 'https://api.gamer.com.tw',
+	timeout: 10000,
+	withCredentials: true,
+});
+
+bahaAxiosInstance.interceptors.request.use(
+	function (config) {
+		if (config.method === 'post') {
+			const csrf = new Bahamut.Csrf();
+			csrf.setCookie();
+			csrf
+				.getFetchHeaders()
+				.entries()
+				.forEach(([key, value]) => {
+					config.headers[key] = value;
+				});
+		}
+
+		// Do something before request is sent
+		return config;
+	},
+	function (error) {
+		// Do something with request error
+		return Promise.reject(error);
+	}
+);
+
 export const apiGetPostDetail = async (gsn: string, sn: string) => {
-	return axiosInstance
+	return bahaAxiosInstance
 		.get<{ data: BahaPostDetail }>('/guild/v1/post_detail.php', {
 			params: { gsn, messageId: sn },
 		})
@@ -10,7 +38,7 @@ export const apiGetPostDetail = async (gsn: string, sn: string) => {
 };
 
 export const apiGetAllComments = async (gsn: string, sn: string) => {
-	return axiosInstance
+	return bahaAxiosInstance
 		.get<{ data: TBahaCommentsPage }>('/guild/v1/comment_list.php', {
 			params: { gsn, messageId: sn, all: 1 },
 		})
@@ -44,7 +72,7 @@ export const apiGetCommentsInPaginations = async (
 	const _page = page !== 'all' ? page : null;
 	const _all = page === 'all' ? 1 : null;
 
-	return axiosInstance
+	return bahaAxiosInstance
 		.get<{ data: TBahaCommentsPage }>('/guild/v1/comment_list.php', {
 			params: { gsn, messageId: sn, page: _page, all: _all },
 		})
@@ -69,7 +97,7 @@ export const apiPostComment = async (
 	formData.append('content', content);
 	formData.append('legacy', '1');
 
-	return axiosInstance
+	return bahaAxiosInstance
 		.post<{ data: { commentData: TBahaComment } }>(
 			'/guild/v1/comment_new.php',
 			formData
@@ -103,7 +131,7 @@ const mapComment = (comment: TBahaComment) => {
 };
 
 export const apiGetHomeImagesByPage = (p = 1) =>
-	axiosInstance
+	bahaAxiosInstance
 		.get<{ index: number; thumb_url: string; url: string }[]>(
 			'https://api.gamer.com.tw/ajax/common/truth_image_list.php',
 			{ params: { p } }

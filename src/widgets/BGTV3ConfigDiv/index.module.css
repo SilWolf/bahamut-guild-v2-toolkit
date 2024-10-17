@@ -1,12 +1,11 @@
 .bgtv3-config-div {
-	padding: 1em;
 }
 
 .bgtv3-config-div :global(.cd-field) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 0.5em;
+	padding: 0.25em 0;
 }
 
 .bgtv3-config-div :global(.cd-field-label) {
@@ -16,7 +15,6 @@
 .bgtv3-config-div :global(.cd-field-select) {
 	background: rgba(0, 0, 0, 0.03);
 	border-radius: 4px;
-	padding-right: 0.5em;
 	cursor: pointer;
 }
 

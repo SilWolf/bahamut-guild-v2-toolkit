@@ -148,8 +148,6 @@ export function BGTV3ConfigForCommentDiv({
 
 	return (
 		<form className='tw-space-y-6'>
-			<h2 className='tw-text-xl tw-font-bold'>外觀設定</h2>
-
 			<div className={styles['bgtv3-config-div']}>
 				{FIELDS.map((field) => (
 					<FieldSelect

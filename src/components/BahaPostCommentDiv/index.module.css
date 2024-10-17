@@ -32,7 +32,7 @@
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	transition-duration: 150ms;
 	border-radius: var(--bpc-avatar-border-radius, 0px);
-	transition-property: border-radius;
+	transition-property: border-radius, width, height;
 	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 	transition-duration: 150ms;
 }
